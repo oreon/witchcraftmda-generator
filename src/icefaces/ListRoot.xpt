@@ -1,0 +1,110 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE genView FOR uml::Class»
+	«FILE getWebPath() +"/list" +name+ "." + getExtension()»
+<ui:composition «EXPAND WebRoot::genIncludes» template="«getTemplate()»"  >	
+	«setAsCurrentEntity(this)-»
+	<ui:define name="content">
+		<ui:include src="search«name».«getExtension()»" />
+		<ice:form>
+		<ui:include src="list«name»Component.«getExtension()»" />
+		</ice:form>
+	</ui:define>
+</ui:composition>
+	«ENDFILE»
+	«EXPAND genViewComponent FOR this»
+«ENDDEFINE»
+
+«DEFINE genViewComponent FOR uml::Class»
+	«FILE getWebPath() +"/list" +name+ "Component." + getExtension()»
+	<html «EXPAND WebRoot::genIncludes-» >	
+	
+		<ice:commandButton value="Create New" action="edit" rendered="#{identity.loggedIn}"/>
+		<ice:dataTable  var="«asVar()»" value="#{«asVar()»List}" rows="30"
+		rowClasses="odd, even" styleClass="dataTable" >		
+		«EXPAND genAttribAsOutput FOR this-»
+		«EXPAND genPropsFromBusinessEntity FOR this-»
+		«EXPAND genLink("select", "eye.png") FOR this»
+		«EXPAND genLink ("select", "edit.png")FOR this»
+		«EXPAND genLink("showDeleteDialog", "delete.png") FOR this»
+		</ice:dataTable>
+		
+		<wc:deletePanel backingAction="#{«getAction()»}" backingEntity="#{«asVar()»}" title="Delete «name»" />
+	</html>
+	«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE genPropsFromBusinessEntity FOR wcprofile::Entity»
+	«IF fieldsFromSuperClass != null»	
+	«EXPAND genProperty FOREACH getStringsAsList(fieldsFromSuperClass)»
+	«ENDIF»
+«ENDDEFINE»
+
+
+«DEFINE genAttribAsOutput FOR uml::Class»
+	«FOREACH allParents() AS e-»
+	«EXPAND genAttribute FOREACH e.getAllAttributes().select( a |!a.isMultivalued() && !a.isSecret()  ) -»
+	«ENDFOREACH»
+	«EXPAND genAttribute FOREACH getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()) -»
+«ENDDEFINE»
+
+«DEFINE genAttribute FOR uml::Property -»
+	«IF association != null -»
+		«IF isMultivalued() || isSecret()»
+		«ELSE»
+			«IF type.getAppliedStereotype("wcprofile::Embeddable") != null-»
+				«setCurrentEmbeddable()»
+				«EXPAND genAttribAsOutput FOR this.type-»
+			«ELSE»
+				«EXPAND genAssociation FOR this-»
+			«ENDIF»
+		«ENDIF»
+	«ELSE-»
+		«EXPAND genProperty FOR this-»
+	«ENDIF»
+«ENDDEFINE»
+
+«DEFINE genLink(String action, String icon) FOR uml::Class»
+	<ice:column «action =="archive" ?"rendered=\"#{s:hasRole('admin')}\"":""»  >
+		<f:facet name="header">
+			<h:outputText value=" " />
+		</f:facet>
+		<h:commandLink 
+			action="#{«getAction()».«action»(«asVar()»)}">
+			<h:graphicImage value="/images/icons/«icon»" style="border: 0px" />
+		</h:commandLink>
+	</ice:column>
+«ENDDEFINE»
+
+«DEFINE genAssociation FOR uml::Property»
+	<ice:column «IF isCompositionContainer()» groupOn="#{«genPropertyLabel()».displayName}" «ENDIF»>
+		<f:facet name="header">
+			<h:outputText value="«msgBundleKey()-»"   /> 	
+		</f:facet>
+		<s:link «getEscape()» value="#{«genPropertyLabel()».displayName}" action="view«type.name»" />
+	</ice:column>
+«ENDDEFINE»
+
+«DEFINE genProperty FOR uml::Property-»
+	<ice:column>
+		<f:facet name="header">
+			<h:outputText value="«msgBundleKey()-»" />
+		</f:facet>
+		<h:outputText value="#{«genPropertyLabel()»}" />
+	</ice:column>
+«ENDDEFINE»
+
+«DEFINE genProperty FOR String-»
+	<ice:column>
+		<f:facet name="header">
+			<h:outputText value="«msgBundleKey()-»" />
+		</f:facet>
+		<h:outputText value="#{«getCurrentEntity().asVar()».«this»«this == "createdByUser"?".displayName":""»}" />
+	</ice:column>
+«ENDDEFINE»

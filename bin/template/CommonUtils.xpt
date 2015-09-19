@@ -1,0 +1,27 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::associationExtensions»
+
+«EXTENSION template::WebExtensions»
+
+«REM» Generates getter, setter and declaration for given variable «ENDREM»
+«DEFINE genDeclGetterSetter(String extension) FOR wcprofile::Entity»
+	private «name + extension» «name.toFirstLower() + extension»;
+	
+	public «name + extension» get«name + extension»(){
+		return «name.toFirstLower() + extension»;
+	} 
+	
+	public void set«name + extension»(«name + extension» «name.toFirstLower() + extension»){
+		this.«name.toFirstLower() + extension» = «name.toFirstLower() + extension»;
+	}
+«ENDDEFINE»
+
+«REM» Generates getter, setter and declaration for given string and type  «ENDREM»
+«DEFINE genDeclGetterSetter(String type, String name, boolean instantiate) FOR String-»
+	private «type» «name» «instantiate? ( " = new " + type + "()"): ""»;
+	
+	«EXPAND genGetterSetter(type, name) FOR this»
+«ENDDEFINE»

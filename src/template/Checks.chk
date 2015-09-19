@@ -1,0 +1,53 @@
+import uml;
+import java;
+import wcprofile;
+
+extension org::openarchitectureware::uml2::profile::profiling;
+
+extension template::GeneratorExtensions;
+
+context uml::Class ERROR 'a class must have a name! found anonymous class in ' + this.package.name:
+this.name != null && this.name.length > 0;
+
+//context uml::Property ERROR 'a field must have a name!, found anonymous field in ' + this.class.name:
+//this.association != null || this.name != null && this.name.length > 0;
+
+
+context uml::Class ERROR 'a class name must not have a special character -> ' + this.name:
+this.name != null && this.name.length > 0 && this.name.matches("\\w*");
+
+//TODO: see if this rule can be removed
+context wcprofile::Entity WARNING 'an entity class should not be abstract ' + this.name:
+!this.isAbstract;
+
+
+//context uml::Action ERROR 'an Action name must not have a special character -> ' + this.name:
+//this.name != null && this.name.length > 0 && this.name.matches("\\w*");
+
+//context uml::Property ERROR 'a class name must not have a special character -> ' + this.name:
+//this.name != null && this.name.length > 0 && this.name.matches("\\w*||\\.");
+
+
+//make sure the current property if member of an entity class is a primitive type
+//context uml::Property ERROR 'an attribute of an entity thats not an association cant be an entity ' + name + ' - ' + this.class.name:
+//this.class.isEntity() && this.association == null &&  !this.type.isEntity() ;
+
+
+//context uml::Property ERROR 'a field must have a type!, found untyped field ' + name + ' in ' + this.class.name:
+//this.type != null;
+
+
+
+/*
+context wcprofile.Entity ERROR "Duplicate entity "+name :
+	model().entities().select(e|e.name==name).size==1;
+
+
+import metamodel;
+
+extension metamodel::Extensions;
+
+context Model ERROR "No entities defined" :
+	types.exists(e|Entity.isInstance(e));
+	
+*/

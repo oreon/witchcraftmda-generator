@@ -1,0 +1,60 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE Root FOR uml::Model»
+	«EXPAND PackageRoot FOREACH allOwnedElements().typeSelect(uml::Package)»
+«ENDDEFINE»
+
+«DEFINE PackageRoot FOR uml::Package»
+	«EXPAND ClassRoot FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+«ENDDEFINE»
+
+«DEFINE ClassRoot FOR uml::Class»
+	«FILE "/mappings/" + packagePath() +"/"  + name + "hbm.xml"»
+	«EXPAND genClassBody FOR this»
+	«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE genClassBody FOR wcprofile::Entity»
+<?xml version="1.0" encoding="utf-8" ?>
+<hibernate-mapping xmlns="urn:nhibernate-mapping-2.2"
+  assembly="FirstHiber" namespace="«packageName()»">
+ 	<class name="« packageName() ».«name»" table="«getTableName()»">
+ 	 	<id column="id" name="id" type="java.lang.Long">
+ 	 	 	<generator class="increment"/>	 	 	
+ 	 	</id>
+ 	 	«EXPAND genDecl FOREACH getAllAttributes() -»
+ 	</class>
+</hibernate-mapping>
+«ENDDEFINE»
+ 
+ 
+«DEFINE genDecl FOR uml::Property»
+«IF isMultivalued()»
+		«IF opposite!= null && opposite.isMultivalued() -»
+		    	//Handle many to many 
+		«ELSE»
+		<set name="«name»" lazy="true" inverse="true" cascade="all-delete-orphan">
+ 	 	 	<key column="«class.name»_ID" />
+				<one-to-many class="«fqn(type)»" />
+ 	 	</set>
+ 	 	«ENDIF»
+	«ELSE»
+		«IF association != null »
+		<many-to-one name="«name»" class="«fqn(type)»" column="«name»_id"/>
+		«ELSE»
+			«EXPAND genPropertyDecl FOR this-»
+		«ENDIF»
+	«ENDIF»
+«ENDDEFINE»
+
+«DEFINE genPropertyDecl FOR uml::Property»
+	«EXPAND genBaseDecl FOR this-»
+«ENDDEFINE»
+
+«DEFINE genBaseDecl FOR uml::Property-»
+		<property  name="«name»" type="«type.fqnForPackage(this.class)-»"/>
+«ENDDEFINE»

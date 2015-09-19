@@ -1,0 +1,113 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::associationExtensions»
+«EXTENSION template::WebExtensions»
+
+«DEFINE Root FOR uml::Model»
+	«EXPAND PackageRoot FOREACH allOwnedElements().typeSelect(uml::Package)»
+«ENDDEFINE»
+
+«DEFINE PackageRoot FOR uml::Package»
+	«FILE  "../resources/docs/"    + name + ".xhtml"»
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+«PROTECT CSTART '<!--' CEND '-->' ID  'USER_EDITABLE_DOC_' + name »
+
+«ENDPROTECT»
+
+</head>
+<body>
+	«PROTECT CSTART '<!--' CEND '-->' ID  'USER_EDITABLE_DOC_PREFACE_' + name »
+
+	«ENDPROTECT»
+
+	«EXPAND DocRoot FOREACH allOwnedElements().typeSelect(wcprofile::WebAction)»
+</body>
+</html>
+	«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE DocRoot FOR wcprofile::WebAction»
+
+	<h2>«name» </h2>
+	«getDocumentation()»
+	«FOREACH getAllOperations() AS o»
+		<h3> «o.name» </h3>  
+		<br/> URL  «EXPAND getMehtodType FOR o-» /«name.toFirstLower()»«getRestExtension()»/«o.name»
+		<p>«o.getDocumentation()» </p>
+		<br/>
+		«IF o.ownedParameter.size > 1 »
+		<table class="dispTable"><tr><th> Name </th><th> Type </th> <th> Description </th><th> Constraints </th></tr>
+		 «FOREACH o.ownedParameter AS e-» 
+	 		«IF e.name != null && e.name != ""»
+	 		<tr>
+	 			<td>  «e.name» </td><td> «e.type.name» </td>
+	 			<td>«!e.getDocumentation().isEmptyStr() ? e.getDocumentation() : e.name.getVariableNameForDisplay()» </td>
+	 			<td>«FOREACH e.getAllConstraints() AS c» 
+	 				«!c.getDocumentation().isEmptyStr() ? c.getDocumentation() : c.name.getVariableNameForDisplay()» «ENDFOREACH»  </td>
+	 		</tr>
+	 		«ENDIF» 
+	 	«ENDFOREACH»
+	 	</table>
+	 	«ENDIF»
+	 	<br/>
+	 	Return Type -  «o.type.name»
+	 	<br/>
+	 	<div class="return" >
+	 	<code>
+			«EXPAND genElement(null) FOR o.type»
+	 	</code>
+	 	</div>
+	 	<br/>
+	«ENDFOREACH»
+	<hr/>
+«ENDDEFINE»
+
+«DEFINE genElement(String number) FOR uml::Class»
+&lt;xs:element «IF number != null» maxOccurs="«number»"«ENDIF» type="xs:«name.toFirstLower()»"  name="«name»"  &gt;<br/>
+	&lt;xs:complexType&gt;<br/>
+		&nbsp;&lt;xsd:all&gt; <br/>
+	 	«EXPAND genSchema »
+	 	&nbsp;&lt;/xsd:all&gt; <br/>
+	 &lt;/xs:complexType&gt;<br/>
+	 &lt;/xs:element&gt;<br/>
+«ENDDEFINE»
+
+«DEFINE genElement(String number) FOR uml::PrimitiveType»
+&lt;xs:element type="xs:«name.toFirstLower()»"  name="«name»"  &gt;<br/>
+«ENDDEFINE»
+
+«DEFINE genSchema FOR uml::Class»
+	«FOREACH allParents() AS e-»
+	 	«EXPAND genAttribute FOR e»
+	«ENDFOREACH»
+	«EXPAND genAttribute FOR this»
+«ENDDEFINE»
+
+«DEFINE genAttribute FOR uml::Class»
+	«FOREACH getAllAttributes() AS a»
+	 «IF a.isMultivalued()»
+		«EXPAND genElement("100") FOR a.type»
+	 «ELSE»
+	 	«IF a.association == null»
+		 &nbsp; &nbsp;  &lt;xs:element type="xs:«a.isString()?"string":a.type.name.toFirstLower()»" name="«a.name»" /&gt; <br/>
+	 	«ENDIF»
+	 «ENDIF»
+	 «ENDFOREACH»
+«ENDDEFINE»
+
+
+«DEFINE genSchema FOR uml::PrimitiveType»
+	<type="«name»" name="«name.toFirstLower()»" /> 
+«ENDDEFINE»
+
+ «DEFINE getMehtodType FOR uml::Operation»
+  GET
+ «ENDDEFINE»
+ 
+«DEFINE getMehtodType FOR wcprofile::PostMethod»
+  POST
+ «ENDDEFINE»
+ 

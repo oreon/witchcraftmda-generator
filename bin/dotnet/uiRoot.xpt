@@ -1,0 +1,10 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE Root FOR uml::Model»
+	«EXPAND listRoot::Root »
+«ENDDEFINE»
+

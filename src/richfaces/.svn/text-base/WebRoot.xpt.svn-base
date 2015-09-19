@@ -1,0 +1,53 @@
+«IMPORT wcprofile»
+«IMPORT uml2»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+
+«DEFINE Root FOR uml::Model»
+	«EXPAND NavigationRoot::genNav »
+	«EXPAND NavigationRoot::genSummaryPage »
+	«EXPAND PackageRoot FOREACH allOwnedElements().typeSelect(uml::Package)»
+	
+«ENDDEFINE»
+
+
+
+«DEFINE PackageRoot FOR uml::Package»
+	«EXPAND EditRoot::genEditView(false) FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND EditRoot::genEditView(true) FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND ListRoot::genView FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND SearchRoot::genSearchView FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND genTemplate FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND dashboard::gen FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND NRSEdit::genEditFile FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND TreeView::genTreeViewComponent FOREACH allOwnedElements().typeSelect(wcprofile::Entity  )»
+«ENDDEFINE»
+
+«DEFINE genTemplate FOR uml::Class»
+	«IF templatable»
+	«setCurrentTemplateMode(true)» 
+
+	«EXPAND EditRoot::genEditView(false) »
+	«EXPAND EditRoot::genEditView(true) »
+	«EXPAND ListRoot::genView »
+	
+	«setCurrentTemplateMode(false)» 
+	«ENDIF»
+«ENDDEFINE»
+
+
+
+«DEFINE genIncludes FOR uml::Element»
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:s="http://jboss.com/products/seam/taglib"
+	xmlns:a="http://richfaces.org/a4j"
+	xmlns:p="http://primefaces.prime.com.tr/ui"
+	xmlns:rich="http://richfaces.org/rich"
+	xmlns:c="http://java.sun.com/jstl/core"
+	xmlns:fn="http://java.sun.com/jsp/jstl/functions" 
+	xmlns:wc="http://witchcraft.sourceforge.net/jsf"
+«ENDDEFINE»

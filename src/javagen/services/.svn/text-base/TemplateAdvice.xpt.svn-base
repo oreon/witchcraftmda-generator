@@ -1,0 +1,136 @@
+«IMPORT wcprofile»
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+
+«EXTENSION template::associationExtensions»
+«EXTENSION template::GeneratorExtensions»
+
+
+
+«AROUND javagen::pojo::pojoroot::genAdditionalMethods  FOR uml::Class»
+	«EXPAND genOperations FOR this»
+	«targetDef.proceed()»
+«ENDAROUND»
+
+
+«DEFINE genOperations FOR wcprofile::Service»
+	 «EXPAND genWrappedOperation FOREACH getAllOperations()»
+«ENDDEFINE»
+
+
+«DEFINE genOperations FOR uml::Class»
+«ENDDEFINE»
+
+
+«DEFINE genWrappedOperation FOR uml::Operation»
+      /**
+       * «EXPAND javagen::pojo::pojoroot::genDocumentation »
+       «FOREACH ownedParameter.select( e | !e.isReturn() ) AS e-»
+       * @param «e.name»  «e.type.name» «e.getDocumentation()» 
+       *«ENDFOREACH»
+       * @return «type.name»
+       */
+      //@Restrict("#{s:hasPermission('«class.name»','«name»')}")
+      «visibility» «getOpReturnType()» «getOpReturnTypeTemplateParam()»  «name» («EXPAND javagen::pojo::pojoroot::genParamSignature») {
+      		 
+			/*
+     		//logger.info("starting «name-» ......" + «EXPAND genParams-» );
+	        */
+	                
+            «IF !isVoid()» «getOpReturnType()» result = «ENDIF» do«name.toFirstUpper()»(«EXPAND genParams-»);
+           
+           /*
+           logger.info("finished «name» ....." «IF !isVoid()» + " returning - " + result«type.name == "List" ?  ".size()  + \" entries \" ": ""» «ENDIF»);
+           */
+           «IF !isVoid()» return  result  ; «ENDIF» 
+      }
+     
+      /**
+       * «ownedComment.body»
+       */
+      «IF readPropertyDef("generateAbstractMethods","false") == "true"»
+       	protected  abstract  «getOpReturnType()» «getOpReturnTypeTemplateParam()»  do«name.toFirstUpper()» («EXPAND javagen::pojo::pojoroot::genParamSignature») ;
+      «ELSE»
+      	protected «getOpReturnType()» «getOpReturnTypeTemplateParam()»  do«name.toFirstUpper()» («EXPAND javagen::pojo::pojoroot::genParamSignature»){
+           «IF type != null» return null; «ENDIF»
+      	}
+      «ENDIF»
+«ENDDEFINE»
+
+
+«DEFINE methodSignature(String prefix) FOR uml::Operation-»
+      
+«ENDDEFINE»
+
+
+ 
+
+
+ «DEFINE genParams FOR uml::Operation-»  
+	«FOREACH ownedParameter.select( a |  a.name != ""  ) AS a  SEPARATOR ','-»
+	     «a.name-»«REM» TODO - find a mechanism for generalizing many «ENDREM»
+	«ENDFOREACH-»
+«ENDDEFINE»
+
+
+
+
+
+«DEFINE genExceptions FOR uml::Operation-»
+	«IF raisedException.size > 0 -» throws «ENDIF» «FOREACH raisedException AS e SEPARATOR ',' » «e.fqn()-» «ENDFOREACH»
+«ENDDEFINE»
+	
+
+
+«DEFINE genBaseClassAnnotations FOR uml::Class»
+«ENDDEFINE»
+
+«DEFINE genClassAnnotations FOR uml::Class»
+«ENDDEFINE»
+
+
+
+
+
+
+«DEFINE genPropertyAnnotations FOR uml::Property»
+«ENDDEFINE»
+
+
+«DEFINE genSimplePropertyAnnotations FOR wcprofile::Column»
+	«getNotNullAnnotations()»
+	«IF validator != null »«getValidatorAnnotations()»«ENDIF»
+	«getLengthAnnotations()»
+	«getUniqueAnnotations()»
+	«REM»«getUniqueAnnotationsProp()»«ENDREM»
+	«getTransient()»
+	«type.name.getTypeAnnotation()»
+	«IF !isDerived()»«getColJpaAnnotations()» «ENDIF»
+«ENDDEFINE»
+
+
+«DEFINE genAssocPropertyAnnotations FOR wcprofile::Column»
+	
+«ENDDEFINE»
+
+
+«DEFINE genManyToMany FOR uml::Property»
+	
+«ENDDEFINE»
+
+
+«DEFINE genPersistenceImports FOR uml::Class»
+«ENDDEFINE»
+
+
+«DEFINE genAdditionalMethods FOR uml::Class»  
+	«EXPAND genDisplayname FOR this»
+«ENDDEFINE»
+
+
+«DEFINE genDisplayname FOR uml::Class»
+«ENDDEFINE»
+
+
+
+«DEFINE genPackageDetails FOR uml::Package»
+«ENDDEFINE»

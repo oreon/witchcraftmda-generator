@@ -1,0 +1,162 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE Root FOR wcprofile::Entity»
+	 «setAsCurrentEntity(this)-»
+	 «EXPAND genEditContainer FOR this»
+	 «EXPAND genEditComponent FOR this»
+«ENDDEFINE»
+
+«DEFINE genEditContainer FOR wcprofile::Entity»
+«FILE getWebPath() +"/edit" +name+ "." + "tpl"»
+
+<ui:composition «EXPAND genImports FOR this»
+                template="/layout/stub/clientXpress.seam">
+
+    <!--selected script/css includes file-->
+    <ui:param name="layout_jsIncludes" value="/layout/scripts/cxpImports.seam"/>
+    <!--selected tab template file-->
+    <ui:param name="layout_tabTemplate" value="/layout/menu/tabSelectionOperations.seam"/>
+    <!--selected left nav template file-->
+    <ui:param name="layout_navTemplate" value="/layout/menu/nav/operationsClientXpressProfile.seam"/>
+
+    <ui:param name="layout_pageTitle" value="#{uvs:label('PROFILES')}"/>
+    <ui:param name="step" value="library"/>
+
+    <ui:define name="page-header">
+        <ui:include src="/cxp/operations/controls/clientProfileTabs.seam"/>
+    </ui:define>
+
+    <ui:define name="page-content">
+    	<ui:include src="edit«name»Component.tpl" />
+    </ui:define>
+</ui:composition>
+«ENDFILE»
+«ENDDEFINE»
+
+
+
+«DEFINE genEditComponent FOR wcprofile::Entity»
+«FILE getWebPath() +"/edit" +name+ "Component." + "tpl"»
+
+
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+«EXPAND genImports FOR this»
+ >
+ <div>
+          
+    <h:panelGroup id="panelProfiles" layout="block">
+          «EXPAND genAttribAsOutput FOR this»
+     <h:panelGroup>  
+</div>   
+</ui:composition>
+«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE genAttribAsOutput FOR uml::Class-»
+	«FOREACH allParents() AS e-»
+	 «EXPAND genPropertyRec FOREACH e.getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()  ) -»
+	«ENDFOREACH»
+	«EXPAND genPropertyRec FOREACH getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()   ) -»
+«ENDDEFINE»
+
+«DEFINE genPropertyRec FOR uml::Property-»
+	«IF isExpandableAssoc() -» 
+		«setCurrentEmbeddable()-» 
+		«EXPAND genPropertyRec FOREACH type.getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()  ) -»
+		«clearCurrentEmbeddable()-»
+	«ELSE-»
+		«EXPAND genAttribute -»
+	«ENDIF»
+«ENDDEFINE»
+
+«DEFINE genAttribute FOR uml::Property -»
+	«EXPAND genProperty FOR this-»
+«ENDDEFINE»
+
+
+«DEFINE genAssocValue(String prefix) FOR uml::Property»
+	«REM»TODO  link should not be hard coded to path and should be of type action=view«type.name» «ENDREM»
+	<s:link «getEscape()»  value="#{«prefix»«genPropertyLabel()».displayName}"  view="«type.getViewFile("view")»" propagation="none">
+			<f:param name="«type.name.toFirstLower()»Id" value="#{«prefix»«genPropertyLabel()».id}" />
+			<f:param name="from" value="#{request.servletPath}" />
+			«IF type.popupInfo != null»
+			 <rich:toolTip>
+	            <span>
+	              #{«prefix»«genPropertyLabel()».popupInfo} 
+	            </span>
+	        </rich:toolTip>
+	        «ENDIF»
+	</s:link>
+«ENDDEFINE»
+
+
+
+«DEFINE genProperty FOR uml::Property-»
+ «EXPAND genPropertyValue("") FOR this»
+«ENDDEFINE»
+
+«DEFINE genPropertyValue(String prefix) FOR uml::Property»
+		«IF association != null -»
+			«EXPAND genAssocValue(prefix) FOR this»
+		«ELSEIF isFile()»
+				<s:graphicImage rendered="#{«prefix»«genPropertyLabel()» ne null and  «prefix»«genPropertyLabel()».contentType.startsWith('image')}" value="#{«prefix»«genPropertyLabel()».data}">
+					<s:transformImageSize height="100" maintainRatio="true"/>
+				</s:graphicImage>
+		
+				<s:link value="#{«prefix»«genPropertyLabel()».name}"  action="#{«class.asVar()»Action.download«name.toFirstUpper()»(«prefix»«class.asVar()».id)}" 
+					propagation="none"  rendered="#{not «prefix»«genPropertyLabel()».contentType.startsWith('image')}" >
+					<f:param name="currentEnt	ityId" value="#{«prefix»«class.asVar()».id}" />
+          		</s:link> 
+		«ELSEIF isDate()»
+			 <div class="cxp_inputBlock">
+                <h:outputText value="#{uvs:label('«getId().toUpperCase()»')}" styleClass="cxp_leftFixWidthLabel"/>
+                   <p:calendar id="«getId()»" value="#{«genPropertyLabel()»}" showOn="button" />
+                <h:message for="«getId()»"/>
+            </div>
+		«ELSEIF isBoolean()»
+			<h:outputText value="#{«prefix»«genPropertyLabel()»? msg.yes : msg.no }" />	
+		«ELSEIF isCurrency()»
+			<h:outputText value="#{«prefix»«genPropertyLabel()»}">
+				<f:convertNumber pattern="$#,##0.00"/>
+			</h:outputText>
+		«ELSEIF isDouble()»
+			<h:outputText value="#{«prefix»«genPropertyLabel()»}">
+				<f:convertNumber pattern="000.00"/>
+			</h:outputText>
+		«ELSEIF isLargeText()»
+			<div class="cxp_inputBlock">
+                <div class="cxp_topLabel">
+                    <h:outputText value="#{uvs:label('«getId().toUpperCase()»'}"/>
+                </div>
+                <h:inputTextarea id="«getId()»" value="#{«genPropertyLabel()»}" cols="55" rows="5" maxlength="800" styleClass="cxp_descriptionInput"/>
+            </div>			
+	 	«ELSE»
+		  <div class="cxp_inputBlock">
+                <h:outputText value="#{uvs:label('«getId().toUpperCase()»')}" styleClass="cxp_leftFixWidthLabel"/>
+                <h:inputText id="«getId()»"  value="#{«genPropertyLabel()»}" 
+                	maxlength="40" styleclass="cxp_singleLineTextInput"
+                   />
+                <h:message for="«getId()»"/>
+            </div>
+		«ENDIF»
+«ENDDEFINE»
+
+
+
+«DEFINE genImports FOR uml::Class»
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:c="http://java.sun.com/jstl/core"
+                xmlns:uvs="http://www.univeris.com/jsf/ewms/8.x"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:s="http://jboss.com/products/seam/taglib"
+                xmlns:a="http://richfaces.org/a4j"
+                xmlns:rich="http://richfaces.org/rich"
+«ENDDEFINE»
+

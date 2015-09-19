@@ -1,0 +1,143 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::associationExtensions»
+
+«EXTENSION template::WebExtensions»
+
+«DEFINE GenSpringConfig FOR uml::Model»
+	«EXPAND SpringConfigSvc FOR this»
+«ENDDEFINE»
+
+
+«REM» Generate service definitions «ENDREM»
+«DEFINE SpringConfigSvc FOR uml::Model»
+
+	«FILE "../resources/applicationContext.xml" »  
+		
+	«EXPAND SpringNameSpaces»
+	
+		<bean id="propertyPlaceholder"
+			class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+			<property name="location"
+				value="classpath:project.properties" />
+		</bean>
+	
+		<aop:aspectj-autoproxy />	
+	
+	  <bean id="entityManagerFactory"
+	     class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+	     <property name="jpaVendorAdapter">
+	        <bean
+	        class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+	           <property name="showSql" value="${hibernate.showsql}" />
+	           <property name="generateDdl" value="${hibernate.generateddl}" />
+	           <property name="databasePlatform" value="${hibernate.dialect}" />
+	        </bean>
+	     </property>
+	  </bean>
+	
+	  <bean class="org.apache.commons.dbcp.BasicDataSource"
+			destroy-method="close" id="dataSource">
+			<property name="driverClassName" value="${hibernate.connection.driver_class}" />
+			<property name="url" value="${hibernate.connection.url}" />
+			<property name="username" value="${hibernate.connection.username}" />
+			<property name="password" value="${hibernate.connection.password}" />
+	 </bean>
+	
+	  <bean id="transactionManager"
+	     class="org.springframework.orm.jpa.JpaTransactionManager" />
+	  
+	  <tx:annotation-driven />
+	
+	
+	  <bean
+	     class="org.springframework.orm.jpa.support.PersistenceAnnotationBeanPostProcessor" />
+	 
+	 <!-- Velocity -->
+	 <bean id="velocityEngine" class="org.springframework.ui.velocity.VelocityEngineFactoryBean">
+	    <property name="velocityProperties">
+	        <props>
+	            <prop key="resource.loader">class</prop>
+	            <prop key="class.resource.loader.class">
+	                org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader
+	            </prop>
+	        </props>
+	    </property>
+	</bean>
+	  
+	  <!-- Service Beans For entities-->
+	  «EXPAND GenerateServiceBeanDef FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	  
+	  <!-- Service Facade -->
+	    <bean id="serviceFacade" class="facades.ServiceFacade" />
+	    
+	   <!-- Service Beans  -->
+	   «REM» commen
+	  «EXPAND GenerateServiceBeanDef FOREACH getServices()»
+	  «ENDREM»
+	    
+	  <!-- Dao Beans  -->
+	  «EXPAND GenerateDaoBeanDef FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	  
+	   	<!-- Audit logging -->
+	  	<bean class="org.witchcraft.model.support.audit.AuditLogDaoImpl" id="auditLogDao"/>
+	 
+	  	<bean id="entityAuditLogInterceptor" 
+	  		class="org.witchcraft.model.support.audit.EntityAuditLogInterceptor" />
+	  
+	</beans>
+	«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE TestDataFactories FOR Model»
+	«FILE "../resources/testDataFactories.xml" »  
+	  «EXPAND Springnamepaces»
+	  <bean class="initialsetup.InitialDataSetup" id="initialDataSetup" />
+	  <!-- TestDataFactories -->
+	  «EXPAND GenerateTestDataFactoryBeanDef FOREACH getEntities()»
+	 </beans>
+	«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE GenerateServiceBeanDef FOR Entity»
+	<bean id="«asVar()»Service" class="«packageName()».service.impl.«name»ServiceImpl" />
+«ENDDEFINE»
+
+«DEFINE GenerateDaoBeanDef FOR Entity»
+	<bean id="«asVar()»Dao" class="«packageName()».dao.impl.«name»DaoImpl" />
+«ENDDEFINE»
+
+«DEFINE GenerateTestDataFactoryBeanDef FOR Entity»
+	<bean id="«asVar()»TestDataFactory" class="«fqn()»TestDataFactory" />
+«ENDDEFINE»
+
+«DEFINE GenerateServiceBeanDef FOR Service-»
+	<bean id="«asVar()»" class="«packageName()».«name»" >
+	«FOREACH getAllAttribs AS a-»
+		<property name="«a.name»" value="«a.InitValue»" /> 
+	«ENDFOREACH»
+	</bean>
+«ENDDEFINE»
+
+
+
+«DEFINE SpringNameSpaces FOR uml::Model»
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:tx="http://www.springframework.org/schema/tx"
+  xmlns:aop="http://www.springframework.org/schema/aop"
+  
+  xsi:schemaLocation="http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/tx
+    http://www.springframework.org/schema/tx/spring-tx.xsd
+    
+    http://www.springframework.org/schema/aop
+	     http://www.springframework.org/schema/aop/spring-aop.xsd" 
+  default-autowire="byName">
+
+«ENDDEFINE»

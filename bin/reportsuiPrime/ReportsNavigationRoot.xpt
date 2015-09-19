@@ -1,0 +1,36 @@
+«IMPORT wcprofile»
+«IMPORT uml»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+
+«DEFINE genNav FOR uml::Model»
+	«FILE getReportsRoot() +"/" + "navigation"  + "." + getExtension()»
+	<html «EXPAND prime4seam23::WebRoot::genIncludes-» >
+		<h:form>
+		<p:accordionPanel  activeIndex="#{panelMenuStateBean.activeIndex}">
+		
+		«FOREACH allOwnedElements().typeSelect(uml::Package) AS p»
+		«IF !p.packagedElement.typeSelect(wcprofile::Report).isEmpty-»
+	
+	    <p:tab title="«p.name.toFirstUpper()»"  >
+			«FOREACH p.packagedElement.typeSelect(wcprofile::Report) AS e-»
+				<s:link propagation="none"  value="«e.name»" view="/admin/reports/«e.name.toFirstLower()».xhtml" />
+				«REM»comment
+				«IF e.typeSelect(wcprofile::ReportParameter).size > 0 »
+					  <s:link propagation="none"  value="«e.name»" view="/admin/reports/«name.toFirstLower()».xhtml" />
+				«ELSE»
+					<s:link propagation="none"  value="«e.name»" action="#{«e.name»Action.runReport('«e.name»')}" />
+				«ENDIF»
+				«ENDREM» 
+			«ENDFOREACH»	
+		</p:tab>
+		«ENDIF»
+		«ENDFOREACH»
+		</p:accordionPanel>
+		</h:form>
+	</html>
+	«ENDFILE»
+«ENDDEFINE»
+

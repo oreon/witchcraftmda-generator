@@ -1,0 +1,431 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::associationExtensions»
+
+«EXTENSION template::WebExtensions»
+
+
+«DEFINE Root FOR uml::Model»
+	«EXPAND PackageRoot FOREACH allOwnedElements().typeSelect(uml::Package)»
+	«REM»«EXPAND SeamEntityQueryRoot::Root FOR this» «ENDREM»
+	«EXPAND richfaces::PagesRoot::genPages»
+«ENDDEFINE»
+
+«DEFINE PackageRoot FOR uml::Package»
+	«EXPAND BaseGen FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND BaseGen FOREACH allOwnedElements().typeSelect(wcprofile::MappedSuperClass)»
+	«EXPAND ManualGen FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+«ENDDEFINE»
+	
+
+
+«DEFINE ManualGen FOR wcprofile::Entity»
+
+	«FILE getWebPackagePath("Action")  man_path »
+	
+package « getWebPackageName() »;
+
+import javax.ejb.Stateful;
+import javax.enterprise.context.ConversationScoped;
+import javax.inject.Named;	
+
+@Named
+@Stateful
+@ConversationScoped
+public class «name»Action extends «name»ActionBase implements java.io.Serializable{
+	
+}
+	«ENDFILE»
+
+«ENDDEFINE»
+
+«DEFINE BaseGen FOR wcprofile::MappedSuperClass»
+	«EXPAND AbstractGen FOR this»
+«ENDDEFINE»
+
+«DEFINE BaseGen FOR wcprofile::Entity»
+	«IF !isAbstract»
+		«EXPAND BaseGenImpl FOR this»
+	«ELSE»
+		«EXPAND AbstractGen FOR this»
+	«ENDIF»
+«ENDDEFINE»
+
+
+«DEFINE AbstractGen FOR uml::Class»
+	«FILE getWebPackagePath("Action")  man_path »
+		
+		package « getWebPackageName() »;
+		
+		«EXPAND genImports FOR this»	
+		import org.witchcraft.seam.action.BaseAction; 
+		import org.witchcraft.base.entity.BaseEntity;
+		
+		public  abstract class «name»Action<T extends BaseEntity> extends BaseAction<T> implements java.io.Serializable{
+			
+		}
+	«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE BaseGenImpl FOR wcprofile::Entity»
+«FILE getWebPackagePath("ActionBase")   »
+package « getWebPackageName() »;
+
+import « packageName() ».«name»;
+
+import org.witchcraft.seam.action.BaseAction; 
+
+«EXPAND genImports FOR this»
+«FOREACH getMultiValued() AS a-»
+import «a.type.fqn()»;
+«ENDFOREACH»
+
+
+public abstract class «name»ActionBase extends «getFirstParent() == null || getFirstParent().length == 0  || !parentIsMappedSuperClass() ? "BaseAction<" +  name + ">" :
+	 parents().get(0).getActionFqn() + getGenericType(parents().get(0)) » implements java.io.Serializable{
+	 
+	«FOREACH getOutgoingAssociations() AS e»
+		«IF !e.type.isAbstract»
+		 @Inject
+		 «e.type.getActionFqn()» «e.type.getAction()»;
+		«ENDIF»
+	«ENDFOREACH»
+	
+	«FOREACH getLeadingManyToMany() AS e»
+		 @Inject
+		 «e.type.getActionFqn()» «e.type.getAction()»;
+	«ENDFOREACH»
+	 
+
+	
+
+
+	@Override
+	protected Class<«name»> getEntityClass() {
+		return «name».class;
+	}
+	
+	public «name» createInstance(){
+		return new «name»();
+	}
+	
+	public «name» get«name»() {
+		if(entity == null)
+			entity = createInstance();
+		return this.entity;
+	}
+	
+	public void set«name»(«name» «asVar()») {
+		this.entity = «asVar()»;
+	}
+	
+	/** This function is responsible for loading associations for the given entity e.g. when viewing an order, we load the customer so
+	 * that customer can be shown on the customer tab within viewOrder.xhtml
+	 * @see org.witchcraft.seam.action.BaseAction#loadAssociations()
+	 */
+	public void loadAssociations(){
+	
+		«REM»comment
+		«FOREACH getOutgoingAssociations() AS e»
+		«IF !e.type.isAbstract»
+		if («asVar()».get«e.name.toFirstUpper()»() != null) {
+			«e.name»Action.setInstance(getEntity().get«e.name.toFirstUpper()»());
+		}
+		«ENDIF»
+		«ENDFOREACH»
+		«ENDREM»
+		
+		«FOREACH getMultiValued() AS e»
+			initList«e.name.toFirstUpper()»(); 
+		«ENDFOREACH»
+		
+		«FOREACH getLeadingManyToMany() AS e» 
+			initList«e.name.toFirstUpper()»(); 
+		«ENDFOREACH»
+	}
+	
+	
+	«FOREACH getAllAttributes().select ( e | e.isFile() ) AS e»	
+	public String download«e.name.toFirstUpper()»(Long id) {
+		 //if(id == null || id == 0)
+         //   id = currentEntityId;
+		setId(id);
+		downloadAttachment(getEntity().get«e.name.toFirstUpper()»());
+		return "success";
+	}
+	
+	public void «e.name»UploadListener(FileUploadEvent event) throws Exception {
+		  UploadedFile uploadItem = event.getFile();
+		  if(getEntity().get«e.name.toFirstUpper()»() == null )
+			getEntity().set«e.name.toFirstUpper()»(new FileAttachment());
+		  getEntity().get«e.name.toFirstUpper()»().setName(uploadItem.getFileName());
+		  getEntity().get«e.name.toFirstUpper()»().setContentType(uploadItem.getContentType());
+		  getEntity().get«e.name.toFirstUpper()»().setData(uploadItem.getContents()); 
+	}
+	«ENDFOREACH»
+	
+	public void updateAssociations(){
+	}
+	
+	«EXPAND genCompositeCode FOREACH getMultiValued() -»
+	«EXPAND genManyToMany FOREACH getLeadingManyToMany() -»
+	
+	public void updateComposedAssociations(){
+		«EXPAND updateList FOREACH getMultiValued() -»
+		«EXPAND updateList FOREACH getLeadingManyToMany() -»
+	}
+	
+	
+	public void clearLists(){
+		«FOREACH getMultiValued() AS a -»
+			list«a.name.toFirstUpper()».clear();
+		«ENDFOREACH»
+	}
+	
+
+	«EXPAND template::Root::genOperation FOREACH getAllOperations()»
+	
+	«EXPAND template::Root::genUnqNamedQryOp  FOREACH getAllAttributes()»
+	
+	
+	
+	«EXPAND genAttribAsOutput(true) FOR this»
+   
+   	protected Predicate[] getSearchPredicates(Root<«name»> root)  {
+   		CriteriaBuilder builder = entityManager.getCriteriaBuilder();
+		List<Predicate> predicatesList = new ArrayList<Predicate>();
+   	
+   		//"«asVar()».id = #{«asVar()»List.«asVar()».id}",
+   	
+		«EXPAND genAttribAsOutput(false) FOR this»
+		
+		//"«asVar()».dateCreated <= #{«asVar()»List.dateCreatedRange.end}",
+		//"«asVar()».dateCreated >= #{«asVar()»List.dateCreatedRange.begin}",
+		
+		return predicatesList.toArray(new Predicate[predicatesList.size()]);
+	}
+	
+}
+«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE genCurrentUser FOR wcprofile::Column»
+	instance.set«name.toFirstUpper()»(«name»Action.getCurrentLoggedIn«type.name»());
+«ENDDEFINE»
+
+«DEFINE updateList FOR uml::Property»
+	  if (list«name.toFirstUpper()» != null) {
+		getEntity().get«name.toFirstUpper()»().clear();
+		getEntity().get«name.toFirstUpper()»().addAll(list«name.toFirstUpper()»«IF isLeadingManyToMany()».getTarget()«ENDIF» );
+	  }
+«ENDDEFINE»
+
+
+«DEFINE genManyToMany FOR uml::Property»
+	«EXPAND genList( "Available") FOR this»
+«ENDDEFINE»
+
+
+
+«DEFINE genCompositeCode FOR uml::Property»
+	
+	«EXPAND genList("") FOR this»
+	«LET "list" + name.toFirstUpper()  AS currentList»
+	public void delete«name.toFirstUpper()»(int index){
+		«currentList».remove(index);
+	}
+	
+	public void delete«name.toFirstUpper()»(«type.name» «type.asVar()»){
+		«currentList».remove(«type.asVar()»);
+	}
+	
+	public void add«name.toFirstUpper()»(){
+		«REM»init«currentList.toFirstUpper()»();«ENDREM»
+		«type.name» «name» = new «type.name»();
+		«IF opposite != null && opposite.isNavigable()»
+			«name».set«opposite.name.toFirstUpper()»(getEntity());
+		«ENDIF»
+		get«currentList.toFirstUpper()»().add(«name»);
+	}
+	
+	«ENDLET»	
+«ENDDEFINE»
+
+«DEFINE genList(String prefix) FOR uml::Property»
+	
+	«LET "list" + name.toFirstUpper()  AS currentList»
+	
+	«IF isLeadingManyToMany() && prefix == "Available"» «REM»for many to many«ENDREM»
+	
+	protected DualListModel<«type.fqn()»> «currentList» = new DualListModel<«type.fqn()»>();
+	
+	void init«currentList.toFirstUpper()»(){
+	
+		List<«type.fqn()»> available«name» = «type.getAction()».getAll();
+		List<«type.fqn()»> current«name» = getEntity() != null ? ViewUtils.asList( getEntity().get«name.toFirstUpper()»() ) : new ArrayList<«type.fqn()»>();
+
+		if ( available«name» == null )
+			available«name» = new ArrayList<«type.fqn()»>();
+		if ( getEntity() != null )
+			available«name».removeAll( getEntity().get«name.toFirstUpper()»() );
+
+		«currentList» = new DualListModel<«type.fqn()»>( available«name», current«name» );
+	}
+	
+	public DualListModel<«type.fqn()»> get«currentList.toFirstUpper()»() {
+		return «currentList»;
+	}
+	
+
+	public void set«currentList.toFirstUpper()»(DualListModel<«type.fqn()»> «currentList») {
+		this.«currentList» = «currentList»;
+	}
+	«ELSE»
+	
+	protected List<«type.fqn()»> «currentList» = new ArrayList<«type.fqn()»>();
+	
+	void init«currentList.toFirstUpper()»(){
+		prePopulate«currentList.toFirstUpper()»();
+		«currentList».addAll(getEntity().get«name.toFirstUpper()»());
+	}
+	
+	public List<«type.fqn()»> get«currentList.toFirstUpper()»() {
+		return «currentList»;
+	}
+	
+
+	public void set«currentList.toFirstUpper()»(List<«type.fqn()»> «currentList») {
+		this.«currentList» = «currentList»;
+	}
+	«ENDIF»
+	
+	public void prePopulate«currentList.toFirstUpper()»() {}
+	
+	«ENDLET»
+«ENDDEFINE»
+
+
+«DEFINE genImports FOR uml::Class»
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Date;
+
+import javax.faces.event.ValueChangeEvent;
+import javax.faces.model.SelectItem;
+import javax.persistence.EntityManager;
+
+import org.apache.commons.lang.StringUtils;
+
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
+
+
+import org.witchcraft.base.entity.FileAttachment;
+
+import org.apache.commons.io.FileUtils;
+import org.primefaces.model.DualListModel;
+
+import org.witchcraft.utils.ViewUtils;
+import javax.inject.Inject;
+
+import org.witchcraft.base.entity.Range;
+
+import org.primefaces.event.FileUploadEvent;
+import org.primefaces.model.UploadedFile;
+«ENDDEFINE»
+
+
+«REM» .....Search Stuff .........«ENDREM»
+
+
+
+«DEFINE genAttribAsOutput(boolean createRangeDeclarations)  FOR uml::Class-»
+	«FOREACH allParents() AS e-»
+	 «EXPAND genPropertyRec(createRangeDeclarations) FOREACH e.getAllAttributes().select(a|a.isSearchable()  ) -»
+	«ENDFOREACH»
+	«EXPAND genPropertyRec(createRangeDeclarations) FOREACH getAllAttributes().select(a|a.isSearchable()  ) -»
+«ENDDEFINE»
+
+«DEFINE genPropertyRec(boolean createRangeDeclarations)  FOR uml::Property-»
+	«IF isExpandableAssoc() -» 
+		«setCurrentEmbeddable()-» 
+		«EXPAND genPropertyRec(createRangeDeclarations) FOREACH type.getAllAttributes().select(a|a.isSearchable()  ) -»
+		«clearCurrentEmbeddable()-»
+	«ELSE-»
+		«EXPAND genAttribute(createRangeDeclarations) -»
+	«ENDIF»
+«ENDDEFINE»
+
+
+«DEFINE genManyToManySearch FOR uml::Property»
+		private «type.fqn()» «name»ToSearch;
+   		
+   		public void set«name.toFirstUpper()»ToSearch(«type.fqn()» «type.asVar()»ToSearch){
+   			this.«name»ToSearch = «type.asVar()»ToSearch;
+   		}
+   		
+   		public «type.fqn()» get«name.toFirstUpper()»ToSearch(){
+   			return «name»ToSearch;
+   		}
+«ENDDEFINE»
+
+
+«DEFINE genAttribute(boolean createRangeDeclarations) FOR uml::Property -»
+	«EXPAND genProperty(createRangeDeclarations) FOR this-»
+«ENDDEFINE»
+
+«DEFINE genProperty(boolean createRangeDeclarations) FOR uml::Property-»
+	«IF createRangeDeclarations == true »
+		«IF this.type.isRangeType()»
+			private Range<«type.name.getTypeName()»> «name»Range = new Range<«type.name.getTypeName()»>();
+			
+			public Range<«type.name.getTypeName()»> get«name.toFirstUpper()»Range(){
+				return «name»Range;
+			}
+			public void  set«name.toFirstUpper()»(Range<«type.name.getTypeName()»> «name»Range ){
+				this.«name»Range = «name»Range;
+			}
+		«ENDIF»	
+	«ELSE»
+		«EXPAND genPropertyRestrictions»
+	«ENDIF»
+«ENDDEFINE»
+
+«DEFINE genPropertyRestrictions FOR uml::Property»
+
+	«IF this.isString()-»
+	 if (!StringUtils.isEmpty(search.«genPropertyGetter()»)) {
+			predicatesList.add(builder.like(root.<String> get("«name»"),'%' + search.«genPropertyGetter()» + '%'));
+	 }
+	«ELSEIF this.type.isRangeType()»
+		if («name»Range.getBegin() != null) {
+			predicatesList.add(builder.greaterThanOrEqualTo(root.<«type.name»> get("«name»"), «name»Range.getBegin() ));
+	 	}
+	 	if («name»Range.getEnd() != null) {
+			predicatesList.add(builder.lessThanOrEqualTo(root.<«type.name»> get("«name»"), «name»Range.getEnd() ));
+	 	}	
+	«ELSE»
+	   «IF isManyToMany() »
+	   	«IF getCurrentEmbeddable() == null»
+	   	//	"#{«getCurrentEntity().asVar()»List.«name»ToSearch} in elements(«genPropertyLabel()»)",
+	   	«ENDIF»
+	   «ELSE»
+	  //	"«genPropertyLabel()»«association != null ? ".id" : "" » = #{«getCurrentEntity().asVar()»List.«genPropertyLabel()»«association != null ? ".id" : "" »}",
+	  	«ENDIF»
+	«ENDIF»
+
+«ENDDEFINE»
+
+
+
+«DEFINE genProperty(boolean createRangeDeclarations) FOR uml::Enumeration-»	
+«IF !createRangeDeclarations»
+" «genPropertyLabel()» = #{«getCurrentEntity().asVar()»List.«genPropertyLabel()»})",
+«ENDIF»
+ 
+«ENDDEFINE»
+

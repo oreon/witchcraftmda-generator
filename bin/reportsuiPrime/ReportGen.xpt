@@ -1,0 +1,28 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+«EXTENSION reports::ReportExt»
+
+
+«DEFINE Root FOR uml::Model»
+	«EXPAND reports::ReportJasper::gen FOREACH allOwnedElements().typeSelect(wcprofile::Report)»
+	«EXPAND reports::ActionGen::genReportsAction FOREACH allOwnedElements().typeSelect(wcprofile::Report)»
+	«EXPAND javaBeanGen FOREACH allOwnedElements().typeSelect(wcprofile::Report)»
+	«REM»Reports UI «ENDREM»
+	«EXPAND ReportsNavigationRoot::genNav FOR this»
+	«EXPAND ParamScreenGen::genParamScreen FOREACH allOwnedElements().typeSelect(wcprofile::Report)»
+«ENDDEFINE»
+
+«DEFINE javaBeanGen FOR wcprofile::Report»
+	«IF hasCollections»
+		«REM» TODO 
+		«EXPAND template::JavaBeansRoot::ClassRoot FOR this»
+		«ENDREM»
+	«ENDIF»
+«ENDDEFINE»
+
+
+

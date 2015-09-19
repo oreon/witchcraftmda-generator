@@ -1,0 +1,116 @@
+
+import uml;
+import java;
+import java::util;
+import wcprofile;
+
+extension org::openarchitectureware::uml2::profile::profiling;
+extension template::GeneratorExtensions;
+extension template::webExtensions;
+
+//Associations - e.g for a customer it will return all orders
+getNonComposedManyAssociations(Entity entity):
+entity.getAllAttributes().select(a|a.isMultivalued()  && a.association != null  && !a.opposite.isMultivalued() && !a.isComposite());
+
+getNonComposedManyAssociationsOpposite(Entity entity):
+entity.getAllAttributes().select(a|a.association != null && a.opposite.isMultivalued()    && !a.isMultivalued() && !a.opposite.isComposite());
+
+isBidirectional(Property e):
+e.isAssoc() && e.isNavigable() && e.opposite.isNavigable() ;
+
+//isBidirectional(Property prop):
+//prop.association != null && prop.opposite!= null;
+
+getLeadingManyToMany(Class entity):
+entity.getAllAttributes().select(a|a.isLeadingManyToMany());
+
+isLeadingManyToManyAutoComplete(Property a):
+a.isLeadingManyToMany()  && a.isAutoComplete();
+
+
+
+isLeadingManyToMany(Property a):
+a.isAssoc() && a.opposite.isMultivalued() && a.isMultivalued() && a.isAggregate();
+
+isAssoc(Property a):
+a.association != null && a.opposite != null;
+
+getManyToMany(Class entity):
+entity.getAllAttributes().select(a|a.isManyToMany());
+
+isManyToMany(Property a):
+a.association != null && a.opposite != null && a.opposite.isMultivalued() && a.isMultivalued() ;
+
+//expandable associaitons need to be exapnded e.g. address field in person while generating UI
+isExpandableAssoc(Property a ):
+a.type.isEmbeddable() || a.isContainedAssoc();
+
+isNonExpandableAssoc(Property a ):
+a.association != null && !a.isExpandableAssoc();
+
+//If this class is container for the given composed element e.g an order will be container for order items
+isCompositionContainer(Property prop):
+prop.opposite != null && prop.opposite.isComposite();
+
+getOppositeName(Property p):
+p.opposite.name != null ? p.opposite.name : p.class.asVar();
+
+
+
+isAggregate(Property prop):
+JAVA org.witchcraft.generatorutil.ClassUtil.isAggregate(org.eclipse.uml2.uml.Property);
+
+//e.g. To get order Items for an order 
+getComposed(Class cls):
+cls.getAllAttributes().select(a|a.isComposite() ) ;
+
+isMVComposite(Property a):
+a.isMultivalued() && a.association != null && a.isComposite(); 
+
+//e.g. To get order Items for an order 
+getMultiValued(Class cls):
+cls.getAllAttributes().select(a|a.isMultivalued() && a.association != null && (a.isComposite() || !a.opposite.isMultivalued()) );
+
+//
+
+//e.g customer would be needed of the given order
+getOutgoingAssociations(Class cls):
+cls.getAllAttributes().select(a| a.isOutgoingAssociation() );
+
+isOutgoingAssociation(Property a):
+a.isMultivalued() == false && a.association != null && !a.type.isEmbeddable();
+
+//all embedded associations
+getEmbeddable(Class cls):
+cls.getAllAttributes().select(a|a.type.isEmbeddable());
+
+//if this associatio is madatory
+String getAssocOptional(Property prop):
+prop.lowerBound() > 0?false:true;
+
+
+isOneOnOne(Property prop):
+(prop.getUpper() != null && prop.getUpper() == 1 && prop.opposite.getUpper() != null && prop.opposite.getUpper() == 1 )
+||(!prop.isMultivalued()) && prop.association != null && prop.isContainedAssoc(); //prop.opposite!= null &&  (!prop.opposite.isMultivalued() ) ;
+
+
+
+isContainedAssoc(Property prop):
+prop.association.getAppliedStereotype("wcprofile::ContainedAssociation") != null;
+
+//TODO - comment this 
+isPreloadedComposition(Property prop):
+prop.association.getAppliedStereotype("wcprofile::PreloadedComposition") != null;
+
+
+
+getCompositionParent(Class cls):
+cls.getAllAttributes().select(a|a.association != null && a.opposite.isComposite() );
+
+//if an association is aggregate e.g employees in department, its updapatable ...but if its a containment updatable is false.
+getAssocUpdatable(Property prop):
+prop.opposite == null ? true : !prop.opposite.isComposite();
+
+getAssocUpdatable(Column col):
+col.mutable;
+

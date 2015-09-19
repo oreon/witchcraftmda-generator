@@ -1,0 +1,71 @@
+import uml;
+import java;
+import wcprofile;
+
+extension org::openarchitectureware::uml2::profile::profiling;
+extension template::GeneratorExtensions;
+
+
+getFieldType(Property prop):
+ prop.type.isPrimitive() || prop.isString() ? getFieldTypeForReports(prop.type.name) : prop.type.fqn();
+
+getFieldWidth(Property prop):
+getDefaultWidth() / prop.class.getAllReportFields().size;
+
+getGroupName(ReportGroup grp):
+grp.groupId == null ? grp.name : grp.groupId;
+
+
+genFieldExpr(uml::Property p, uml::PrimitiveType t):
+p.name ;
+
+genFieldExpr(ReportGroup p, uml::PrimitiveType t):
+p.fieldExpr != null? p.fieldExpr: p.name ;
+	
+	
+genFieldExpr(uml::Property p, uml::Enumeration t):
+p.name ;
+
+genFieldExpr(uml::Property p, uml::Class t):
+p.name + ".displayName";
+
+//get all fields in the detail section
+getAllReportFields(wcprofile::Report r):
+r.getAllAttributes().select(a|a.getAppliedStereotypes().size == 0 || a.getAppliedStereotype("wcprofile::ReportField") != null);
+
+
+getCalculation(String t ):
+JAVA org.witchcraft.generatorutil.ClassUtil.getCalc(java.lang.String);
+
+getField(String t ):
+JAVA org.witchcraft.generatorutil.ClassUtil.getField(java.lang.String);
+
+getFieldTypeForReports(String t):
+JAVA org.witchcraft.generatorutil.ClassUtil.getFieldTypeForReports(java.lang.String);
+ 
+
+
+//getFieldWidth():
+//90;
+
+getDefaultWidth():
+540;
+
+
+	
+getQueryLanguage(Report report):
+report.queryLanguage == null ? getDefaultQueryLanguage() : report.queryLanguage;
+
+getDefaultQueryLanguage():// 
+"ejbql";
+
+String getGroupColor(int index):
+if(index == 1)  
+	then "#e1e1f1"
+else if (index == 2 )
+	then "#e1e1d1"
+else if (index == 3) then
+	 "#aadad1"
+else 
+	 "#bafaba";
+	

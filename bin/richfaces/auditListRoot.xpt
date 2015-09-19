@@ -1,0 +1,102 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE genAuditLogComponent FOR uml::Class»
+	«FILE getWebPath() +"/auditList" + name + "Component." + getExtension()»
+	<html «EXPAND WebRoot::genIncludes-» >	
+			<h:form>
+				<rich:datascroller align="left" for="dataAudit" maxPages="20" 
+					renderIfSinglePage="false" />
+				<br/>
+
+				<rich:dataTable id="dataAudit" var="_log"
+					value="#{«getAction()».auditLog}" rows="30"
+					rowClasses="odd, even" styleClass="dataTable">
+
+					<rich:column>
+						<f:facet name="header">
+							<h:outputText value="Date" />
+						</f:facet>
+						<h:outputText value="#{_log.dateCreated}" />
+					</rich:column>
+
+					<rich:column>
+						<f:facet name="header">
+							<h:outputText value="Action" />
+						</f:facet>
+						<h:outputText value="#{_log.action}" />
+					</rich:column>
+
+					<rich:column>
+						<f:facet name="header">
+							<h:outputText value="User" />
+						</f:facet>
+						<h:outputText value="#{_log.username}" />
+					</rich:column>
+					
+					<rich:column>
+						<f:facet name="header">
+							<h:outputText value="Id" />
+						</f:facet>
+						<h:outputText value="#{_log.entityId}" />
+					</rich:column>
+					
+				«EXPAND genAttribAsOutput FOR this-»
+				
+			</rich:dataTable>
+		</h:form>
+		</html>
+		«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE genAttribAsOutput FOR uml::Class»
+	«FOREACH allParents() AS e-»
+	«EXPAND genAttribute FOREACH e.getAllAttributes().select( a |!a.isMultivalued() && !a.isSecret()  ) -»
+	«ENDFOREACH»
+	«EXPAND genAttribute FOREACH getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()) -»
+«ENDDEFINE»
+
+«DEFINE genAttribute FOR uml::Property -»
+	«IF association != null -»
+		«IF isMultivalued() || isSecret()»
+		«ELSE»
+			«IF type.getAppliedStereotype("wcprofile::Embeddable") != null-»
+				«setCurrentEmbeddable()»
+				«EXPAND genAttribAsOutput FOR this.type-»
+			«ELSE»
+				«EXPAND genAssociation FOR this-»
+			«ENDIF»
+		«ENDIF»
+	«ELSE-»
+		«EXPAND genProperty FOR this-»
+	«ENDIF»
+«ENDDEFINE»
+
+
+«DEFINE genAssociation FOR uml::Property»
+	<rich:column>
+		<f:facet name="header">
+			<h:outputText value="«msgBundleKey()»" />
+		</f:facet>
+		<s:link «getEscape()»  value="#{_log.«genAuditLogPropertyLabel()».displayName}"  view="«type.getViewFile("view")»" >
+			<f:param name="id" value="#{_«genAuditLogPropertyLabel()».id}" />
+			<f:param name="from" value="#{request.servletPath}" />
+		</s:link>
+	</rich:column>
+«ENDDEFINE»
+
+
+«DEFINE genProperty FOR uml::Property-»
+	<rich:column>
+		<f:facet name="header">
+			<h:outputText value="«msgBundleKey()»" />
+		</f:facet>
+		<h:outputText value="#{_log.«genAuditLogPropertyLabel()»}" />
+	</rich:column>
+«ENDDEFINE»
+

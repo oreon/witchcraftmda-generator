@@ -1,0 +1,194 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+«EXTENSION activity::activity»
+
+«DEFINE Root FOR uml::Model»
+	«EXPAND genNavigation FOR this»
+	«EXPAND StateMachineRoot FOREACH allOwnedElements().typeSelect(uml::Activity)»
+	«EXPAND StateMachineRoot FOREACH allOwnedElements().typeSelect(uml::Activity)»
+	«EXPAND WorkflowActionRoot::StateMachineRoot FOREACH allOwnedElements().typeSelect(uml::Activity)»
+«ENDDEFINE»
+
+
+«DEFINE genNavigation FOR uml::Model»
+	«FILE getTasksRoot() + "navigation." + getExtension() -»
+		<html «EXPAND richfaces::WebRoot::genIncludes-» >
+		<a:form>
+		<rich:panelMenu style="width:162px" mode="ajax"
+				iconExpandedGroup="disc" iconCollapsedGroup="disc"
+				iconExpandedTopGroup="chevronUp" iconGroupTopPosition="right"
+				iconCollapsedTopGroup="chevronDown" iconCollapsedTopPosition="right">
+		«FOREACH allOwnedElements().typeSelect(uml::Activity) AS a»
+		    <rich:panelMenuGroup label="«a.name.toFirstUpper()»"  expanded="true" >
+				<rich:panelMenuItem>
+					<s:link propagation="none"  value="«a.name»" action="«a.name»" />
+				</rich:panelMenuItem>
+			</rich:panelMenuGroup>
+		«ENDFOREACH»
+		</rich:panelMenu>
+		</a:form>
+	</html>
+
+	«ENDFILE»
+«ENDDEFINE»
+
+
+
+«DEFINE StateMachineRoot FOR uml::Activity»
+	«FILE "../resources/processes/" + name + "/processdefinition.xml" -»
+<?xml version="1.0" encoding="UTF-8"?>
+
+<process-definition xmlns="" name="«name.removeSpaces().toFirstLower()»">
+ «PROTECT CSTART '<!--' CEND '-->' ID  'USER_EDITABLE_RGN_' + name.removeSpaces().toFirstLower()»
+ «ENDPROTECT»
+	«EXPAND gen(this) FOREACH allOwnedElements().typeSelect(uml::ActivityPartition)»
+	«EXPAND gen FOREACH allOwnedElements().typeSelect(uml::ActivityNode)»
+</process-definition>
+	«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE gen(uml::Activity activity) FOR uml::ActivityPartition»
+	<swimlane name="«name.removeSpaces()»">
+		<assignment  class="«activity.getWebPackageName()+ "." + activity.name.toFirstLower() + ".assign"».«name.removeSpaces().toFirstUpper()»Assignment"  ></assignment>
+	</swimlane>
+«ENDDEFINE»
+
+«DEFINE gen(uml::Activity activity) FOR wcprofile::WorkflowSwimlane»
+	<swimlane name="«name.removeSpaces()»" >
+		  «IF actorId == null && pooledActors ==  null && assignmentClass == null»
+		  	<assignment  class="«activity.getWebPackageName()+ "." + activity.name.toFirstLower() + ".assign"».«name.removeSpaces().toFirstUpper()»Assignment"  ></assignment>
+		  «ELSE»
+		  		<assignment «IF actorId != null»actor-id="«getActorId()»" «ENDIF»  «IF pooledActors != null»pooled-actors="«getPooledActors()»" «ENDIF»
+		  		«IF assignmentClass != null»class="«assignmentClass»"«ENDIF»  />
+		  «ENDIF»
+	</swimlane>
+«ENDDEFINE»
+
+«DEFINE gen FOR uml::Action»
+	<task-node name="«name.removeSpaces()»"  «IF outgoing().typeSelect(wcprofile::TimerTransition).size > 0 » end-tasks="true" «ENDIF»>
+		<task name="«name.removeSpaces()»" «getSwimlane() != null ?"swimlane=\"" + getSwimlane()+ "\"":""» notify="«getNotify()»">
+			«EXPAND genTimer FOR this»
+		</task>
+		«EXPAND genTransitions»
+	</task-node>	
+«ENDDEFINE»
+
+
+
+«DEFINE gen FOR wcprofile::Task »
+	<task-node name="«name.removeSpaces()»"   «IF outgoing().typeSelect(wcprofile::TimerTransition).size > 0 » end-tasks="true" «ENDIF»>
+		<task name="«name.removeSpaces()»"  «getSwimlane() != null ?"swimlane=\"" + getSwimlane()+ "\"":""»
+			 duedate="«days» business days" notify="«getNotify()»">
+			 «IF actionExpression != null»
+			 <event type="task-assign">
+				<action expression="#{«actionExpression»}" />
+			</event>
+			«ENDIF»
+			«EXPAND genTimer FOR this-»
+		</task>
+		«EXPAND genTransitions»
+	</task-node>
+«ENDDEFINE»
+
+«DEFINE genTimer FOR uml::Action»
+	«FOREACH outgoing().typeSelect(wcprofile::TimerTransition) AS o-»
+		<timer duedate="«o.duedate»" name="newtimer" transition="«o.name»"></timer>
+	«ENDFOREACH»
+«ENDDEFINE»
+
+«DEFINE gen FOR wcprofile::MailNode»
+	<mail-node name="«name.removeSpaces()»" «IF actors != null»actors="#{«actors»}"«ENDIF»  «IF to != null»to="#{«to»}"«ENDIF»  subject="«subject»" text="«text»">
+  		«EXPAND genTransitions»
+	</mail-node>
+«ENDDEFINE»
+
+
+«DEFINE gen FOR wcprofile::WorkflowDecision»
+	<decision name="«name.removeSpaces()»" «IF expression != null»  expression="#{«expression»}" «ENDIF» >
+		 <handler class=«IF className != null» 
+	 	"«className»"
+	 	«ELSE»
+	 	  "«activity.getWebPackageName()+ "." + activity.name.toFirstLower() + ".decisions"».«name.toFirstUpper()»DecisionHandler" 
+	 	«ENDIF»
+	 	/>
+		«EXPAND genTransitions»
+	</decision>
+«ENDDEFINE»
+
+
+«DEFINE gen FOR uml::DecisionNode»
+	<decision name="«name.removeSpaces()»" >
+	 <handler class="«activity.getWebPackageName()+ "." + activity.name.toFirstLower() + ".decisions"».«name.toFirstUpper()»DecisionHandler" />
+		«EXPAND genTransitions»
+	</decision>
+«ENDDEFINE»
+
+
+
+«DEFINE gen FOR uml::ForkNode»
+	«LET outgoing().size > 1 ? "fork":"join" AS e-»
+	<«e» name="«name.removeSpaces()»" >
+		«EXPAND genTransitions»
+	</«e»>
+	«ENDLET»
+«ENDDEFINE»
+
+«DEFINE gen FOR uml::JoinNode»
+	<join name="«name.removeSpaces()»" >
+		«EXPAND genTransitions»
+	</join>
+«ENDDEFINE»
+
+
+
+
+«DEFINE gen FOR wcprofile::WorkflowState»
+	<state name="«name.removeSpaces()»">
+		«EXPAND genTimer FOR this»
+		«EXPAND genTransitions»
+	</state>
+«ENDDEFINE»
+
+
+
+
+
+«DEFINE gen FOR uml::InitialNode»
+ 	<start-state name="«name.removeSpaces()»">
+		<task name="«name.removeSpaces()»" swimlane="«getSwimlane()»">
+		</task>
+		«EXPAND genTransitions»
+	</start-state>
+ «ENDDEFINE»
+
+
+ «DEFINE gen FOR uml::ActivityFinalNode»
+ 	<end-state name="«name != null? name.removeSpaces() : "endState" »"></end-state>
+ «ENDDEFINE»
+ 
+  «DEFINE gen FOR uml::FlowFinalNode»
+ 	<end-state name="«name != null? name.removeSpaces() : "endState" »"></end-state>
+ «ENDDEFINE»
+ 
+   «DEFINE gen FOR uml::CentralBufferNode»
+ 	<end-state name="cbn"></end-state>
+ «ENDDEFINE»
+ 
+ «DEFINE genTransitions FOR uml::ActivityNode»
+ 	«FOREACH outgoing() AS o-»
+		<transition to="«o.target.name.removeSpaces()»" name="«o.getTransName()»">
+			«EXPAND genActionExpr(o) -»
+		</transition>
+	«ENDFOREACH»
+ «ENDDEFINE»
+ 
+ «DEFINE genActionExpr(uml::ControlFlow a) FOR uml::ActivityNode»
+ «ENDDEFINE»
+ 
+«DEFINE genActionExpr (wcprofile::WorkflowTransition a) FOR uml::ActivityNode »
+	«IF a.expression != null»<action expression="#{«a.expression.replaceAll("\"","'")»}" />«ENDIF»
+«ENDDEFINE»

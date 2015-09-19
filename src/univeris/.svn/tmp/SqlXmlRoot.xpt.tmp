@@ -1,0 +1,101 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::associationExtensions»
+
+
+
+«DEFINE Root FOR wcprofile::Entity»
+
+	
+«FILE packagePath() +"/base/service/" + name +".xml"»
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<Table name="«tableName != null ? tableName : name.toUpperCase()»" options="0" version="10.0 Jul 15, 2010">
+	<Fields>
+		<Field>
+			<Name>ID</Name>
+			<Datatype>int identity(1, 1)</Datatype>
+			<Nullable>0</Nullable>
+			<Purpose>code</Purpose>
+			<Lang/>
+		</Field>
+		«EXPAND auditFlds FOR this»
+		«FOREACH getAllAttributes() AS a»
+		«IF !a.isMultivalued()»
+		<Field>
+			<Name>«IF a.isColumn() && a.columnName != null »  «a.columnName» «ELSE» «a.name.toUpperCase()»«ENDIF»</Name>
+			<Datatype> «EXPAND getDataType FOR a»</Datatype>
+			<Nullable>1</Nullable>
+			<Purpose/>
+			<Lang/>
+		</Field>
+		«ENDIF»
+		«ENDFOREACH»
+	
+	</Fields>
+	<Constraints>
+		<Constraint name="PK_«tableName != null ? tableName : name.toUpperCase()»" type="primary key clustered">
+			<Fields>
+				<Field order="1">ID</Field>
+			</Fields>
+			<SqlCmd/>
+		</Constraint>
+	</Constraints>
+
+	<Security>
+		<Account name="MPSMain" grant="delete, insert, references, select, update"/>
+	</Security>
+</Table>
+
+«ENDFILE»
+
+«ENDDEFINE»
+
+«DEFINE getDataType FOR uml::Property»
+	«IF isDate()» datetime
+	«ELSEIF isBoolean()»bit
+	«ELSEIF isCurrency()»money
+	«ELSEIF isLargeText()»text
+	«ELSEIF isNumeric()»«type.name»
+	«ELSE» 
+		varchar(255)
+	«ENDIF»
+«ENDDEFINE»
+
+
+«DEFINE auditFlds FOR wcprofile::Entity»
+		<Field>
+			<Name>CR_DT</Name>
+			<Datatype>datetime</Datatype>
+			<Nullable>1</Nullable>
+			<Purpose/>
+			<Lang/>
+		</Field>
+		<Field>
+			<Name>CR_USER_SYSID</Name>
+			<Datatype>int</Datatype>
+			<Nullable>1</Nullable>
+			<Purpose/>
+			<Lang/>
+		</Field>
+
+		<Field>
+			<Name>UPD_DT</Name>
+			<Datatype>datetime</Datatype>
+			<Nullable>1</Nullable>
+			<Purpose/>
+			<Lang/>
+		</Field>
+		<Field>
+			<Name>UPD_USER_SYSID</Name>
+			<Datatype>int</Datatype>
+			<Nullable>1</Nullable>
+			<Purpose/>
+			<Lang/>
+		</Field>
+«ENDDEFINE»
+
+
+
+

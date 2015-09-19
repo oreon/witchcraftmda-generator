@@ -1,0 +1,42 @@
+«IMPORT wcprofile»
+«IMPORT uml»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+
+«DEFINE genNav FOR uml::Model»
+	«FILE getReportsRoot() +"/" + "navigation"  + "." + getExtension()»
+	<html «EXPAND richfaces::WebRoot::genIncludes-» >
+		<h:form>
+		<rich:panelMenu style="width:162px" mode="ajax"
+				iconExpandedGroup="disc" iconCollapsedGroup="disc"
+				iconExpandedTopGroup="chevronUp" iconGroupTopPosition="right"
+				iconCollapsedTopGroup="chevronDown" iconCollapsedTopPosition="right">
+		«FOREACH allOwnedElements().typeSelect(uml::Package) AS p»
+		«IF !p.packagedElement.typeSelect(wcprofile::Report).isEmpty-»
+	
+	    <rich:panelMenuGroup label="«p.name.toFirstUpper()»"  expanded="true" >
+		
+		«FOREACH p.packagedElement.typeSelect(wcprofile::Report) AS e-»
+		<rich:panelMenuItem>
+			<s:link propagation="none"  value="«e.name»" view="/admin/reports/«e.name.toFirstLower()».xhtml" />
+			«REM»comment
+			«IF e.typeSelect(wcprofile::ReportParameter).size > 0 »
+				  <s:link propagation="none"  value="«e.name»" view="/admin/reports/«name.toFirstLower()».xhtml" />
+			«ELSE»
+				<s:link propagation="none"  value="«e.name»" action="#{«e.name»Action.runReport('«e.name»')}" />
+			«ENDIF»
+			«ENDREM» 
+		</rich:panelMenuItem>
+		«ENDFOREACH»
+		
+		</rich:panelMenuGroup>
+		«ENDIF»
+		«ENDFOREACH»
+		</rich:panelMenu>
+		</h:form>
+	</html>
+	«ENDFILE»
+«ENDDEFINE»
+

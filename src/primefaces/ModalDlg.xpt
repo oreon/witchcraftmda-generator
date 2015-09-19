@@ -1,0 +1,31 @@
+«IMPORT wcprofile»
+
+«REM»To display editable data of the entity in a model dialog «ENDREM»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE gen FOR uml::Class»
+	«EXPAND genEditModelDlgComponent FOR this»
+	«REM»«EXPAND genViewModelDlgComponent FOR this»«ENDREM»
+«ENDDEFINE»
+
+
+«DEFINE genEditModelDlgComponent FOR uml::Class»
+	«FILE getWebPath() +"/modalDlg" + name + "Component." + getExtension() »
+
+<ui:composition «EXPAND WebRoot::genIncludes-»>	
+ <p:dialog header="Edit «name»" widgetVar="«name»Dialog" resizable="true"> 
+      <h:panelGrid id="display" columns="2" cellpadding="4"> 
+        <ui:include src = "«getComponentViewFile('edit')" /> 
+      </h:panelGrid>  
+      <h:commandButton value="Save" action="#{«getAction()».persist}"  onsuccess="if (!args.validationFailed) «name»Dialog.hide()" />
+      <h:button value="Cancel" immediate="true" />  
+    </p:dialog> 
+ 
+</ui:composition>
+«ENDFILE»
+«ENDDEFINE»
+

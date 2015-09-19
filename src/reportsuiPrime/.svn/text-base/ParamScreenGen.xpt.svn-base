@@ -1,0 +1,69 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+«EXTENSION reports::ReportExt»
+
+
+
+«DEFINE genParamScreen FOR wcprofile::Report»
+«FILE getReportsRoot() + "/" + name.toFirstLower() + ".xhtml" -»
+<ui:composition «EXPAND richfaces::WebRoot::genIncludes-»
+	template = "/admin/reports/template.xhtml" >	
+	<ui:define name="content">
+	<h:form>
+	<s:validateAll>
+	<h:panelGrid  columns="3" styleClass="viewInfo" columnClasses="leftCol, rightCol"  >
+		<f:facet name="header">
+			<h:outputText value="«name»" />
+		</f:facet>
+	«FOREACH allOwnedElements().typeSelect(wcprofile::ReportParameter) AS param»
+		«EXPAND genLabelAndInput FOR param»
+	«ENDFOREACH»
+	</h:panelGrid>
+	</s:validateAll>
+	<h:commandButton propagation="none" value="Run Report as PDF"
+				action="#{«name.toFirstLower()»Action.runReport('«name»', 'PDF')}" />
+	<h:commandButton propagation="none" value="Run Report as HTML"
+				action="#{«name.toFirstLower()»Action.runReport('«name»', 'HTML')}" />			
+	</h:form>
+	</ui:define>
+</ui:composition>
+«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE genLabelAndInput FOR wcprofile::ReportParameter-»
+		<h:panelGroup> «getOutputMessage()» «optionalExpression == null ? "*" : "" » </h:panelGroup>
+		«EXPAND genPropertyEntry(type) FOR this-»
+		«getErrorMessage()-»
+«ENDDEFINE»
+
+
+«DEFINE genPropertyEntry(uml::PrimitiveType cls) FOR uml::Property-»
+<«getInputControl()»  id="«getId()»"  label="«msgBundleKey()»"  required="true"  value="#{«class.name.toFirstLower()»Action.«name»}" />
+«ENDDEFINE»
+
+«DEFINE genPropertyEntry(uml::Class cls) FOR uml::Property-»
+	<h:selectOneMenu id="«getId()»"   label="«msgBundleKey()»" value="#{«class.name.toFirstLower()»Action.«name»}"  
+		required="«optionalExpression != null ? "false":"true" »">
+		<s:selectItems value="#{«type.name.toFirstLower()»List}" var="itemIter"
+			label="#{itemIter.displayName}"
+			noSelectionLabel="Please Select..." />
+		<s:convertEntity />
+	</h:selectOneMenu>
+«ENDDEFINE»
+
+«DEFINE genPropertyEntry(uml::Enumeration enm) FOR uml::Property-»
+	<h:selectOneMenu id="«getId()»"  value="#{«class.name.toFirstLower()»Action.«name»}" 
+		required="«getAssocOptional() && !isCurrentTemplateMode()»" 
+	  label="«msgBundleKey()»">
+		<f:selectItem itemLabel="Please Select..." itemValue="" />
+		«FOREACH  enm.ownedLiteral AS e-»
+		<f:selectItem itemValue="«e.name»"  itemLabel="#{msg.«e.name-»}" />
+		«ENDFOREACH»
+		«genAjaxValidator()»
+	</h:selectOneMenu>
+«ENDDEFINE»

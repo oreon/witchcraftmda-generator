@@ -1,0 +1,71 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+
+
+«DEFINE gen( uml::Operation op) FOR wcprofile::Entity »
+
+«FILE getWebPath() +"/modalDlg" + op.name.toFirstUpper() + name +  "Component." + getExtension()»
+
+<ui:composition «EXPAND WebRoot::genIncludes-»>	
+
+  <c:set var="opId" value="outputPanel-${modalId}"/>  
+
+	<rich:modalPanel id="${modalId}" autosized="true" zindex="2000" domElementAttachment="parent"
+		onshow="adoptCTDialogHeight()"
+		>
+			<f:facet name="header">
+				<h:panelGroup>
+					<h:outputText value="#{msg.«op.name.toFirstUpper()»}"></h:outputText>
+				</h:panelGroup>
+			</f:facet>
+			<f:facet name="controls">
+				<h:panelGroup>
+					<h:graphicImage value="/images/icons/close.png" alt="Close"
+						styleClass="hidelink" id="hide${modalId}" />
+					<rich:componentControl for="${modalId}" attachTo="hide${modalId}"
+							operation="hide" event="onclick" />
+				</h:panelGroup>
+			</f:facet>
+			
+			<s:div id="ctContent-«name.toFirstLower()»-${modalId}"  style="padding-right:15px" layout="block" >
+					<rich:messages passedLabel=""
+						style="width:100%; text-align: left; color: red; font-weight: bold;" layout="list" >
+					</rich:messages>
+				
+					<h:form>
+					
+					 «PROTECT CSTART '<!--' CEND '-->' ID  'MDL_RGN_VIEW_' + op.name.toFirstUpper() + name»
+
+					«ENDPROTECT»	
+					
+					«REM»comment
+						 «FOREACH op.ownedParameter AS e-» 
+						 	«EXPAND EditRoot::genLabelAndOutput FOREACH e.clientDependency.getTargets.get(0)»
+	 						«IF e.name != null && e.name != ""» «e.name»  «e.type.name» «e.getDocumentation()» «ENDIF» 
+	 					 «ENDFOREACH»
+	 				«ENDREM»
+	
+						<a:commandButton action="#{«getAction()».«op.name»}" styleClass="button"
+						oncomplete="if (#{facesContext.maximumSeverity == null || facesContext.maximumSeverity.ordinal le 1 }) { Richfaces.hideModalPanel('#{modalId}'); }"
+						reRender="view«name»ComponentPanel, ${opId}"
+									value="Save" >
+								 <f:param name="conversationPropagation" value="end"/>
+								 <a:actionparam name="taskId" value="#{taskId}" />
+						</a:commandButton>
+						<rich:spacer />
+						<a:commandButton  immediate="true" oncomplete="Richfaces.hideModalPanel('${modalId}')" value="Hide" styleClass="button" />
+						<h:outputText value=" " />
+						<a:commandButton  immediate="true" type="reset" oncomplete="Richfaces.hideModalPanel('${modalId}');"  value="Cancel" styleClass="button"> 
+				          <f:param name="conversationPropagation" value="end"/> 
+				        </a:commandButton>
+
+					</h:form>
+			</s:div>
+		</rich:modalPanel>
+</ui:composition>
+«ENDFILE»
+«ENDDEFINE»

@@ -1,0 +1,8 @@
+
+«DEFINE GenCodeWarning FOR uml::Class»
+	/**
+	 * This is generated code - to edit code or override methods use - «name» class
+	 * @author witchCraft Code Generator
+	 * WARNING  - DO NOT EDIT - CHANGES WILL BE OVERWRITTEN
+	 */
+«ENDDEFINE»

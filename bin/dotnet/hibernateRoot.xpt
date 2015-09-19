@@ -1,0 +1,70 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE Root FOR uml::Model»
+	«EXPAND PackageRoot FOREACH allOwnedElements().typeSelect(uml::Package)»
+«ENDDEFINE»
+
+«DEFINE PackageRoot FOR uml::Package»
+	«EXPAND ClassRoot FOREACH allOwnedElements().typeSelect(uml::Class)»
+	«EXPAND ClassRoot FOREACH allOwnedElements().typeSelect(uml::Interface)»
+	«EXPAND EnumGen FOREACH allOwnedElements().typeSelect(uml::Enumeration)»
+«ENDDEFINE»
+
+
+«DEFINE ClassRoot FOR uml::Interface»
+	«FILE packagePath() +"/" +name+".java"»
+	package « packageName() »;
+	
+	public interface «name» «parents().size > 0 ?" extends " + parents().get(0).name:""»{
+	
+	}
+	«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE genClassBody FOR uml::Class»
+	public class «name» «getParent()» «getInterfaces()»{
+		«EXPAND genDecl FOREACH getAllAttributes() »
+		«EXPAND genGetterSetter FOREACH getAllAttributes() »
+	}
+«ENDDEFINE»
+
+«DEFINE genClassBody FOR wcprofile::Entity»
+	
+	public class «name» «getParent()» «getInterfaces()»{
+		«EXPAND genDecl FOREACH getAllAttributes() »
+		 
+		«IF !getAllAttributes().isEmpty»
+		@Transient
+	    public String getDisplayName(){
+	    	return «getDisplayName()»;
+	    }
+	    «ENDIF»
+	    
+	    «REM»comment
+	    «EXPAND genSearchFieldsArray FOR this»
+	    «ENDREM»
+	}
+«ENDDEFINE»
+
+
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+
+namespace FirstHiber.domain
+{
+    public class Product
+    {
+        public virtual Guid Id { get; set; }
+        public virtual string Name { get; set; }
+        public virtual string Category { get; set; }
+        public virtual bool Discontinued { get; set; }
+    }
+}

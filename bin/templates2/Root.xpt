@@ -1,0 +1,21 @@
+«DEFINE Root FOR uml::Model»
+  «EXPAND PackageRoot FOREACH allOwnedElements().typeSelect(uml::Package)»
+«ENDDEFINE»
+
+«DEFINE PackageRoot FOR uml::Package»
+  «EXPAND ClassRoot FOREACH ownedType.typeSelect(uml::Class)»
+«ENDDEFINE»  
+
+«DEFINE ClassRoot FOR uml::Class»
+  «FILE name + ".java"»
+    public class «name» {}
+  «ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE ClassRoot FOR wcprofile::Entity»
+  «FILE name + ".java"»
+  //entity
+    public class «name» {}
+  «ENDFILE»
+«ENDDEFINE»

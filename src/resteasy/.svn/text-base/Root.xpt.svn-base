@@ -1,0 +1,195 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE Root FOR uml::Model»
+	«EXPAND PackageRoot FOREACH allOwnedElements().typeSelect(uml::Package)»
+«ENDDEFINE»
+«DEFINE PackageRoot FOR uml::Package»
+	«EXPAND javaClass FOREACH this.allOwnedElements().typeSelect(uml::Class)»
+	«EXPAND ClassRootRestful FOREACH allOwnedElements().typeSelect(wcprofile::RestfulClass)»
+	«EXPAND javaInterface FOREACH allOwnedElements().typeSelect(wcprofile::RestfulInterface)»
+	«EXPAND javaRestImpl FOREACH allOwnedElements().typeSelect(wcprofile::RestfulInterface)»
+«ENDDEFINE»
+
+<«REM»The following piece is used for Model «ENDREM»
+«DEFINE javaClass FOR uml::Class»
+	«IF name != null && package != null»
+	
+	«FILE packagePath() +"/" +name +".java"»
+		package « packageName() »;
+		public class «name» {
+			«FOREACH this.getAllAttributes() AS f»
+				private «f.type.name» «f.name»;
+				
+				public void set«f.name.toFirstUpper()» («f.type.name» «f.name») {
+					this.«f.name» = «f.name»;
+				}
+				
+				public «f.type.name» get«f.name.toFirstUpper()»() {
+					return «f.name»;
+				}
+			«ENDFOREACH»
+		}
+		«ENDFILE»
+	«ENDIF»
+«ENDDEFINE»
+
+«REM»The following section is for interface only .......«ENDREM»
+
+«DEFINE javaInterface FOR wcprofile::RestfulInterface»
+	«FILE packagePath() +"/" +name+".java"»
+	package « packageName() »;
+	«EXPAND genImports FOR this»
+	«getRestfulPath()»
+	«getRestfulProduces()»
+	public interface «name» «parents().size > 0 ?" extends " + parents().get(0).name:""»{
+
+		 «EXPAND genOperationForInterface FOREACH this.getOperations()»
+	}
+	«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE genOperationForInterface FOR uml::Operation»
+	«visibility» «getOpReturnType()» «name» («getParametersSignature()»);
+«ENDDEFINE»
+
+«DEFINE genOperationForInterface FOR wcprofile::RestfulOperation»
+	«getRestfulType()»
+	«getRestfulProduces()»
+	«getRestfulConsumes()»
+	«getRestfulPath()»
+	«visibility» «getOpReturnType()» «name» («EXPAND getPathParam FOREACH allOwnedElements().typeSelect(wcprofile::RestfulParameter)» «getParametersSignature()»);
+«ENDDEFINE»
+
+
+«REM»The following section is of generating the Implementation class of the interface.....«ENDREM»
+
+«DEFINE javaRestImpl FOR wcprofile::RestfulInterface»
+	«FILE packagePath() +"/" +name+"Impl.java"»
+	package « packageName() »;
+	«EXPAND genImports FOR this»
+
+	public class «name»Impl  implements «name» {
+
+		 «EXPAND genOperationForRestImpl FOREACH this.getOperations()»
+	}
+	«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE genOperationForRestImpl FOR wcprofile::RestfulOperation»
+
+	«visibility» «getOpReturnType()» «name» («getParametersSignature()»){
+		return "<Customer><id>"+id+"</id></Customer>";
+	}
+«ENDDEFINE»
+
+«REM»The following section is for generating code for Stand Alone Java class without interface ....«ENDREM»
+
+«DEFINE ClassRootRestful FOR wcprofile::RestfulClass»
+	«IF name != null && package != null»
+	
+	«FILE packagePath() +"/" +name +".java"»
+		package « packageName() »;
+		
+		«EXPAND genImports FOR this»
+		«getRestfulPath()»
+		«getRestfulProduces()»
+		«EXPAND genClassBodyRestful FOR this»
+	«ENDFILE»
+	
+	«ENDIF»
+«ENDDEFINE»
+
+
+«DEFINE genClassBodyRestful FOR wcprofile::RestfulClass»
+	public class «name»  {
+		«EXPAND genOperation FOREACH getAllOperations()»
+	}
+«ENDDEFINE»
+
+
+
+
+
+
+«DEFINE genOperation FOR wcprofile::RestfulOperation»
+«getRestfulType()»
+«getRestfulProduces()»
+«getRestfulConsumes()»
+«getRestfulPath()»
+	«visibility» «getOpReturnType()» «name» («EXPAND getPathParam FOREACH allOwnedElements().typeSelect(wcprofile::RestfulParameter)» «getParametersSignature()»){ 
+		«IF type != null»
+			return null;
+		«ENDIF»
+	}
+«ENDDEFINE»
+
+«DEFINE genOperation FOR wcprofile::Operation»
+	«visibility» «getOpReturnType()» «name» («getParametersSignature()»){ 
+		«IF type != null»
+			return null;
+		«ENDIF»
+	}
+«ENDDEFINE»
+
+«DEFINE getPathParam FOR wcprofile::RestfulParameter»
+«getPathParameter()»
+«ENDDEFINE»
+
+
+«DEFINE genImports FOR uml::Class»
+	import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.net.URI;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+«ENDDEFINE»
+
+«DEFINE genImports FOR uml::Interface»
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.StreamingOutput;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.net.URI;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+«ENDDEFINE»
+

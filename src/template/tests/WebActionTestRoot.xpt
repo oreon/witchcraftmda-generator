@@ -1,0 +1,108 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::associationExtensions»
+«EXTENSION template::WebExtensions»
+
+«DEFINE Root FOR uml::Model»
+	
+	
+	«EXPAND BaseGen FOREACH allOwnedElements().typeSelect(wcprofile::WebAction)»
+	«EXPAND ManualGen FOREACH allOwnedElements().typeSelect(wcprofile::WebAction)»
+ «REM»comment
+	«EXPAND BaseGen FOREACH allOwnedElements().typeSelect(wcprofile::ServiceInterface)»
+	«EXPAND ManualGen FOREACH allOwnedElements().typeSelect(wcprofile::ServiceInterface)»
+	
+	«EXPAND BaseGen FOREACH allOwnedElements().typeSelect(wcprofile::RepositoryInterface)»
+	«EXPAND ManualGen FOREACH allOwnedElements().typeSelect(wcprofile::RepositoryInterface)»
+«ENDREM»
+«ENDDEFINE»
+
+
+«DEFINE BaseGen FOR uml::Class»
+«IF !isAbstract»
+	«FILE packagePath() + "/" + name + "TestBase.java"»
+	
+		package « packageName() »;
+		«EXPAND genImports FOR this»
+		«EXPAND genClassBody FOR this»
+		
+	«ENDFILE»
+«ENDIF»
+«ENDDEFINE»
+
+«DEFINE ManualGen FOR uml::Class»
+«IF !isAbstract»
+«FILE packagePath() + "/" + name + "Test.java"  man_path »
+
+	package « packageName() »;
+	
+	«EXPAND genImports FOR this»
+	
+	public class «name»Test extends «name»TestBase{
+		
+	}
+«ENDFILE»
+«ENDIF»
+«ENDDEFINE»
+
+
+
+«DEFINE genClassBody FOR uml::Class»
+public class «name»TestBase {
+
+	static «name» «asVar()» = «name».getInstance();
+
+	@BeforeClass
+	public static void init() {
+		
+	}
+
+	public «name» getInstance(){
+		return «asVar()»;
+	}
+
+	«EXPAND genOperationTest FOREACH getAllOperations()»
+}
+«ENDDEFINE»
+
+
+«DEFINE genOperationTest FOR uml::Operation»
+	//@Test
+	public void test«name.toFirstUpper()»() throws Exception {
+		try{
+		«IF !isVoid()»
+			//assertTrue(getInstance().«name»(«getParameters()»).equals(true));
+		«ELSE»
+			//getInstance().«name»(«getParameters()»);
+		«ENDIF»		
+		}catch(Exception e){
+			fail(" Failed Test test«name.toFirstUpper()» " + e.getMessage());
+		}
+	}
+«ENDDEFINE»
+
+
+
+«DEFINE genImports FOR uml::Class»
+	«REM»
+	import javax.persistence.EntityManager;
+	import javax.persistence.Query;
+	«ENDREM»
+	import org.junit.BeforeClass;
+	import org.junit.Test;
+	import static org.junit.Assert.*;
+	import «fqn()»;
+«ENDDEFINE»
+
+
+
+
+////////////////////////////////////////// 
+
+
+
+
+
+

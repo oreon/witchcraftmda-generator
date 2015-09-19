@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<workflow>
+
+<property file="workflow/workflow.properties" />
+
+<bean class="oaw.uml2.Setup" standardUML2Setup="true"/>
+<component class="oaw.emf.XmiReader">
+<modelFile value="${model.dir}/model.uml"/>
+<outputSlot value="model"/>
+</component>
+
+
+<component id="PreProcessor" class="oaw.xpand2.Generator"
+skipOnErrors="true">
+	<metaModel class="oaw.type.emf.EmfMetaModel">
+	<metaModelPackage value="org.eclipse.emf.ecore.EcorePackage"/>
+	</metaModel>
+	<metaModel class="oaw.uml2.UML2MetaModel"/>
+	<metaModel id="profile" class="oaw.uml2.profile.ProfileMetaModel">
+		<profile value="${model.dir}/wcprofile.profile.uml"/>
+	</metaModel>
+	<expand value="template::PreProcessor::Root FOR model"/>
+	<outlet path="${srcGenPath}/">
+		<postprocessor class="oaw.xpand2.output.JavaBeautifier"/>
+	</outlet>
+</component>
+
+
+<component id="BeansGenerator" class="oaw.xpand2.Generator"
+skipOnErrors="true">
+	<metaModel class="oaw.type.emf.EmfMetaModel">
+	<metaModelPackage value="org.eclipse.emf.ecore.EcorePackage"/>
+	</metaModel>
+	<metaModel class="oaw.uml2.UML2MetaModel"/>
+	<metaModel id="profile" class="oaw.uml2.profile.ProfileMetaModel">
+		<profile value="${model.dir}/wcprofile.profile.uml"/>
+	</metaModel>
+	<expand value="resteasy::Root::Root FOR model"/>
+	<outlet path="${srcGenPath}/">
+		<postprocessor class="oaw.xpand2.output.JavaBeautifier"/>
+		<!--
+		<postprocessor  class="org.hybridlabs.source.formatter.JavaImportBeautifier"
+organizeImports="true" format="true"/>
+	--> 
+	</outlet>
+</component>
+
+<component id="RestEasyGenerator" class="oaw.xpand2.Generator"
+skipOnErrors="true">
+	<metaModel class="oaw.type.emf.EmfMetaModel">
+	<metaModelPackage value="org.eclipse.emf.ecore.EcorePackage"/>
+	</metaModel>
+	<metaModel class="oaw.uml2.UML2MetaModel"/>
+	<metaModel id="profile" class="oaw.uml2.profile.ProfileMetaModel">
+		<profile value="${model.dir}/wcprofile.profile.uml"/>
+	</metaModel>
+	<expand value="resteasy::Root::Root FOR model"/>
+	<outlet path="${srcGenPath}/">
+		<postprocessor class="oaw.xpand2.output.JavaBeautifier"/>
+		<!--
+		<postprocessor  class="org.hybridlabs.source.formatter.JavaImportBeautifier"
+organizeImports="true" format="true"/>
+	--> 
+	</outlet>
+</component>
+
+
+<component id="ServiceGenerator" class="oaw.xpand2.Generator"
+skipOnErrors="true">
+	<metaModel class="oaw.type.emf.EmfMetaModel">
+	<metaModelPackage value="org.eclipse.emf.ecore.EcorePackage"/>
+	</metaModel>
+	<metaModel class="oaw.uml2.UML2MetaModel"/>
+	<metaModel id="profile" class="oaw.uml2.profile.ProfileMetaModel">
+		<profile value="${model.dir}/wcprofile.profile.uml"/>
+	</metaModel>
+	<expand value="service::ServiceRoot::Root FOR model"/>
+	<outlet path="${srcGenPath}/">
+		<postprocessor class="oaw.xpand2.output.JavaBeautifier"/>
+		<!--
+		<postprocessor  class="org.hybridlabs.source.formatter.JavaImportBeautifier"
+organizeImports="true" format="true"/>
+	--> 
+	</outlet>
+</component>
+
+
+
+<component id="TestGenerator" class="oaw.xpand2.Generator" skipOnErrors="true">
+	<metaModel class="oaw.type.emf.EmfMetaModel">
+	<metaModelPackage value="org.eclipse.emf.ecore.EcorePackage"/>
+	</metaModel>
+	<metaModel class="oaw.uml2.UML2MetaModel"/>
+	<metaModel id="profile" class="oaw.uml2.profile.ProfileMetaModel">
+		<profile value="${model.dir}/wcprofile.profile.uml"/>
+	</metaModel>
+	<expand value="template::tests::Root::Root FOR model"/>
+	<outlet name="man_path" path="${testGenPath}/" overwrite="false" />
+	<outlet path="${testGenPath}">
+		<postprocessor class="oaw.xpand2.output.JavaBeautifier"/>
+	</outlet>
+</component>
+
+<component id="MessageBundleGenerator" class="oaw.xpand2.Generator" skipOnErrors="true">
+	<metaModel class="oaw.type.emf.EmfMetaModel">
+	<metaModelPackage value="org.eclipse.emf.ecore.EcorePackage"/>
+	</metaModel>
+	<metaModel class="oaw.uml2.UML2MetaModel"/>
+	<metaModel id="profile" class="oaw.uml2.profile.ProfileMetaModel">
+		<profile value="${model.dir}/wcprofile.profile.uml"/>
+	</metaModel>
+	<expand value="template::GenMessageBundle::Root FOR model"/>
+	<outlet path="${srcGenPath}/">
+		<postprocessor class="oaw.xpand2.output.JavaBeautifier"/>
+	</outlet>
+</component>
+
+
+</workflow>

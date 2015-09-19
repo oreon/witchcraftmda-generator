@@ -1,0 +1,56 @@
+//import metamodel;
+import uml;
+import java;
+import wcprofile;
+
+extension org::openarchitectureware::uml2::profile::profiling;
+
+//get restful Type.
+getRestfulType(RestfulOperation restOp):
+if ( restOp.restfulType!=null && restOp.restfulType.length > 0 ) then 
+	"@"+restOp.restfulType.toUpperCase();
+
+//get restful Role Type.
+getRestfulRoleType(RestfulOperation restOp):
+if ( restOp.roleType != null && restOp.roleType.length > 0 ) then 
+	"@"+restOp.roleType.toLowerCase();
+	
+//get restful Produces.
+getRestfulProduces(RestfulOperation restOp):
+if ( restOp.Produces != null && restOp.Produces.length > 0 ) then 
+	"@Produces(\""+restOp.Produces.toLowerCase()+"\")";
+	
+//get restful Consumes.
+getRestfulConsumes(RestfulOperation restOp):
+if ( restOp.Consumes != null && restOp.Consumes.length > 0 ) then 
+	"@Consumes(\""+restOp.Consumes.toLowerCase()+"\")";
+	
+//get restful Path.
+getRestfulPath(RestfulOperation restOp):
+if ( restOp.Path != null && restOp.Path.length > 0 ) then 
+	"@Path(\""+restOp.Path+"\")";
+
+//get class level Path
+String getRestfulPath(RestfulClass cls):
+if(cls.Path != null && cls.Path.length > 0) then
+"@Path(\""+cls.Path+"\")";
+
+//get class level Path
+String getRestfulProduces(RestfulClass cls):
+if(cls.Produces != null && cls.Produces.length > 0 ) then
+"@Produces(\""+cls.Produces+"\")";
+
+//get class level Path
+String getRestfulPath(RestfulInterface cls):
+if(cls.Path != null && cls.Path.length > 0 ) then
+"@Path(\""+cls.Path+"\")";
+
+//get class level Path
+String getRestfulProduces(RestfulInterface cls):
+if(cls.Produces != null && cls.Produces.length > 0 ) then
+"@Produces(\""+cls.Produces+"\")";
+
+//parameters PathParam
+getPathParameter(RestfulParameter op):
+if(op.PathParam != null && op.PathParam.length > 0 ) then
+"@PathParam(\"" + op.PathParam +"\")";

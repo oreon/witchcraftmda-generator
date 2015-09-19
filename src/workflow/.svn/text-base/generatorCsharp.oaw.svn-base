@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+<workflow>
+
+<property file="../../properties/workflow-cs.properties" />
+
+<bean class="oaw.uml2.Setup" standardUML2Setup="true"/>
+<component class="oaw.emf.XmiReader">
+<modelFile value="${model.dir}/model.uml"/>
+<outputSlot value="model"/>
+</component>
+
+<!--
+<component class="oaw.check.CheckComponent">
+	<metaModel class="oaw.type.emf.EmfMetaModel">
+	<metaModelPackage value="org.eclipse.emf.ecore.EcorePackage"/>
+	</metaModel>
+	<metaModel class="oaw.uml2.UML2MetaModel"/>
+	<metaModel id="profile" class="oaw.uml2.profile.ProfileMetaModel">
+		<profile value="${model.dir}/wcprofile.profile.uml"/>
+	</metaModel>
+	<checkFile value="templates::Checks" />
+	<expression value="model.eAllContents" />
+	<abortOnError value="true" />
+</component>
+
+
+<component id="dirCleaner" class="oaw.workflow.common.DirectoryCleaner"
+directories="${srcGenPath}"/>
+-->
+
+<component id="PreProcessor" class="oaw.xpand2.Generator"
+skipOnErrors="true">
+	<metaModel class="oaw.type.emf.EmfMetaModel">
+	<metaModelPackage value="org.eclipse.emf.ecore.EcorePackage"/>
+	</metaModel>
+	<metaModel class="oaw.uml2.UML2MetaModel"/>
+	<metaModel id="profile" class="oaw.uml2.profile.ProfileMetaModel">
+		<profile value="${model.dir}/wcprofile.profile.uml"/>
+	</metaModel>
+	<expand value="template::PreProcessor::Root FOR model"/>
+	<outlet path="${srcGenPath}/">
+		<postprocessor class="oaw.xpand2.output.JavaBeautifier"/>
+	</outlet>
+</component>
+
+
+<component id="BeansGenerator" class="oaw.xpand2.Generator"
+skipOnErrors="true">
+	<metaModel class="oaw.type.emf.EmfMetaModel">
+	<metaModelPackage value="org.eclipse.emf.ecore.EcorePackage"/>
+	</metaModel>
+	<metaModel class="oaw.uml2.UML2MetaModel"/>
+	<metaModel id="profile" class="oaw.uml2.profile.ProfileMetaModel">
+		<profile value="${model.dir}/wcprofile.profile.uml"/>
+	</metaModel>
+	<expand value="dotnet::classRoot::Root FOR model"/>
+	<outlet path="${srcGenPath}/">
+		<postprocessor class="oaw.xpand2.output.JavaBeautifier"/>
+	</outlet>
+</component>
+
+<component id="HbmGenerator" class="oaw.xpand2.Generator"
+skipOnErrors="true">
+	<metaModel class="oaw.type.emf.EmfMetaModel">
+	<metaModelPackage value="org.eclipse.emf.ecore.EcorePackage"/>
+	</metaModel>
+	<metaModel class="oaw.uml2.UML2MetaModel"/>
+	<metaModel id="profile" class="oaw.uml2.profile.ProfileMetaModel">
+		<profile value="${model.dir}/wcprofile.profile.uml"/>
+	</metaModel>
+	<expand value="template::HBMRoot::Root FOR model"/>
+	<outlet path="${srcGenPath}/">
+		<postprocessor class="oaw.xpand2.output.JavaBeautifier"/>
+	</outlet>
+</component>
+
+<component id="UIGenerator" class="oaw.xpand2.Generator"
+skipOnErrors="true">
+	<metaModel class="oaw.type.emf.EmfMetaModel">
+	<metaModelPackage value="org.eclipse.emf.ecore.EcorePackage"/>
+	</metaModel>
+	<metaModel class="oaw.uml2.UML2MetaModel"/>
+	<metaModel id="profile" class="oaw.uml2.profile.ProfileMetaModel">
+		<profile value="${model.dir}/wcprofile.profile.uml"/>
+	</metaModel>
+	<expand value="dotnet::uiRoot::Root FOR model"/>
+	<outlet path="${srcGenPath}/">
+		<postprocessor class="oaw.xpand2.output.JavaBeautifier"/>
+	</outlet>
+</component>
+
+
+</workflow>

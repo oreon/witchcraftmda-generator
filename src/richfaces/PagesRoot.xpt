@@ -1,0 +1,301 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE genPages FOR uml::Model»
+
+«FILE "../webapp/WEB-INF"  + "/pages.xml"-»
+<?xml version="1.0" encoding="UTF-8"?>
+
+<pages xmlns="http://jboss.com/products/seam/pages"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://jboss.com/products/seam/pages http://jboss.com/products/seam/pages-2.1.xsd"
+       no-conversation-view-id="/admin/home.«getExtension()»"
+       login-view-id="/login.«getExtension()»">
+       
+«PROTECT CSTART '<!--' CEND '-->' ID 'USER_EDITABLE_PAGESROOT'»
+	<page view-id="/admin/*">
+		<restrict>#{identity.loggedIn}</restrict>
+	</page>
+
+	<page view-id="/admin/tasks/viewTask.xhtml">
+		<param name="taskId" value="#{jbpmProcessAction.taskId}" />
+		<navigation>
+			<rule if-outcome="next">
+				<redirect view-id="/admin/tasks/tasks.xhtml" />
+			</rule>
+		</navigation>
+	</page>
+	
+	
+«ENDPROTECT»
+
+    
+    <page view-id="/adminLogin.«getExtension()»">     
+        <navigation from-action="#{identity.login}">
+           <redirect view-id="/admin/entities/summary.«getExtension()»"/>
+        </navigation>
+	</page>
+
+	<page view-id="*">
+	
+		«PROTECT CSTART '<!--' CEND '-->' ID 'USER_EDITABLE_PAGESROOT_BLKT_ACTION'»
+		<navigation from-action="#{identity.logout}">
+			<end-conversation before-redirect="true" />
+			<redirect view-id="/login.xhtml" />
+		</navigation>
+		
+		<navigation from-action="#{identity.login}">
+			<end-conversation before-redirect="true" />
+			<redirect view-id="/admin/home.xhtml" />
+		</navigation>
+		«ENDPROTECT»
+	
+		
+	
+        <navigation>
+        	«PROTECT CSTART '<!--' CEND '-->' ID 'USER_EDITABLE_PAGESROOT_BLKT'» 
+        	<rule if-outcome="home">
+                <redirect view-id="/home.«getExtension()»"/>
+            </rule>
+            «ENDPROTECT»
+         
+         «FOREACH allOwnedElements().typeSelect(wcprofile::GlobalState) AS g-»
+    			«FOREACH g.getOutgoings() AS o»
+					 <rule if-outcome="«o.guard.specification.stringValue()-»">
+		 				<redirect view-id="/«o.target.getStateWebName()-»" />
+		            </rule>	
+            	«ENDFOREACH»
+        «ENDFOREACH»
+            
+        «FOREACH allOwnedElements().typeSelect(wcprofile::Entity) AS e»
+            <rule if-outcome="«e.asVar()»">
+            	<end-conversation/> 
+                <redirect view-id="«e.getViewFile("list")»" />
+            </rule>
+            
+            <rule if-outcome="view«e.name»">
+            	<end-conversation/> 
+                <redirect view-id="«e.getViewFile("view")»" />
+            </rule>
+            
+            <rule if-outcome="edit«e.name»">
+            	<end-conversation/> 
+                <redirect view-id="«e.getViewFile("edit")»" />
+            </rule>
+        «ENDFOREACH»
+        </navigation>
+        
+        
+    </page>
+
+    
+    «FOREACH allOwnedElements().typeSelect(wcprofile::Entity) AS e»
+    «setAsCurrentEntity(e)-»
+    <page view-id="«e.getViewFile("edit")»"  >
+    	<!-- <description>Edit «e.name»: #{«e.name.toFirstLower()».displayName}</description> -->
+    	<restrict>#{s:hasPermission('«e.name.toFirstLower()»', 'edit')}</restrict>
+    	<begin-conversation join="true"/>
+    	<navigation> 
+			 <rule if-outcome="save">
+			 	<end-conversation/>
+ 				<redirect view-id="«e.getViewFile("view")»" />
+            </rule>	
+             <rule if-outcome="cancel">
+             	<end-conversation/>
+ 				<redirect view-id="«e.getViewFile("list")»" />
+            </rule>			
+		</navigation>
+		<param name="«e.asVar()»Id" value="#{«e.asVar()»Action.«e.asVar()»Id}" />
+		«FOREACH e.getOutgoingAssociations() AS a-»
+		<param name="«a.name»Id" value="#{«e.getAction()».«a.name»Id}" />
+		«ENDFOREACH»
+	</page>
+	
+	 <page view-id="«e.getViewFile("view")»"  action="#{redirect.captureCurrentView()}">
+	 	<!-- <description>View «e.name»: #{«e.name.toFirstLower()».displayName}</description> -->
+	 	<restrict>#{s:hasPermission('«e.name.toFirstLower()»', 'view')}</restrict>
+	 	<navigation> 
+			 <rule if-outcome="edit">
+			 	<end-conversation/>
+ 				<redirect view-id="«e.getViewFile("edit")»" />
+            </rule>	
+             <rule if-outcome="cancel">
+             	<end-conversation/>
+ 				<redirect view-id="«e.getViewFile("list")»" />
+            </rule>			
+		</navigation>
+		<param name="«e.asVar()»Id" value="#{«e.asVar()»Action.«e.asVar()»Id}" />
+	</page>
+	
+	<page view-id="«e.getViewFile("list")»" action="#{redirect.captureCurrentView()}" >
+		<restrict>#{s:hasPermission('«e.name.toFirstLower()»', 'view')}</restrict>
+		<navigation>
+			<rule if-outcome="view«e.name»">
+				<end-conversation/>
+				<redirect view-id="«e.getViewFile("view")»" />
+			</rule> 
+			 <rule if-outcome="edit">
+			 	<end-conversation/>
+ 				<redirect view-id="«e.getViewFile("edit")»" />
+            </rule>			
+            <rule if-outcome="textSearch"> 
+        		<redirect view-id="«e.getViewFile("textSearchResults")»"/> 
+      		</rule>
+		</navigation>
+		
+		<param name="firstResult" value="#{«e.asVar()»List.firstResult}" />
+		<param name="sort" value="#{«e.asVar()»List.orderColumn}" />
+		<param name="dir" value="#{«e.asVar()»List.orderDirection}" />
+
+		<param name="from" />
+		<param name="id" value="#{«e.asVar()»List.«e.asVar()».id}" />
+		«EXPAND genAttribAsOutput FOR e-»
+	</page>
+	
+	«IF e.templatable» «EXPAND genTemplatePages FOR e»«ENDIF»
+	
+    «ENDFOREACH»
+    
+   
+  «PROTECT CSTART '<!--' CEND '-->' ID 'USER_EDITABLE_XCPT'»
+  
+    <exception class="org.jboss.seam.framework.EntityNotFoundException">
+        <redirect view-id="/error.«getExtension()»">
+            <message severity="warn">Record not found</message>
+        </redirect>
+    </exception>
+    
+    <exception class="javax.persistence.EntityNotFoundException">
+        <redirect view-id="/error.«getExtension()»">
+            <message severity="warn">Record not found</message>
+        </redirect>
+    </exception>
+    
+    <exception class="javax.persistence.EntityExistsException">
+        <redirect view-id="/error.«getExtension()»">
+            <message severity="warn">Duplicate record</message>
+        </redirect>
+    </exception>
+    
+    <exception class="javax.persistence.OptimisticLockException">
+        <end-conversation/>
+        <redirect view-id="/error.«getExtension()»">
+            <message severity="warn">Another user changed the same data, please try again</message>
+        </redirect>
+    </exception>
+    
+    <exception class="org.jboss.seam.security.AuthorizationException">
+        <redirect view-id="/error.«getExtension()»">
+            <message severity="error">You don't have permission to access this resource</message>
+        </redirect>
+    </exception>
+    
+    <exception class="org.jboss.seam.security.NotLoggedInException">
+        <redirect view-id="/login.«getExtension()»">
+            <message severity="warn">#{messages['org.jboss.seam.NotLoggedIn']}</message>
+        </redirect>
+    </exception>
+    
+    <exception class="javax.faces.application.ViewExpiredException">
+        <redirect view-id="/error.«getExtension()»">
+            <message severity="warn">Your session has timed out, please try again</message>
+        </redirect>
+    </exception>
+    
+    <exception class="org.jboss.seam.ConcurrentRequestTimeoutException" log-level="trace">
+      <http-error error-code="503" />
+    </exception>
+     
+    <exception>
+        <redirect view-id="/error.«getExtension()»">
+            <message severity="error">Unexpected error, please try again</message>
+        </redirect>
+    </exception>
+    «ENDPROTECT»
+    
+</pages>
+«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE genAttribAsOutput FOR uml::Class-»
+	«FOREACH allParents() AS e-»
+	 «EXPAND genProperty FOREACH e.getAllAttributes().select(a|a.isSearchable()  ) -»
+	«ENDFOREACH»
+	«EXPAND genProperty FOREACH getAllAttributes().select(a|a.isSearchable()   ) -»
+«ENDDEFINE»
+
+
+«DEFINE genProperty FOR uml::Property-»
+	«IF isExpandableAssoc() -» 
+		«setCurrentEmbeddable()-» 
+		«EXPAND genProperty FOREACH type.getAllAttributes().select(a|a.isSearchable()  ) -»
+		«clearCurrentEmbeddable()-»
+	«ELSE-»
+		«IF !isMultivalued()»
+			«IF isOutgoingAssociation()»
+				«IF !type.isAbstract»
+				<param name="«getIdWithoutPrefix()»" value="#{«getCurrentEntity().asVar()»List.«name»Id}"  validateModel="false" />
+				«ENDIF»
+			«ELSE»
+				<param name="«getIdWithoutPrefix()»" value="#{«getCurrentEntity().asVar()»List.«genPropertyLabel()»«isNonExpandableAssoc() ? ".id" : "" »}"  validateModel="false" />
+			«ENDIF»
+		«ENDIF»
+	«ENDIF»
+«ENDDEFINE»
+
+«DEFINE genAssociation FOR uml::Property-»	
+	«REM» Seam has issues with request params as associations 
+		<param name="«getId()»" value="#{«getCurrentEntity().asVar()»List.«genPropertyLabel()»}" />
+	 «ENDREM»
+«ENDDEFINE»
+
+
+
+
+«DEFINE genTemplatePages FOR uml::Class»
+	 <page view-id="«getTemplateViewFileName("edit")»"  >
+    	<navigation> 
+			 <rule if-outcome="save">
+ 				<redirect view-id="«getTemplateViewFileName("view")»" />
+            </rule>	
+             <rule if-outcome="cancel">
+ 				<redirect view-id="«getTemplateViewFileName("list")»" />
+            </rule>			
+		</navigation>
+	</page>
+	
+	 <page view-id="«getTemplateViewFileName("view")»"  action="#{redirect.captureCurrentView()}">
+	 	<navigation> 
+			 <rule if-outcome="edit">
+ 				<redirect view-id="«getTemplateViewFileName("edit")»" />
+            </rule>	
+             <rule if-outcome="cancel">
+ 				<redirect view-id="/parent.xhtml" />
+            </rule>			
+		</navigation>
+		<param name="«asVar()»Id" value="#{«asVar()»Action.«asVar()»Id}" />
+	</page>
+	
+	<page view-id="«getTemplateViewFileName("list")»" action="#{redirect.captureCurrentView()}" >
+		<navigation>
+			<rule if-outcome="view«name»">
+				<redirect view-id="«getTemplateViewFileName("view")»" />
+			</rule> 
+			 <rule if-outcome="edit">
+ 				<redirect view-id="«getTemplateViewFileName("edit")»" />
+            </rule>			
+		</navigation>
+		
+		<param name="firstResult" value="#{«asVar()»List.firstResult}" />
+		<param name="sort" value="#{«asVar()»List.orderColumn}" />
+		<param name="dir" value="#{«asVar()»List.orderDirection}" />
+
+		<param name="from" />
+		<param name="id" value="#{«asVar()»List.«asVar()».id}" />		
+	</page>
+«ENDDEFINE»

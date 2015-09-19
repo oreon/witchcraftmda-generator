@@ -1,0 +1,97 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::associationExtensions»
+«EXTENSION template::WebExtensions»
+
+«DEFINE Root FOR uml::Model»
+	«EXPAND EntityTestRoot::Root FOR this»
+	«EXPAND WebActionTestRoot::Root FOR this»
+ «REM»comment
+	«EXPAND BaseGen FOREACH allOwnedElements().typeSelect(wcprofile::ServiceInterface)»
+	«EXPAND ManualGen FOREACH allOwnedElements().typeSelect(wcprofile::ServiceInterface)»
+	
+	«EXPAND BaseGen FOREACH allOwnedElements().typeSelect(wcprofile::RepositoryInterface)»
+	«EXPAND ManualGen FOREACH allOwnedElements().typeSelect(wcprofile::RepositoryInterface)»
+«ENDREM»
+«ENDDEFINE»
+
+«DEFINE BaseGen FOR uml::Interface»
+	«FILE packagePath() +"/base/" + name + "TestBase.java" »
+		package « packageName() ».base;
+		«EXPAND genImports FOR this»
+		«EXPAND genClassBody FOR this» 
+	«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE ManualGen FOR uml::Interface»
+«FILE packagePath() +"/" + name + "Test.java" man_path »
+package « packageName() »;
+«EXPAND genImports FOR this»
+
+public class «name»Test extends «name»TestBase{
+	
+}
+«ENDFILE»
+«ENDDEFINE»
+
+
+
+«DEFINE genClassBody FOR uml::Interface»
+public class «name»TestBase extends AbstractDependencyInjectionSpringContextTests {
+ 
+ «REM»comment
+	@Autowired
+	«LET !getImplementedInterfaces().isEmpty?  getImplementedInterfaces().get(0):this  AS theclass»
+	«ENDLET»
+	protected «theclass.name» «theclass.name.toFirstLower()»;
+	
+	«FOREACH getImplementedInterfaces() AS i»
+		«EXPAND genOperationTest FOREACH i.getAllOperations()»
+	«ENDFOREACH»
+	
+«ENDREM»
+
+	@Autowired
+	protected «name» «name.toFirstLower()»;
+
+	@BeforeClass
+	public void init(){
+		
+	}
+
+	«EXPAND genOperationTest FOREACH getAllOperations()»
+	
+	
+}
+«ENDDEFINE»
+
+
+«DEFINE genOperationTest FOR uml::Operation»
+	@Test
+	public void test«name.toFirstUpper()»(){
+		//«interface.name.toFirstLower()».«name»(«getParameters()»);
+	}
+«ENDDEFINE»
+
+
+
+
+«DEFINE genImports FOR uml::Interface»
+//	import javax.persistence.EntityManager;
+//	import javax.persistence.Query;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.AbstractDependencyInjectionSpringContextTests;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
+
+	import «fqn()»;
+«ENDDEFINE»
+
+
+
+
+
+

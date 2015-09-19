@@ -1,0 +1,307 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+
+
+«DEFINE genSearchView FOR uml::Class»
+«FILE getWebPath() +"/" + "search" + name+ "." + getExtension()»
+	
+<ui:composition «EXPAND WebRoot::genIncludes-» >	
+	<h:form>
+	<s:div rendered="false">	
+	<ui:include src="freeTypeSearch«name»Component.xhtml" />
+	</s:div>	
+	<br/>
+	<rich:simpleTogglePanel switchType="client" label="Advanced Search" opened="false">
+	
+		<rich:tabPanel>
+			<rich:tab label="Search">
+				<ui:include src="fieldSearch«name»Component.xhtml" />
+			</rich:tab>
+	
+			<rich:tab label="Text Search">
+				<ui:include src="textSearch«name»Component.xhtml" />
+			</rich:tab>
+		</rich:tabPanel>
+	
+		«EXPAND genCancelSaveBtns FOR this-»
+		</rich:simpleTogglePanel>
+	</h:form>
+</ui:composition>
+«ENDFILE»
+«EXPAND genFieldSearchView FOR this»
+«EXPAND genTextSearchView FOR this»
+«EXPAND genFreeTypeSearch FOR this»
+«EXPAND genFullTextSearchResults FOR this»
+
+«ENDDEFINE»
+
+«DEFINE genFieldSearchView FOR uml::Class»
+«FILE getWebPath() +"/" + "fieldSearch" + name + "Component." + getExtension()»
+<ui:composition «EXPAND WebRoot::genIncludes-» >
+  <div class="entry errors"><h:messages globalOnly="true" /></div>
+	<h:panelGrid columns="6">
+	«setAsCurrentEntity(this)-»
+	«EXPAND genAttribAsOutput FOR this-»
+	</h:panelGrid>
+	«EXPAND genDateRange FOR this»
+	«EXPAND genSavedSearch FOR this»
+</ui:composition>
+«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE genSavedSearch FOR uml::Class»
+<div style="background-color: #eef; border: 1 px solid #eeb">
+                    Search Name (to save this search ) <h:inputText
+						value="#{«asVar()»List.searchName}" />
+
+					<h:commandButton id="savesearch" value="Save Search"
+						action="#{«asVar()»List.saveSearch}">
+						<s:conversationPropagation type="join" />
+					</h:commandButton>
+
+					<h:selectOneMenu id="svdsearches"
+						value="#{«asVar()»List.currentSavedSearch}">
+						<s:selectItems value="#{«asVar()»List.savedSearches}" var="itemIter"
+							label="#{itemIter.displayName}"
+							noSelectionLabel="Load Saved Search" />
+						<s:convertEntity />
+					</h:selectOneMenu>
+					
+					<h:commandButton value="Load Search"
+						action="#{«asVar()»List.executeSearch}">
+						<s:conversationPropagation type="join" />
+					</h:commandButton>
+	</div>
+«ENDDEFINE»
+
+
+«DEFINE genFreeTypeSearch FOR uml::Class»
+«FILE getWebPath() +"/" + "freeTypeSearch" + name + "Component." + getExtension()»
+<ui:composition «EXPAND WebRoot::genIncludes-» >
+	<h:inputText id="freeType«name»" />
+	«EXPAND genSuggestionBox »
+	<s:button view="«getViewFile("view")»" value="GO"/>
+</ui:composition>
+«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE genSuggestionBox FOR uml::Class»
+	<rich:suggestionbox  for="freeType«name»"  rules="all" suggestionAction="#{«asVar()»List.autocompletedb}"
+		  var="_result" fetchValue="#{_result.displayName}" minChars="2" nothingLabel="No Results found" zindex="99999">
+		«IF autoCompleteColumns == null»
+			<h:column>
+				<h:outputText value="#{_result.displayName}" />
+			</h:column>
+		«ELSE»
+		«FOREACH autoCompleteColumns.getAsList() AS e-»
+			<h:column>
+				<h:outputText value="#{_result.«e»}" />
+			</h:column>
+		«ENDFOREACH»
+		«ENDIF»
+						
+		<a:support event="onselect">
+			<f:setPropertyActionListener value="#{_result}"
+				target="#{«getAction()».instance}" />
+		</a:support>
+	</rich:suggestionbox>
+«ENDDEFINE»
+
+
+
+«DEFINE genTextSearchView FOR uml::Class»
+«FILE getWebPath() +"/" + "textSearch" + name+ "Component." + getExtension()»
+<ui:composition «EXPAND WebRoot::genIncludes-» >
+<h:inputText value="#{«getList()».searchText}" id="srchtext" />
+
+<rich:suggestionbox id="suggestionBoxId" for="srchtext" tokens=",[]"
+	rules="all" suggestionAction="#{«getList()».autocomplete}"
+	var="_result" fetchValue="#{_result.id}" minChars="2"
+	nothingLabel="No Results found"
+	onselect="processObjectsChange(suggestion)">
+	
+	<h:column>
+		<h:outputText value="#{_result.id}" style="font-style:italic" />
+	</h:column>	
+
+	<h:column>
+		<h:outputText value="#{_result.displayName}" />
+	</h:column>
+
+</rich:suggestionbox>
+</ui:composition>
+«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE genFullTextSearchResults FOR wcprofile::Entity»
+«EXPAND genFullTextSearchResultsComponent»
+«FILE getWebPath() +"/" + "textSearchResults" + name+ "." + getExtension()»
+<ui:composition «EXPAND WebRoot::genIncludes-» template = "«getAdminTemplate()»" >	
+<ui:define name="content">   
+	
+	<ui:include src="textSearchResults«name»Component.xhtml" />
+	
+ </ui:define>
+</ui:composition>
+«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE genFullTextSearchResultsComponent FOR wcprofile::Entity»
+«FILE getWebPath() +"/" + "textSearchResults" + name+ "Component." + getExtension()»
+<ui:composition «EXPAND WebRoot::genIncludes-» >
+
+		<h:form>
+
+			<h:inputText value="#{«getAction()».searchText}" />
+			<p:spacer/>
+			<p:commandButton action="#{«getAction()».textSearch}" value="Search"
+				update="results" />
+			<br />
+
+			<p:panel id="results">
+
+				<p:dataTable value="#{«getAction()».searchResultsList}" var="entry">
+					<p:column>
+						<b> 
+							<h:link outcome="view«name».xthml"  >
+								<h:outputText value="${entry.baseEntity.displayName}" />
+								<f:param name="id" value="#{entry.baseEntity.id}"   />
+							</h:link>
+						</b>
+						<br />
+						<h:outputText value="${entry.highlightedFragment}" escape="false" />
+					</p:column>
+				</p:dataTable>
+
+			</p:panel>
+
+		</h:form>
+</ui:composition>
+«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE genDateRange FOR uml::Class»
+	<h:panelGrid columns="2">
+		<h:outputText value="Creation Date From" />
+		<h:outputText value="Creation Date To" />
+		<rich:calendar id="from"
+			value="#{«asVar()»List.dateCreatedRange.begin}" />
+		<rich:calendar id="to" value="#{«asVar()»List.dateCreatedRange.end}" />
+	</h:panelGrid>
+«ENDDEFINE»
+
+«DEFINE genCancelSaveBtns FOR uml::Class»
+	<div class="actionButtons">
+		<h:commandButton id="search" value="Search" view="«getViewFile("list")»" >
+			 <s:conversationPropagation type="join"/>
+		</h:commandButton> 
+		<s:button propagation="none" id="reset" value="Reset" includePageParams="false" />
+	</div>
+«ENDDEFINE»
+
+«DEFINE genAttribAsOutput FOR uml::Class-»
+	«clearCurrentEmbeddable()-»
+	«FOREACH allParents() AS e-»
+	 «EXPAND genPropertyRec FOREACH e.getAllAttributes().select(a| a.isSearchable()  ) -»
+	«ENDFOREACH»
+	«EXPAND genPropertyRec FOREACH getAllAttributes().select(a| a.isSearchable()  ) -»
+«ENDDEFINE»
+
+«DEFINE genPropertyRec FOR uml::Property-»
+	«IF isExpandableAssoc() -» 
+		«setCurrentEmbeddable()-» 
+		«EXPAND genPropertyRec FOREACH type.getAllAttributes().select(a| a.isSearchable() ) -»
+		«clearCurrentEmbeddable()-»
+	«ELSE-»
+		«EXPAND genAttribute -»
+	«ENDIF»
+«ENDDEFINE»
+
+
+
+«DEFINE genAttribute FOR uml::Property -»
+	«IF type.name != getCurrentEntity().name»
+	«IF association != null -»
+		«EXPAND genAssociation FOR this-»
+	«ELSE-»
+		«EXPAND genProperty FOR this»
+	«ENDIF»
+	«ENDIF»
+«ENDDEFINE»
+
+«DEFINE genProperty FOR uml::Property-»
+	<h:panelGroup>
+	«getOutputMessage()» <br/>
+	«EXPAND genPropertyEntry(type) FOR this-»
+	</h:panelGroup>
+«ENDDEFINE»
+
+«DEFINE genAssociation FOR uml::Property -»
+	 «IF !isManyToMany() || getCurrentEmbeddable() == null»
+	<h:panelGroup>
+	«getOutputMessage()» <br/>
+	<h:selectOneMenu id="«getId()»" value="#{ «getCurrentEntity().asVar()»List.«isManyToMany() ? name +"ToSearch": genPropertyLabel()»}" >
+		<s:selectItems value="#{«type.asVar()»List}" var="itemIter"
+			label="#{itemIter.displayName}"
+			noSelectionLabel="Any..." />
+		<s:convertEntity />
+		«getAssocOptional()?"<f:selectItem itemLabel=\"--None--\" itemValue=\"\"/>":""»
+	</h:selectOneMenu>
+	</h:panelGroup>
+	«ENDIF»
+«ENDDEFINE»
+
+«DEFINE genPropertyEntry(uml::PrimitiveType cls) FOR uml::Property-»
+	«IF isBoolean()»
+	<h:selectOneMenu id="«getId()»" value="#{«getCurrentEntity().asVar()»List.«genPropertyLabel()»}" required="false">
+		<f:selectItem itemLabel="Any" itemValue=""/>
+		<f:selectItem itemLabel="True" itemValue="true"/>
+		<f:selectItem itemLabel="False" itemValue="false"/>
+	</h:selectOneMenu>
+	«ELSEIF type.name == "imageFile"»
+	«" "» 
+	«ELSEIF type.isRangeType()»
+		«EXPAND genRangeSearch FOR this»
+	«ELSE»
+		<«getInputControlSearch()»  id="«getId()»" value="#{«getCurrentEntity().asVar()»List.«genPropertyLabel()»}" />
+	«ENDIF»
+	
+«ENDDEFINE»
+
+
+«DEFINE genPropertyEntry(uml::Enumeration enm) FOR uml::Property-»
+	<h:selectOneMenu id="«getId()»" value="#{«getCurrentEntity().asVar()»List.«genPropertyLabel()»}" required="«getAssocOptional()»">
+		<f:selectItem itemLabel="Any" itemValue=""/>
+		<f:selectItem itemLabel="None" itemValue=""/>
+		«FOREACH  enm.ownedLiteral AS e-»
+		<f:selectItem itemValue="«e.name»"  itemLabel="«e.name.toLowerCase().getVariableNameForDisplay()-»" />
+		«ENDFOREACH»
+	</h:selectOneMenu>
+«ENDDEFINE»
+
+«DEFINE genRangeSearch FOR uml::Property-»
+	«IF type.name == "Date"-»
+		<h:outputText value="From"/> <br/>
+		<rich:calendar value="#{«getCurrentEntity().asVar()»List.«getId()»Range.begin}" />
+		To<br/>
+		<rich:calendar value="#{«getCurrentEntity().asVar()»List.«getId()»Range.end}" />
+	«ELSE»
+	<h:inputText  id="«getId()»_begin" value="#{«getCurrentEntity().asVar()»List.«getId()»Range.begin}" >
+		<f:converter converterId="javax.faces.«type.name.getTypeName()»" />
+	</h:inputText>
+	<h:inputText  id="«getId()»_end" value="#{«getCurrentEntity().asVar()»List.«getId()»Range.end}" >
+		<f:converter converterId="javax.faces.«type.name.getTypeName()»" />
+	</h:inputText>
+	«ENDIF»
+«ENDDEFINE»
+
+
+
+
+
+«

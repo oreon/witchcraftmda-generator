@@ -1,0 +1,200 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+
+
+«DEFINE Root FOR uml::Model»
+	«EXPAND StateMachineRoot FOREACH allOwnedElements().typeSelect(uml::Activity)»
+	
+«ENDDEFINE»
+
+
+«DEFINE StateMachineRoot FOR uml::Activity»
+
+	«EXPAND genForm FOREACH allOwnedElements().typeSelect(uml::ActivityNode)»
+	
+	«FILE getWorkflowPathForFile() + "ProcessActionBase.java" -»
+		
+	package «getWebPackageName()»;
+		
+	«EXPAND genImports FOR this»
+
+	public class «name.toFirstUpper()»ProcessActionBase extends BaseJbpmProcessAction implements java.io.Serializable{
+	
+		«EXPAND genToken FOR this»
+		
+		@CreateProcess(definition = "«name»"«IF getAttrib('processToken') != null», processKey="#{«getAttrib('processToken').type.getAction()».instance.id}"«ENDIF»)
+		public void startProcess() {
+	
+		}
+		
+		«EXPAND genAction FOREACH allOwnedElements().typeSelect(uml::Action)»
+	}
+	«ENDFILE»
+	«EXPAND ManualGen » 
+	
+	«EXPAND genAssignmentHandler(this) FOREACH allOwnedElements().typeSelect(uml::ActivityPartition)»
+	«EXPAND genDecisionHandler(this) FOREACH allOwnedElements().typeSelect(uml::DecisionNode)»
+	
+«ENDDEFINE»
+
+«REM» Generates the manually editable process action file«ENDREM»
+«DEFINE ManualGen FOR uml::Activity »
+	«FILE  getWorkflowPathForFile() + "ProcessAction.java" man_path »
+	
+package « getWebPackageName() »;
+
+«EXPAND genImports»
+
+@Name("«name.toFirstLower()»ProcessAction")	
+//@Scope(ScopeType.CONVERSATION)
+public class «name.toFirstUpper()»ProcessAction extends «name.toFirstUpper()»ProcessActionBase {
+
+	
+}
+«ENDFILE»
+«ENDDEFINE» 
+
+
+«DEFINE genToken FOR uml::Activity»
+	«FOREACH getAllAttributes() AS a»
+		
+		@Out(scope = ScopeType.BUSINESS_PROCESS, required = false)
+		protected «a.type.fqn()» «a.name» = new «a.type.fqn()»();
+		
+		public void set«a.name.toFirstUpper()»(«a.type.fqn()» «a.name»){
+			this.«a.name» = «a.name»;
+		}
+		
+		public «a.type.fqn()» get«a.name.toFirstUpper()»(){
+			return this.«a.name»;
+		}
+	«ENDFOREACH»
+«ENDDEFINE»
+
+
+
+«DEFINE genAssignmentHandler(uml::Activity act) FOR uml::ActivityPartition  »
+ «FILE  act.getWorkflowActionPath() +   "/assign/" + name.toFirstUpper()  + "Assignment.java"   man_path»
+	package «act.getWebPackageName()+ "." + act.name.toFirstLower() + ".assign"»;
+	
+	import org.jboss.seam.Component;
+	import org.jbpm.graph.exe.ExecutionContext;
+	import org.jbpm.taskmgmt.def.AssignmentHandler;
+	import org.jbpm.taskmgmt.exe.Assignable;
+	
+	
+	public class «name.toFirstUpper() + "Assignment"» implements AssignmentHandler {
+	
+		public void assign(Assignable assignable, ExecutionContext executionContext)
+				throws Exception {
+				
+		}
+		
+	}
+ «ENDFILE»
+«ENDDEFINE»
+
+«DEFINE genDecisionHandler(uml::Activity act) FOR uml::DecisionNode »
+ «FILE  act.getWorkflowActionPath() +   "/decisions/" + name.toFirstUpper()  + "DecisionHandler.java"  man_path »
+	package «act.getWebPackageName()+ "." + act.name.toFirstLower() + ".decisions"»;
+	
+	import org.jboss.seam.Component;
+	import org.jbpm.graph.exe.ExecutionContext;
+	
+	import org.jbpm.graph.exe.ExecutionContext;
+	import org.jbpm.graph.node.DecisionHandler;
+
+	public class «name.toFirstUpper()»DecisionHandler implements DecisionHandler{
+		public String decide(ExecutionContext executionContext) throws Exception { 
+			return "";
+			
+		}
+	}
+ «ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE genDecisionHandler(uml::Activity act) FOR wcprofile::WorkflowDecision »
+«IF className != null»
+ «FILE  act.getWorkflowActionPath() +   "/decisions/" + name.toFirstUpper()  + "DecisionHandler.java"  man_path »
+	package «act.getWebPackageName()+ "." + act.name.toFirstLower() + ".decisions"»;
+	
+	import org.jboss.seam.Component;
+	import org.jbpm.graph.exe.ExecutionContext;
+	
+	import org.jbpm.graph.exe.ExecutionContext;
+	import org.jbpm.graph.node.DecisionHandler;
+
+	public class «name.toFirstUpper()»DecisionHandler implements DecisionHandler{
+		public String decide(ExecutionContext executionContext) throws Exception { 
+			return "";
+		}
+	}
+ «ENDFILE»
+«ENDIF»
+«ENDDEFINE»
+
+
+
+«DEFINE genAction FOR uml::Action»
+	@StartTask
+	public void start«name.toFirstUpper().removeSpaces()»() {
+		
+	}
+	
+	«FOREACH outgoing() AS o-»
+	@EndTask(transition = "«o.getTransName()»")
+	public void «o.getTransName()»«name.toFirstUpper().removeSpaces()»() {
+		
+	}
+	«ENDFOREACH»
+«ENDDEFINE»
+
+
+«DEFINE genImports FOR uml::Activity»
+	import org.jboss.seam.ScopeType;
+	import org.jboss.seam.annotations.In;
+	import org.jboss.seam.annotations.Name;
+	import org.jboss.seam.annotations.Out;
+	import org.jboss.seam.annotations.bpm.CreateProcess;
+	import org.jboss.seam.annotations.bpm.EndTask;
+	import org.jboss.seam.annotations.bpm.StartTask;
+	import org.jbpm.JbpmContext;
+	import org.witchcraft.jbpm.BaseJbpmProcessAction;
+«ENDDEFINE»
+
+
+
+
+
+
+ «DEFINE genForm FOR uml::Action»
+	«FILE getTaskFromWebPath()»
+<ui:composition «EXPAND richfaces::WebRoot::genIncludes FOR this» >	
+	«PROTECT CSTART '<!--' CEND '-->' ID  'TASKFORM_EDITABLE_RGN_' + activity.name + "_" + name»
+		«LET activity.getAttrib('processToken') AS token»
+		
+		«IF token != null»
+		<ui:include src="«token.type.getComponentViewFile("view")»" >
+			<ui:param  name="«token.type.name.toFirstLower()»Id" 
+				value="#{jbpmProcessAction.task.variables['processToken'].id}" />
+		</ui:include>
+		«ENDIF»
+		«ENDLET»
+	«ENDPROTECT»	
+</ui:composition>
+	«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE genForm FOR uml::ActivityNode»
+	
+«ENDDEFINE»
+
+«DEFINE genForm FOR uml::ActivityFinalNode»
+
+«ENDDEFINE»

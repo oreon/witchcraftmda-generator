@@ -1,0 +1,170 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE Root FOR uml::Model»
+	«EXPAND PackageRoot FOREACH allOwnedElements().typeSelect(uml::Package)»
+«ENDDEFINE»
+
+«DEFINE PackageRoot FOR uml::Package»
+	«EXPAND genViewAspx FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND genViewCS FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+«ENDDEFINE»
+
+
+«DEFINE genViewAspx FOR wcprofile::Entity»
+
+	«FILE packagePath()  + "/" + name + "View.aspx"»
+	
+	<%@ Page Language="C#" MasterPageFile="~/Shared/MasterPage.master" CodeFile="«name»View.aspx.cs"
+    Inherits="View" %>
+
+<asp:Content ID="content" ContentPlaceHolderID="content" runat="server">
+    <h1>
+        Update «name.toFirstLower()» information</h1>
+    <div align="center">
+        <spring:DataBindingPanel runat="server">
+            <fieldset>
+                <legend> details</legend>
+                <table>
+                    <tr>
+                        <td class="formLabelCell">
+                            ID:</td>
+                        <td class="formValueCell">
+                            <asp:TextBox runat="server" BindingTarget="Current«name».Id" BindingDirection="TargetToSource"
+                                ReadOnly="true" /></td>
+                    </tr>
+                    «EXPAND genAttribAsOutput FOR this»
+                   
+                    <tr>
+                        <td colspan="2" style="text-align: right; padding-top: 10px">
+                            <asp:Button runat="server" ID="btnSave" Text="Save" /></td>
+                    </tr>
+                </table>
+            </fieldset>
+        </spring:DataBindingPanel>
+        <div class="actionPanel">
+            <asp:LinkButton ID="«name.toFirstLower()»List" runat="server" onclick="«name.toFirstLower()»List_Click">&laquo; Back to «name.toFirstLower()» list</asp:LinkButton> |
+            <asp:LinkButton ID="cancel" runat="server" onclick="cancel_Click">Cancel edit &raquo;</asp:LinkButton>
+        </div>
+    </div>
+</asp:Content>
+	
+	«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE genAttribAsOutput FOR uml::Class-»
+	«FOREACH allParents() AS e-»
+	 «EXPAND genLabelAndControlAssoc FOREACH e.getAllAttributes().select(a| !a.isMultivalued() && a.association != null ) -»
+	«ENDFOREACH»
+	«EXPAND genLabelAndControlAssoc FOREACH getAllAttributes().select(a| !a.isMultivalued() && a.association != null  ) -»
+
+	«FOREACH allParents() AS e-»
+	 «EXPAND genLabelAndControl FOREACH e.getAllAttributes().select(a|!a.isMultivalued() && a.association == null) -»
+	«ENDFOREACH»
+	«EXPAND genLabelAndControl FOREACH getAllAttributes().select(a|!a.isMultivalued() && a.association == null) -»
+«ENDDEFINE»
+
+
+«DEFINE genLabelAndControlAssoc FOR uml::Property»
+	 <tr>
+        <td class="formLabelCell">
+            «name.toFirstUpper»:
+        </td>
+        <td class="formValueCell">
+        	<%= Current«name».«displayName» %>
+            «REM» TODO comment<asp:TextBox runat="server" BindingTarget="Current.«name»" />«ENDREM»
+        </td>
+    </tr>
+«ENDDEFINE»
+
+«DEFINE genLabelAndControl FOR uml::Property»
+	 <tr>
+        <td class="formLabelCell">
+            «name.toFirstUpper»:
+        </td>
+        <td class="formValueCell">
+        	<%= Current«name».«name» %>
+            
+        </td>
+    </tr>
+«ENDDEFINE»
+
+«DEFINE genViewCS FOR wcprofile::Entity»
+«FILE packagePath()  + "/" + name + "View.cs"»
+
+using System;
+using System.Web;
+using Spring.Northwind.Dao;
+using Spring.Northwind.Domain;
+using Spring.Web.UI;
+
+public partial class «name»View : Page
+{
+    private I«name»EditController «name.toFirstLower()»EditController;
+    private I«name»Dao «name.toFirstLower()»Dao;
+
+    public I«name»Dao «name»Dao
+    {
+        set { this.«name.toFirstLower()»Dao = value; }
+    }
+
+    public I«name»EditController «name»EditController
+    {
+        set { this.«name.toFirstLower()»EditController = value; }
+    }
+
+    public «name» Current«name»
+    {
+        get { return «name.toFirstLower()»EditController.Current«name»; }
+    }
+
+    //  public static void Edit( «name» «name.toFirstLower()» )
+    //  {
+    //    HttpContext.Current.Session[typeof(«name»Editor).FullName + ".«name»"] = «name.toFirstLower()»;
+    //  }
+
+    public «name»View()
+    {
+        this.InitializeControls += new EventHandler(Page_InitializeControls);
+        this.DataBound += new EventHandler(Page_DataBound);
+        this.DataUnbound += new EventHandler(Page_DataUnbound);
+    }
+
+    override protected void InitializeDataBindings()
+    {
+        base.InitializeDataBindings();
+
+        // do the "one time" setup for databinding
+    }
+
+    private void Page_DataBound(object sender, EventArgs e)
+    {
+        // perform custom tasks for binding data from model to the form
+    }
+
+    private void Page_DataUnbound(object sender, EventArgs e)
+    {
+        // perform custom tasks for unbinding data from form to the model
+    }
+
+    private void Page_InitializeControls(object sender, EventArgs e)
+    {
+        
+    }
+
+    protected void «name.toFirstLower()»List_Click(object sender, EventArgs e)
+    {
+        SetResult("«name»List");
+    }
+    protected void edit«name»_Click(object sender, EventArgs e)
+    {
+        SetResult("Edit«name»");
+    }
+}
+
+«ENDFILE»
+«ENDDEFINE»

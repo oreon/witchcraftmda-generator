@@ -1,0 +1,404 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE genView FOR uml::Class»
+	«FILE getWebPath() +"/list" +name+ "." + getExtension()»
+		
+		<ui:composition «EXPAND WebRoot::genIncludes» template="«getAdminTemplate()»"  >	
+			
+			«setAsCurrentEntity(this)-»
+			«clearCurrentEmbeddable()-»
+			<ui:define name="content">
+				«IF isFullTextSearchable()» «EXPAND genFullTextBtn FOR this» «ENDIF»
+				
+				<c:set var="modalId" value="«name»ModalPanel-«name»" />
+				<ui:include src="«getComponentViewFile("search")»" />
+				<br/> <br/>
+				«EXPAND genButtons FOR this»
+				<div id="printable" >
+				<ui:include src="«getComponentViewFileCustomizable("list")»"  >
+					<ui:param name="records" value="#{«asVar()»List.lazyModel}" />
+         		</ui:include>
+         		</div>
+				«EXPAND genButtons FOR this»
+				
+			</ui:define>
+		</ui:composition>
+			«ENDFILE»
+			«EXPAND genViewComponent FOR this» 
+			«REM»comment
+			«EXPAND auditListRoot::genAuditLogComponent FOR this»
+			«ENDREM»
+			«EXPAND modelDlg::genModelDlgComponent FOR this»
+			
+			«EXPAND genArchivedFile FOR this»
+			
+			«EXPAND genMiniTable FOR this»
+			
+«ENDDEFINE»
+		
+«DEFINE genFullTextBtn FOR uml::Class»
+ <h:form> 
+	<h:commandButton  value="Full Text Search"
+		action="textSearch">
+		<s:conversationPropagation type="join" />
+	</h:commandButton>
+</h:form>
+«ENDDEFINE»
+
+«REM» Create the actual table component«ENDREM»
+«DEFINE genViewComponent FOR uml::Class»
+	«FILE getWebPath() +"/list" +name+ "Component." + getExtension()»
+		<ui:composition «EXPAND WebRoot::genIncludes-» >	
+		
+		 <c:if test="${empty modalId}">
+       		 <c:set var="modalId" value="«name»ModalPanel" />
+    	</c:if>
+    	
+    	<c:if test="${empty listTitle}">
+       		 <c:set var="listTitle" value="«name» Search Results (#{empty records ? 0 : («asVar()»List.paginated ? «asVar()»List.resultCount : records.size)})" />
+    	</c:if>
+	
+		<h3> ${listTitle}  </h3>
+		
+	   <h:form>
+	 		<ui:include src="«getComponentViewFile("modalDlg")»" >
+				<ui:param name="modalId" value="${modalId}"/> 
+			</ui:include>
+		</h:form>	
+	   <h:form id="«asVar()»Form">
+		
+			<p:dataTable  var="_«asVar()»" value="#{records}"  id="«name.toFirstLower()»List"
+				paginator="true" lazy="true"  rows="10" 
+				 selectionMode="single" selection="#{«asVar()»Action.«asVar()»}" >
+				 
+                    <p:ajax event="rowSelect" update=":#{p:component('edit«name»Panel')}"  
+                          oncomplete="PF('edit«name»Dialog').show()"
+                          listener="#{«asVar()»Action.onRowSelect}" />
+                          
+			«EXPAND genCoreColumns FOR this»
+			«EXPAND genCreationDate FOR this-»	
+			«EXPAND genLink("view", "eye.png") FOR this»
+			«EXPAND genLink ("edit", "edit.png")FOR this»
+			«EXPAND genDeleteLink FOR this»
+			«REM»comment
+			«EXPAND genQuickEditLink FOR this»
+			«ENDREM»
+			</p:dataTable>
+	 	</h:form>		
+		
+		</ui:composition>
+	«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE genExpandRow FOR uml::Property»
+	<p:column style="width:2%">
+		<p:rowToggler />
+	</p:column>
+	<p:rowExpansion>
+		<ui:include src="«this.type.getComponentViewFile("miniList")»"  >
+			<ui:param name="records" value="#{_«class.asVar()».list«name.toFirstUpper()»}" />
+			 <ui:param name="exclude«opposite.name.toFirstUpper()»" value="true"/>
+        </ui:include>
+	</p:rowExpansion>
+«ENDDEFINE»
+
+
+«REM»TAble to be included in rowedits «ENDREM»
+«DEFINE genMiniTable FOR wcprofile::Entity»
+ «FILE getWebPath() +"/miniList" +name+ "Component." + getExtension()»
+ <ui:composition «EXPAND WebRoot::genIncludes-» >
+	<p:dataTable var="_«name.toFirstLower()»" value="#{records}">
+		«EXPAND genCoreColumns»
+ 	</p:dataTable>
+ </ui:composition>
+ «ENDFILE»
+«ENDDEFINE»
+
+«DEFINE genCoreColumns FOR wcprofile::Entity»
+	«EXPAND genId FOR this-»	
+	«EXPAND genExpandRow FOREACH getComposed() -»
+	«EXPAND genAttribAsOutput FOR this-»
+	«EXPAND genPropsFromBusinessEntity FOR this-»
+«ENDDEFINE»
+
+«DEFINE genButtons FOR wcprofile::Entity»
+	<br/>
+	<h:form>
+		<p:button value="Create New" outcome="«getViewFile("edit")»" propagation="none" >
+			<f:param name="«asVar()»Id" value="0"/>
+  		</p:button> 
+  		      
+        <p:commandButton value="Quick Create"
+        	update=":#{p:component('edit«name»Panel')}"  actionListener="#{«getAction()».set«name»Id(0)}"
+                              oncomplete="PF('edit«name»Dialog').show()">
+		</p:commandButton>
+	
+	</h:form>
+	<br/>
+		«IF templatable»
+		 <h:button value="Create Template" outcome="«getTemplateViewFileName("edit")»"/>
+		 «ENDIF»
+«ENDDEFINE»
+
+
+
+
+«DEFINE genPropsFromBusinessEntity FOR wcprofile::Entity»
+    «REM»comment
+	«IF fieldsFromSuperClass != null»	
+	«EXPAND genProperty FOREACH getStringsAsList(fieldsFromSuperClass)»
+	«ENDIF»
+	«ENDREM»
+«ENDDEFINE»
+
+
+
+«DEFINE genAttribAsOutput FOR uml::Class-»
+	«FOREACH allParents() AS e-»
+	 «EXPAND genPropertyRec FOREACH e.getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()  ) -»
+	«ENDFOREACH»
+	«EXPAND genPropertyRec FOREACH getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()   ) -»
+«ENDDEFINE»
+
+«DEFINE genPropertyRec FOR uml::Property-»
+	«IF isExpandableAssoc() -» 
+		«setCurrentEmbeddable()-» 
+		«EXPAND genPropertyRec FOREACH type.getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()  ) -»
+		«clearCurrentEmbeddable()-»
+	«ELSE-»
+		«EXPAND genAttribute -»
+	«ENDIF»
+«ENDDEFINE»
+
+«DEFINE genAttribute FOR uml::Property -»
+	«IF association != null -»
+		«EXPAND genAssociation FOR this-»
+	«ELSE-»
+		«EXPAND genProperty FOR this-»
+	«ENDIF»
+«ENDDEFINE»
+
+«DEFINE genLink(String action, String icon) FOR uml::Class»
+	<p:column  rendered="#{s:hasPermission('_«asVar()»', '«action»') and !_«asVar()»Category.archived}">
+		
+		<h:link outcome="«getViewFile(action)»"  rendered="#{s:hasPermission(_«asVar()», '«action»')}" >
+			<h:graphicImage value="/images/icons/«icon»" style="border: 0px" alt="«action»"/>
+			<f:param name="«asVar()»Id" value="#{_«asVar()».id}" />
+			<s:conversationPropagation type="none"/>
+		</h:link>
+	</p:column>
+«ENDDEFINE»
+
+«DEFINE genQuickEditLink FOR uml::Class»
+	<p:column rendered="#{s:hasPermission('_«asVar()»Category', 'edit') and !_«asVar()»Category.archived}">
+		<f:facet name="header">
+			<h:outputText value=" " />
+		</f:facet>
+		
+		<p:commandLink  render="${modalId}"
+						execute="@this" oncomplete="#{p:component('«name»ModalPanel-«name»')}.show()">
+						
+			<h:graphicImage value="/images/icons/editQuick.png"
+				style="border: 0px" alt="Quick Edit" />
+			
+			 <f:param value="#{_«asVar()».id}" assignTo="#{«asVar()»Action.«asVar()»Id}" />
+			 <s:conversationPropagation type="join"/>  
+			
+			<f:setPropertyActionListener target="#{«asVar()»Action.entity}"
+				value="#{_«asVar()»}" />
+							
+		</p:commandLink>
+		
+	</p:column>
+«ENDDEFINE»
+
+
+
+«DEFINE genDeleteLink FOR uml::Class»
+	<p:column rendered="#{s:hasPermission('«asVar()»Action', 'archive')}" propagation="none">
+		<f:facet name="header">
+			<h:outputText value="" />
+		</f:facet>
+		
+		<h:commandLink rendered="#{!_«asVar()».archived}" action="#{«asVar()»Action.archiveById}" onclick="javascript:if(!confirm('Do you really want to delete #{_«asVar()».displayName} ?')){ return false; } else { return true; }" >
+			<h:graphicImage value="/images/icons/delete.png" style="border: 0px" alt="archive"/>
+			<f:param name="currentEntityId" value="#{_«asVar()».id}"/>
+		</h:commandLink>
+		
+        <h:commandLink rendered="#{_«asVar()».archived}" action="#{«asVar()»Action.delete}" onclick="javascript:if(!confirm('Do you really want to permanently delete #{_«asVar()».displayName} ?')){ return false; } else { return true; }"> 
+            Delete  
+            <f:param name="currentEntityId" value="#{_«asVar()».id}"/>
+        </h:commandLink> 
+         
+        <h:commandLink rendered="#{_«asVar()».archived}" action="#{«asVar()»Action.restore}" > 
+            Restore
+            <f:param name="currentEntityId" value="#{_«asVar()».id}"/> 
+        </h:commandLink> 
+		
+	</p:column>
+«ENDDEFINE»
+
+«DEFINE genAssociation FOR uml::Property»
+	<p:column headerText="«msgBundleKey()-»" sortBy="#{«genPropertyLabel()»}"    «EXPAND genPermission FOR this»>
+		«EXPAND genPropertyValue("_", true) FOR this»
+	</p:column>
+«ENDDEFINE»
+
+
+«DEFINE genAssocValue(String prefix) FOR uml::Property»
+	«REM»TODO  link should not be hard coded to path and should be of type action=view«type.name» «ENDREM»
+	<h:panelGroup>
+	<h:link id="«getSimpleId()»" «getEscape()»  value="#{«prefix»«genPropertyLabel()».displayName}"  outcome="«type.getViewFile("view")»" propagation="none">
+			<f:param name="«type.name.toFirstLower()»Id" value="#{«prefix»«genPropertyLabel()».id}" />
+			<f:param name="from" value="#{request.servletPath}" />
+	</h:link>
+	«EXPAND genToolTip(prefix) FOR this»
+    </h:panelGroup>
+«ENDDEFINE»
+
+
+«DEFINE genToolTip(String prefix) FOR uml::Property»
+	«IF type.popupInfo != null»
+		 <p:tooltip for="«getSimpleId()»">
+            <span>
+              #{«prefix»«genPropertyLabel()».popupInfo} 
+            </span>
+        </p:tooltip>
+	«ELSE»
+	  <p:overlayPanel for="«getSimpleId()»" showEvent="mouseover" hideEffect="fade" dynamic="false">
+	  	<h:form>
+           <ui:include src="«type.getComponentViewFile("view")»"> 
+             <ui:param name="«type.asVar()»" value="#{«prefix»«genPropertyLabel()»}"/> 
+             <ui:param name="numColumns" value="4"/> 
+             <ui:param name="panelId" value="«name»«opposite.name.toFirstUpper()»"/>
+             <ui:param name="exclude«opposite.name.toFirstUpper()»" value="true"/>
+           </ui:include>
+        </h:form>
+       </p:overlayPanel>
+    «ENDIF»
+«ENDDEFINE»
+
+
+«DEFINE genProperty FOR uml::Property-»
+	«EXPAND genColHeader FOR this»
+		«EXPAND genPropertyValue("_", true) FOR this»
+	</p:column>
+«ENDDEFINE»
+
+«DEFINE genColHeader FOR uml::Property»
+	<p:column headerText="«msgBundleKey()-»" sortBy="#«genPropertyLabel()»#"    «EXPAND genPermission FOR this»>
+«ENDDEFINE»
+
+«DEFINE genPropertyValue(String prefix, boolean isListView) FOR uml::Property»
+		«IF association != null -»
+			«EXPAND genAssocValue(prefix) FOR this»
+		«ELSEIF isFile()»
+				<s:graphicImage rendered="#{«prefix»«genPropertyLabel()» ne null and  «prefix»«genPropertyLabel()».contentType.startsWith('image')}" value="#{«prefix»«genPropertyLabel()».data}">
+					<s:transformImageSize height="100" maintainRatio="true"/>
+				</s:graphicImage>
+		
+				<h:link value="#{«prefix»«genPropertyLabel()».name}"  action="#{«class.asVar()»Action.download«name.toFirstUpper()»(«prefix»«class.asVar()».id)}" 
+					propagation="none"  rendered="#{not «prefix»«genPropertyLabel()».contentType.startsWith('image')}" >
+					<f:param name="currentEnt	ityId" value="#{«prefix»«class.asVar()».id}" />
+          		</h:link> 
+		«ELSEIF isDate()»
+			<h:outputText value="#{«prefix»«genPropertyLabel()»}">
+				<s:convertDateTime type="date" dateStyle="medium" />
+			</h:outputText>
+		«ELSEIF isDateTime()»
+			<h:outputText value="#{«prefix»«genPropertyLabel()»}">
+				<s:convertDateTime type="both" dateStyle="default" />
+			</h:outputText>
+		«ELSEIF isBoolean()»
+			<h:outputText value="#{«prefix»«genPropertyLabel()»? msg.yes : msg.no }" />	
+		«ELSEIF isCurrency()»
+			<h:outputText value="#{«prefix»«genPropertyLabel()»}">
+				<f:convertNumber pattern="$#,##0.00"/>
+			</h:outputText>
+		«ELSEIF isDouble()»
+			<h:outputText value="#{«prefix»«genPropertyLabel()»}">
+				<f:convertNumber pattern="000.00"/>
+			</h:outputText>
+		«ELSEIF isLargeText()»
+			«IF !isListView || ( isColumn() && !abbreviateInListing  ) »
+				<h:outputText value="#{«prefix»«genPropertyLabel()»}"  escape="false" />	
+			«ELSE»
+			 <h:panelGroup>
+	         <h:outputText id="${panelId}«name»Abbr" value="#{«prefix»«genPropertyLabel()»Abbreviated}" escape="false"/> 
+	         </h:panelGroup>
+	         «ENDIF»				
+		«ELSE»
+			<h:outputText value="#{«prefix»«genPropertyLabel()»}"  escape="false" />	
+		«ENDIF»
+«ENDDEFINE»
+
+«DEFINE genProperty FOR String-»
+	<p:column  «EXPAND genPermission FOR this»>
+		<f:facet name="header">
+			<h:outputText value="«msgBundleKey()-»" />
+		</f:facet>
+	 <h:outputText  escape="false" value="#{«getCurrentEntity().asVar()».«this»«this == "createdByUser"?".displayName":""»}" />
+	</p:column>
+«ENDDEFINE»
+
+«DEFINE genPermission FOR uml::Property»
+	rendered="#{ ! exclude«name.toFirstUpper()» == true and ( «genViewPermission()») }"
+	«REM»comment
+	rendered="#{«genViewPermission()»}"  
+	«ENDREM»
+«ENDDEFINE»
+
+«DEFINE genPermission FOR String»
+	rendered="#{s:hasPermission('«this»', 'view«this.toFirstUpper()»' )}"
+«ENDDEFINE»
+
+
+«REM» Creation date and ID  «ENDREM»
+
+
+«DEFINE genId FOR uml::Class»
+	<p:column headerText="#{msg.id}" sortBy="#{«getCurrentEntity().asVar()».id}"  «EXPAND genPermission FOR 'id'»>
+		<h:link outcome="«getViewFile(getAction())»"  rendered="#{s:hasPermission(_«asVar()», 'view')}" propagation="none">
+			<h:outputText    value="#{_«getCurrentEntity().asVar()».id}"  />
+			<f:param name="«asVar()»Id" value="#{_«asVar()».id}" />
+		</h:link>
+	</p:column>
+«ENDDEFINE»
+
+
+«DEFINE genCreationDate FOR uml::Class»
+	 <p:column headerText="#{msg.dateCreated}" sortBy="#{«getCurrentEntity().asVar()».dateCreated}"  «EXPAND genPermission FOR 'dateCreated'»>
+		<h:outputText    value="#{_«getCurrentEntity().asVar()».dateCreated}"  >
+			<s:convertDateTime type="date" dateStyle="medium" />
+		</h:outputText>
+	</p:column>
+«ENDDEFINE»
+
+
+
+«DEFINE genArchivedFile FOR uml::Class»
+	«FILE getWebPath() +"/list" + name + "Archived." + getExtension()»
+		
+		<ui:composition «EXPAND WebRoot::genIncludes» template="«getAdminTemplate()»"  >	
+			
+			<ui:define name="content">
+				
+				<c:set var="modalId" value="«name»ModalPanel-«name»" />
+				<ui:include src="search«name».«getExtension()»" />
+				<br/> <br/>
+				
+				<div id="printable" >
+				<ui:include src="list«name»Component.«getExtension()»"  >
+					<ui:param name="records" value="#{«asVar()»List.resultListArchived}" />
+         		</ui:include>
+         		</div>
+			
+			</ui:define>
+		</ui:composition>
+	«ENDFILE»
+«ENDDEFINE»

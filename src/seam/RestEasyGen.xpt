@@ -1,0 +1,146 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::WebExtensions»
+«EXTENSION template::associationExtensions»
+
+«EXTENSION template::WebExtensions»
+
+«DEFINE Root FOR uml::Model»
+	«EXPAND BaseQueryGen FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND BaseHomeGen FOREACH allOwnedElements().typeSelect(wcprofile::Entity)» 
+	
+	«EXPAND FacadeGen FOREACH allOwnedElements().typeSelect(wcprofile::WebAction)»
+«ENDDEFINE»
+
+
+«DEFINE ManualGen FOR wcprofile::Entity»
+«FILE getWebPackagePath("ListQuery")  man_path »
+package « getWebPackageName() »;
+
+«EXPAND genImports FOR this»	
+@Name("«asVar()»List")
+//@Scope(ScopeType.CONVERSATION)
+public class «name»ListQuery extends «name»ListQueryBase implements java.io.Serializable{
+	
+}
+«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE FacadeGen FOR wcprofile::WebAction»
+«FILE getWebPackagePath(getRestExtension()) »
+package « getWebPackageName() »;
+
+«EXPAND genImports FOR this»	
+
+//@Name("«asVar()»«getRestExtension()»")
+//@Path("«asVar()»«getRestExtension()»")
+public class «name»«getRestExtension()»  implements java.io.Serializable{
+	
+	@In(create=true)
+	«fqn()» «asVar()»;
+	
+	«EXPAND genOperation FOREACH getAllOperations()»
+}
+«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE genOperation FOR wcprofile::PostMethod»
+	@POST
+	@Path("«name»")
+	@Produces("application/xml")
+	//@Restrict("#{s:hasPermission('«class.name»','«name»')}")
+	«visibility» «getOpReturnType()»  «getOpReturnTypeTemplateParam()» «name»( «getParametersSignatureRest("FormParam")»  ){
+		«type != null ? "return" :""»	 «class.name.toFirstLower()».«name»(«getParameters()»);
+	}
+«ENDDEFINE»
+
+
+
+«DEFINE genOperation FOR uml::Operation»
+	@GET
+	@Path("«name»")
+	@Produces("application/xml")
+	//@Restrict("#{s:hasPermission('«class.name»','«name»')}")
+	«visibility» «getOpReturnType()»  «getOpReturnTypeTemplateParam()» «name»( «getParametersSignatureRest("QueryParam")»  ){
+		«type != null ? "return" :""»	 «class.name.toFirstLower()».«name»(«getParameters()»);
+	}
+«ENDDEFINE»
+
+
+
+
+«DEFINE BaseQueryGen FOR uml::Class»
+
+«FILE getWebPackagePath("ResourceQuery","restful")  »
+package « getWebPackageName("restful") »;
+
+«EXPAND genImports FOR this»
+
+import «fqn()»;
+
+//@Name("«name.toFirstLower()»ResourceQuery")
+//@Path("«name.toFirstLower()»")
+public class «name»ResourceQuery extends ResourceQuery<«name»>
+{
+
+}
+«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE BaseHomeGen FOR uml::Class»
+
+«FILE getWebPackagePath("ResourceHome","restful")  »
+package « getWebPackageName("restful") »;
+
+
+«EXPAND genImports FOR this»
+
+import «fqn()»;
+
+
+//@Name("«name.toFirstLower()»ResourceHome")
+//@Path("«name.toFirstLower()»")
+public class «name»ResourceHome extends ResourceHome<«name», Long>
+{
+	@In(create=true)
+	private EntityHome<«name»> «name.toFirstLower()»Action;
+
+	@Override
+	public Home<?, «name»> getEntityHome()
+	{
+		return «name.toFirstLower()»Action;
+	}
+
+}
+«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE genImports FOR uml::Element»
+
+
+import javax.ws.rs.FormParam;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+
+import javax.ws.rs.core.Response;
+
+import org.jboss.seam.annotations.In;
+import org.jboss.seam.annotations.Name;
+import org.jboss.seam.annotations.security.Restrict;
+
+import org.jboss.seam.framework.EntityHome;
+import org.jboss.seam.framework.Home;
+import org.jboss.seam.resteasy.ResourceHome;
+import org.jboss.seam.resteasy.ResourceQuery;
+
+import java.util.Date;
+import java.util.List;
+«ENDDEFINE»

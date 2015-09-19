@@ -1,0 +1,120 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE Root FOR uml::Model»
+	«setCurrentCartridge("DOT_NET")»
+	«EXPAND PackageRoot FOREACH allOwnedElements().typeSelect(uml::Package)»
+«ENDDEFINE»
+
+«DEFINE PackageRoot FOR uml::Package»
+	«EXPAND ClassRoot FOREACH allOwnedElements().typeSelect(uml::Class)»
+	«EXPAND ClassRoot FOREACH allOwnedElements().typeSelect(uml::Interface)»
+	«EXPAND EnumGen FOREACH allOwnedElements().typeSelect(uml::Enumeration)»
+«ENDDEFINE»
+
+
+«DEFINE ClassRoot FOR uml::Interface»
+	«FILE packagePath() +"/" +name+".cs"»
+namespace « packageName() -» {
+	public interface «name» «parents().size > 0 ?" : " + parents().get(0).name:""»{
+	
+	}
+}
+	«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE ClassRoot FOR uml::Class»
+	«FILE packagePath() +"/" +name+".cs"»
+	«EXPAND genImports FOR this-»
+
+namespace « packageName() »{
+
+	public class «name» «getParent()» «getInterfaces()»{
+		«EXPAND genDecl FOREACH getAllAttributes() »
+		«EXPAND genGetterSetter FOREACH getAllAttributes() »
+	}
+}
+	«ENDFILE»
+«ENDDEFINE»
+
+
+
+«DEFINE genDecl FOR uml::Property»
+	private  «isMultivalued()?" IList<" + type.fqnForPackage(this.class) + "> ":type.fqnForPackage(this.class)»   «name.toFirstLower()» «getDefault() != null?" = " +getDefaultVal(type):""»;
+«ENDDEFINE»
+
+«DEFINE genGetterSetter FOR uml::Property»
+	
+	public virtual  «isMultivalued()?" IList<" + type.fqnForPackage(this.class) + "> ":type.fqnForPackage(this.class)» «name.toFirstUpper()» {
+        get {
+            return «name.toFirstLower()»;
+        }
+        set{
+            «name.toFirstLower()» = value;
+        }
+    }
+   
+	
+	«REM»comment
+	«IF isMultivalued()» 
+	public virtual void set«name.toFirstUpper()»(Set<«type.fqnForPackage(this.class)»> «name»){
+		this.«name» = «name»;
+	}
+	
+	public virtual Set<«type.fqnForPackage(this.class)»> get«name.toFirstUpper()»( ){
+		return «name»;
+	}
+	«ELSE»
+	public virtual void set«name.toFirstUpper()»(«type.fqnForPackage(this.class)» «name»){
+		this.«name» = «name»;
+	}
+	
+	public virtual «type.fqnForPackage(this.class)» get«name.toFirstUpper()»( ){
+		return «isColumn() && derivedProperty != null ? derivedProperty :  name»;
+	}
+	«ENDIF»
+	«ENDREM»
+«ENDDEFINE»
+
+
+
+«DEFINE genClassBody FOR wcprofile::Entity»
+	
+	public class «name» «getParent()» «getInterfaces()»{
+		«EXPAND genDecl FOREACH getAllAttributes() »
+		«EXPAND genDecl FOREACH getAllAttributes() »
+		 
+		«IF !getAllAttributes().isEmpty»
+	    public String getDisplayName(){
+	    	return «getDisplayName()»;
+	    }
+	    «ENDIF»
+	   
+	}
+«ENDDEFINE»
+
+
+«DEFINE genImports FOR uml::Class»
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.IO;
+using Org.Witchcraft.Base;
+«ENDDEFINE»
+
+«DEFINE EnumGen FOR uml::Enumeration»
+	«FILE packagePath() + "/"+ name +".cs"»  
+namespace «packageName()»{
+	
+	public enum «name» {		
+		«FOREACH  ownedLiteral AS e»
+			«e.name»,
+		«ENDFOREACH»
+	} 
+}
+	«ENDFILE»
+«ENDDEFINE»

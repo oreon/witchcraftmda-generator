@@ -1,0 +1,94 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+
+«DEFINE genSearchView FOR uml::Class»
+	«FILE getWebPath() +"/" + "search" + name+ "." + getExtension()»
+<html «EXPAND WebRoot::genIncludes-» >	
+	<h:form>
+	<ice:panelGroup styleClass="pnlClpsblWrapper panelCollapsible">
+	<ice:panelCollapsible >
+			<f:facet name="header">
+				<ice:outputText id="srchHdr" value="Search" />
+			</f:facet>
+			<div class="entry errors"><h:messages globalOnly="true" /></div>
+			<h:panelGrid columns="5">
+			«setAsCurrentEntity(this)-»
+			«EXPAND genAttribAsOutput FOR this-»
+			</h:panelGrid>
+			«EXPAND genCancelSaveBtns FOR this»
+		</ice:panelCollapsible>
+		</ice:panelGroup>
+		</h:form>
+</html>
+	«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE genCancelSaveBtns FOR uml::Class»
+	<div class="buttonBox">
+		<h:commandButton value="Search"  action="#{«getAction()».search}" /> 
+		<h:outputText value=" " />
+		<h:commandButton value="Clear Search" immediate="true" action="#{«getAction()».clearSearch}" /> 
+	</div>
+«ENDDEFINE»
+
+«DEFINE genAttribAsOutput FOR uml::Class-»
+	«FOREACH allParents() AS e-»
+			«EXPAND genAttribute FOREACH e.getAllAttributes().select(a|!a.isMultivalued()  && !a.isSecret()) -»
+	«ENDFOREACH»
+	«EXPAND genAttribute FOREACH getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()) -»
+«ENDDEFINE»
+
+«DEFINE genAttribute FOR uml::Property -»
+	«IF type.name != getCurrentEntity().name»
+	«IF association != null -»
+		«IF type.isEmbeddable()-»
+			«setCurrentEmbeddable()»
+			«EXPAND genAttribAsOutput FOR this.type-»
+		«ELSE»
+			«EXPAND genAssociation FOR this-»
+		«ENDIF»
+	«ELSE-»
+		«EXPAND genProperty FOR this»
+	«ENDIF»
+	«ENDIF»
+«ENDDEFINE»
+
+«DEFINE genProperty FOR uml::Property-»
+	<h:panelGroup>
+	«getOutputMessage()» <br/>
+	«EXPAND genPropertyEntry(type) FOR this-»
+	</h:panelGroup>
+«ENDDEFINE»
+
+«DEFINE genAssociation FOR uml::Property -»
+	<h:panelGroup>
+	«getOutputMessage()» <br/>
+	<h:selectOneMenu id="«getId()»" value="#{«genPropertyLabel()»}" >
+		<s:selectItems value="#{«type.asVar()»List}" var="itemIter"
+			label="#{itemIter.displayName}"
+			noSelectionLabel="Any..." />
+		<s:convertEntity />
+		«getAssocOptional()?"<f:selectItem itemLabel=\"--None--\" itemValue=\"\"/>":""»
+	</h:selectOneMenu>
+	</h:panelGroup>
+«ENDDEFINE»
+
+«DEFINE genPropertyEntry(uml::PrimitiveType cls) FOR uml::Property-»
+	<«getInputControlSearch()»  id="«getId()»" value="#{«genPropertyLabel()»}" />
+«ENDDEFINE»
+
+«DEFINE genPropertyEntry(uml::Enumeration enm) FOR uml::Property-»
+	<h:selectOneMenu id="«getId()»" value="#{«genPropertyLabel()»}" required="«getAssocOptional()»">
+		<f:selectItem itemLabel="Any" itemValue=""/>
+		<f:selectItem itemLabel="None" itemValue=""/>
+		«FOREACH  enm.ownedLiteral AS e-»
+		<f:selectItem itemLabel="«e.name»" itemValue="«e.name-»" />
+		«ENDFOREACH»
+	</h:selectOneMenu>
+«ENDDEFINE»
+
+«

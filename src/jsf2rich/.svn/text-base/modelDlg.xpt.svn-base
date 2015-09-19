@@ -1,0 +1,125 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE genModelDlgComponent FOR uml::Class»
+	«EXPAND genEditModelDlgComponent FOR this»
+	«EXPAND genViewModelDlgComponent FOR this»
+	«EXPAND genSearchModelDlgComponent FOR this»
+«ENDDEFINE»
+
+
+«DEFINE genEditModelDlgComponent FOR uml::Class»
+	«FILE getWebPath() +"/modalDlg" + name + "Component." + getExtension()  »
+
+<ui:composition «EXPAND WebRoot::genIncludes-»>	
+
+  <c:set var="opId" value="outputPanel-${modalId}"/>
+
+	<rich:popupPanel id="${modalId}" autosized="true" zindex="2000" domElementAttachment="parent"
+		onshow="adoptCTDialogHeight()"
+		>
+			<f:facet name="header">
+				<h:panelGroup>
+					<h:outputText value="#{«name.toFirstLower()»Action.id == null ? msg.new : msg.edit} «name»"></h:outputText>
+				</h:panelGroup>
+			</f:facet>
+			<f:facet name="controls">
+			   <a:commandLink value="X" >
+      			<rich:componentControl target="${modalId}" operation="hide"/> 
+      		   </a:commandLink>
+		    </f:facet>
+					<rich:messages passedLabel=""
+						style="width:100%; text-align: left; color: red; font-weight: bold;" layout="list" >
+					</rich:messages>
+				
+					
+						<ui:include src = "«getComponentViewFile(customViewComponents ?"customEdit":"edit")»" />
+	
+						 <a:commandButton action="#{«asVar()»Action.save}" styleClass="button" render="«asVar()»List" execute="${modalId}"
+				          	value="Save" 
+				           oncomplete="if (#{facesContext.maximumSeverity.ordinal eq 0}) {#{rich:component('«name»ModalPanel-«name»')}.hide();}"
+				          /> 
+          
+				        <a:commandButton immediate="true"  value="Hide" styleClass="button">
+				        	<rich:componentControl target="${modalId}" operation="hide"/> 
+				        </a:commandButton>  
+				        
+				  «REM»
+				        <a:commandButton immediate="true" type="reset" onclick="#{rich:component('«name»ModalPanel-«name»')}.hide(); return false;"
+				        	value="Cancel" styleClass="button"> 
+				          <f:param name="conversationPropagation" value="end"/> 
+				        </a:commandButton> 
+				 «ENDREM»					
+					
+		</rich:popupPanel>
+</ui:composition>
+«ENDFILE»
+«ENDDEFINE»
+
+
+
+«DEFINE genSearchModelDlgComponent FOR uml::Class»
+	«FILE getWebPath() +"/modalDlgSearch" + name + "Component." + getExtension()»
+	
+<ui:composition «EXPAND WebRoot::genIncludes-»>	
+
+  <rich:popupPanel id="«name»SearchModalPanel" autosized="true" zindex="2000" domElementAttachment="parent"
+   onshow="adoptCTDialogHeight()"  header="Search «name»"> 
+     
+    <f:facet name="controls"> 
+      <a:commandLink value="X"> 
+        <rich:componentControl target="«name»SearchModalPanel" operation="hide"/> 
+      </a:commandLink> 
+    </f:facet>  
+    
+    <ui:include src="«getComponentViewFile("search")»" />
+    
+     <ui:include src="«getComponentViewFile("list")»" >
+         <ui:param name="records" value="#{«asVar()»List.resultList}"/> 
+         <ui:param name="popupMode" value="true"/>
+         <ui:param name="targetObj" value="#{targetObj}"/>
+         <ui:param name="targetDropdownId" value="#{targetDropdownId}"/>
+      </ui:include> 
+    
+  </rich:popupPanel> 
+	
+</ui:composition>
+«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE genViewModelDlgComponent FOR uml::Class»
+	«FILE getWebPath() +"/modalDlgView" + name + "Component." + getExtension()»
+	
+<ui:composition «EXPAND WebRoot::genIncludes-»>	
+	<rich:popupPanel id="view${modalId}" autosized="true" zindex="2000" domElementAttachment="parent">
+			<f:facet name="header">
+				<h:panelGroup>
+					<h:outputText value="New «name»"></h:outputText>
+				</h:panelGroup>
+			</f:facet>
+			<f:facet name="controls">
+				<h:panelGroup>
+					<h:graphicImage value="/img/close.png" alt="Close"
+						styleClass="hidelink"  />
+					<rich:componentControl for="view${modalId}" attachTo="hidelink"
+						operation="hide" event="onclick" />
+				</h:panelGroup>
+			</f:facet>
+			
+			<s:div >
+				<a:outputPanel ajaxRendered="true"  id="view«name»OutputPanel">
+					<h:form>
+						<ui:include src = "«getComponentViewFile(customViewComponents ?"customEdit":"edit")»" />
+						<h:outputText value=" " />
+						<h:commandButton oncomplete="Richfaces.hidepopupPanel('${modalId}')" value="Hide" />
+					</h:form>
+				</a:outputPanel>
+			</s:div>
+		</rich:popupPanel>
+</ui:composition>
+«ENDFILE»
+«ENDDEFINE»

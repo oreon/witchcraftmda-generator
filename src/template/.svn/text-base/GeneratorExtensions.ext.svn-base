@@ -1,0 +1,680 @@
+//import metamodel;
+import uml;
+import java;
+import wcprofile;
+
+extension org::openarchitectureware::uml2::profile::profiling;
+
+
+String implClassSuffix() : GLOBALVAR ImplClassSuffix;
+
+
+
+String log(uml::Element e, String m):
+log(m + " " + e);
+
+String getCartridge():
+readPropertyDef("cartridge", "RICH");
+
+isRich():
+getCartridge() ==  "RICH";
+
+isPrimeSeam2():
+getCartridge() ==  "PRIME_SEAM2";
+
+isJsf2Rich():
+getCartridge() ==  "JSF2RICH";
+
+isSeam2():
+isRich() || isJsf2Rich() || isPrimeSeam2();
+
+
+getCollectionBeginPartIfNeeded(uml::Property p):
+p.isMultivalued()?"List<":"";
+
+getCollectionEndPartIfNeeded(uml::Property p):
+p.isMultivalued()?">":"";
+
+
+
+
+print(String msg):
+JAVA org.witchcraft.generatorutil.ClassUtil.print(java.lang.String);
+
+
+getEntityByName(String entityName):
+getCurrentModel().getEntities().select(a|a.name == entityName);
+
+isSeam2():
+isRich()  || isJsf2Rich() || isPrimeSeam2();
+
+//extension metamodel::Extensions reexport;
+
+//path of the package - 
+String packagePath (Element cls) :
+cls.package == null ? "" : packageNameWithoutRoot(cls.package).replaceAll("::|\\.", "/");
+
+hasParent(Class cls):
+cls.getFirstParent() != null && cls.getFirstParent().length > 0;
+
+
+packagePathPck (Package pck) :
+packageNameWithoutRoot(pck).replaceAll("::|\\.", "/");
+
+
+String packageNamePck(Package pck) : 
+packageNameWithoutRoot(pck).replaceAll("::", ".");
+
+String packageName (Element cls) :
+packageNameWithoutRoot(cls.package).replaceAll("::", ".");
+
+//in case of magicdraw we need to remove the root "Data" package
+String packageNameWithoutRoot(Package package):
+if ( package !=null && package.getQualifiedName() != null && package.getQualifiedName().startsWith("Data") ) then 
+	package.getQualifiedName().replaceAll("Data::", "")
+else if ( package.getQualifiedName().startsWith("wcprofile") ) then 
+	package.getQualifiedName().replaceAll("wcprofile::.*", "")
+else
+package.getQualifiedName();
+
+//path of the package - 
+//String packagePath (Interface cls) :
+//packageNameWithoutRoot(cls.package).replaceAll("::|\\.", "/");
+
+String packagePath(String str):
+str.replaceAll("::|\\.", "/");
+
+String packagePathStr(String str):
+str.replaceAll("::|\\.", "/");
+
+
+//fully qualified name of a class
+String fqn (Type cls) :
+fqn(cls, "");
+
+String fqn (Type cls, String ext) :
+packageName(cls) != "" ? packageName(cls) + "." +  ifNotBlank(ext, ext.toLowerCase() + ".")  + cls.name + ext: cls.name + ext;
+
+
+
+String ifNotBlank(String arg, String argExt):
+arg != "" ? argExt : "";
+
+String fqnPackage (Type cls, String package) :
+packageName(cls) + "." +  (package != "" ? package + "." : "") + cls.name;
+
+
+
+
+//get interfaces
+getInterfaces(Class cls):
+JAVA org.witchcraft.generatorutil.ClassUtil.getInterfaces(org.eclipse.uml2.uml.Class);
+
+getRandomNumber():
+JAVA org.witchcraft.generatorutil.ClassUtil.getRandomNumber();
+
+
+
+
+getAsList(String str):
+JAVA org.witchcraft.generatorutil.ClassUtil.getListFromCommaDeleimtedString(java.lang.String);
+
+getAsListOfLists(String str):
+JAVA org.witchcraft.generatorutil.ClassUtil.getListOfLists(java.lang.String);
+
+
+getOpReturnType(Operation op):
+op.type == null ? "void":op.type.fqn().removeExtraPackage();
+//JAVA org.witchcraft.generatorutil.ClassUtil.getOpReturnType(org.eclipse.uml2.uml.Operation);
+
+getOpReturnTypeTemplateParam(Operation op):
+op.ownedTemplateSignature == null || op.ownedTemplateSignature.ownedParameter.size == 0 ? "": "<" +  op.ownedTemplateSignature.ownedParameter.get(0).ownedElement.superClass.get(0).fqn() + ">";
+//JAVA org.witchcraft.generatorutil.ClassUtil.getOpReturnType(org.eclipse.uml2.uml.Operation);
+
+
+//For return types we get 'collections.List' but we only want 'List'
+String removeExtraPackage(String arg):
+arg.replaceAll("collections.", "");
+
+getParametersSignature(Operation op):
+JAVA org.witchcraft.generatorutil.ClassUtil.getParametersSignature(org.eclipse.uml2.uml.Operation);
+
+getParametersSignatureRest(Operation op, String param):
+JAVA org.witchcraft.generatorutil.ClassUtil.getParametersSignatureRest(org.eclipse.uml2.uml.Operation, java.lang.String);
+
+
+
+
+getParametersSignature(Operation op, String ext):
+JAVA org.witchcraft.generatorutil.ClassUtil.getParametersSignature(org.eclipse.uml2.uml.Operation, java.lang.String);
+
+
+
+getParametersSignature(Property p):
+p.type.fqnForPackage(p.class) + " " + p.name;
+
+getRestParametersSignature(Element p):
+"@QueryParam(\"" + p.name + "\")" +  p.type.fqnForPackage(p.class) + " " + p.name;
+
+
+
+getParameters(Operation op):
+JAVA org.witchcraft.generatorutil.ClassUtil.getParameters(org.eclipse.uml2.uml.Operation);
+
+
+//for primitive type we will simply return the classname - no need for package declaration
+String fqn (PrimitiveType cls) :
+getTypeName(cls.name);
+
+//If package of referring class is same as this class - will return simple name else fqn
+String fqnForPackage(Type cls, Class referringClass, String ext):
+(packageName(cls) == (packageName(referringClass)) )?getTypeName(cls.name):fqnPackage(cls, ext);
+
+//If package of referring class is same as this class - will return simple name else fqn
+String fqnForPackage(Type cls, Class referringClass):
+fqnForPackage( cls,  referringClass, "");
+
+//get type name for types array - useful for mapping e.g. imageFile is mapped to byte[]
+String getTypeName(String name):
+JAVA org.witchcraft.generatorutil.ClassUtil.getTypeName(java.lang.String);
+
+String getTypeAnnotation(String name):
+JAVA org.witchcraft.generatorutil.ClassUtil.getTypeAnnotation(java.lang.String);
+
+//If package of referring class is same as this class - will return simple name else fqn
+String fqnForPackage(PrimitiveType cls, Class referringClass):
+getTypeName(cls.name);
+
+applyEntityStereoType(Class cls):
+//cls.package.createOwnedClass(cls.name, true)->
+//cls.getModel().applyProfile("C:/users/jsingh/mdl/wcprofile.profile.uml") ->
+cls.applyStereotype("wcprofile::Entity");
+
+
+isAttributeEditable(Property prop):
+!prop.isDerived() && !prop.type.isEmbeddable() && !prop.systemModify() && !prop.currentUser();
+
+
+
+//Returns lower case name e.g. Student will be returned as student
+String asVar(Class cls):
+cls.name.toFirstLower();
+
+boolean isRangeType(Type type):
+type.name == "Double" || type.name == "Integer" || type.name == "Date" || type.name == "Currency";
+
+boolean isSearchable(Property a ):
+if ( a.association !=null) then
+ a.isMultivalued() && a.opposite.isMultivalued()   || !a.isMultivalued() 
+else 
+!a.isMultivalued() && !a.isSecret() && !a.isFile() && !a.isDerivedProperty();
+
+
+boolean getAuditable(Type type):
+type.auditable;
+
+//Returns plural of a word e.g input book will return books for Class will return Classes
+String getPlural(String word):
+word.endsWith("s")?word + "es": word + "s";
+
+String getSingular(String word):
+JAVA org.witchcraft.generatorutil.ClassUtil.getSingular(java.lang.String);
+
+
+//get the parent
+String getParent(Class cls):
+cls.parents().size > 0 ? getExtensionKeyword() + cls.getFirstParent() :"";
+
+String getFirstParent(Class cls):
+cls.parents().size > 0 ? cls.parents().get(0).fqn():"";
+
+Class getFirstParentCls(Class cls):
+cls.parents().size > 0 ? cls.parents().get(0):null;
+
+String getVariableNameForDisplay(String arg):
+JAVA org.witchcraft.generatorutil.ClassUtil.getViewLabelFromVariable(java.lang.String);
+
+String getColumnNameUC(String arg):
+JAVA org.witchcraft.generatorutil.ClassUtil.getColumnNameUC(java.lang.String);
+
+
+
+String removeSpaces(String arg):
+JAVA org.witchcraft.generatorutil.ClassUtil.removeSpaces(java.lang.String);
+
+
+String getParent(Entity cls):
+getParent(cls, "BaseEntity");
+
+String getParent(MappedSuperClass cls):
+getParent(cls, "BaseEntity");
+
+
+String getParent(Class cls):
+getParentName(cls);
+
+
+//get the parent
+String getParent(Class cls, String defaultPrt):
+getExtensionKeyword() + " " + ( getParentName(cls) != "" ? getParentName(cls):  defaultPrt);
+
+
+String getParentNameWithExt(Class cls, String ext):
+cls.parents().size > 0 ? cls.parents().get(0).fqn(ext) :"";
+
+
+String getParentName(Class cls):
+cls.parents().size > 0 ? cls.parents().get(0).fqn():"";
+
+
+//TODO: remove - 
+String getExtensionKeyword():
+if( getCurrentCartridge() == "DOT_NET" ) then
+	":"
+else
+	" extends ";
+
+
+
+
+String getTopLevelPackageProperty():
+readProperty("topLevelPackage");
+
+
+String getTopLevelPackage(Element elem):
+readPropertyDef("topLevelPackage", elem.package.name);
+	
+String getTopLevelPackagePath(Element elem):
+elem.getTopLevelPackage().packagePath();
+	
+
+ModelObject getContainer(Operation op):
+op.class != null ? op.class : op.interface;
+
+
+
+//get all attributes (including parent classe's for this class
+getAttribs(Class cls):
+JAVA org.witchcraft.generatorutil.ClassUtil.getAllAttribs(org.eclipse.uml2.uml.Class);
+
+
+//both one to one and 
+//boolean isViewEmbeddable(Type type):
+//isTypeEmbeddable(type) ;
+attribsOfThisClass(Class cls):
+JAVA org.witchcraft.generatorutil.ClassUtil.attribsOfThisClass(org.eclipse.uml2.uml.Class);
+
+getDeployName(Property prop):
+JAVA org.witchcraft.generatorutil.ClassUtil.getDeployName(org.eclipse.uml2.uml.Property);
+
+
+getFirstChild(Class c):
+JAVA org.witchcraft.generatorutil.ClassUtil.getFirstChild(org.eclipse.uml2.uml.Class);
+
+
+boolean isEmbeddable(Type type):
+type.getAppliedStereotype("wcprofile::Embeddable") != null;
+
+boolean isEntity(Type type):
+type.getAppliedStereotype("wcprofile::Entity") != null;
+
+isParentAbstractEntity(Type type):
+type.getFirstParentCls() != null && type.getFirstParentCls().isAbstract  && type.getFirstParentCls().isEntity();
+
+
+isAbstractEntity(Type type):
+type.isAbstract  && type.isEntity();
+
+
+boolean isMappedSuperClass(Type type):
+type.getAppliedStereotype("wcprofile::MappedSuperClass") != null || type.getAppliedStereotype("wcprofile::MappedSuperclass") != null ;
+
+boolean isProcessToken(Entity type):
+type.getAppliedStereotype("wcprofile::ProcessToken") != null;
+
+boolean hasStereo(Type type, String stereo):
+type.getAppliedStereotype("wcprofile::" + stereo) != null;
+
+boolean hasStereo(Operation type, String stereo):
+type.getAppliedStereotype("wcprofile::" + stereo) != null;
+
+
+parentIsAbstract(Entity type):
+type.parents().get(0) != null && type.parents().get(0).isAbstract;
+
+parentIsMappedSuperClass(Entity type):
+type.parents().get(0) != null && type.parents().get(0).isMappedSuperClass();
+
+boolean systemModify(Property prop):
+prop.isColumn()  && prop.systemModifyOnly == true;
+
+boolean isColumn(Property type):
+type.getAppliedStereotype("wcprofile::Column") != null;
+
+boolean isViewState(State state):
+state.getAppliedStereotype("wcprofile::ViewState") != null;
+
+boolean isFile(Property property):
+property.type.name == "imageFile";
+
+boolean isDate(Property property):
+property.type.name == "Date";
+
+
+boolean isDateTime(Property property):
+property.type.name == "DateTime";
+
+
+isBoolean(Property prop):
+prop.type.name == "boolean" || prop.type.name == "Boolean";
+
+isDouble(Property prop):
+prop.type.name == "Double"  ;
+
+isCurrency(Property prop):
+prop.type.name == "Currency";
+
+
+isLargeText(Property prop):
+prop.type.name == "largeText" ;
+
+
+isNumeric(Property prop):
+prop.type.name == "Integer"  || prop.isDouble();
+
+getEntities(Model model):
+ model.allOwnedElements().typeSelect(wcprofile::Entity) ;
+
+
+String getNotNullAnnotations(Column col):
+col.notNull?"@NotNull":"";
+
+String getValidatorAnnotations(Column col):
+"";
+// "@" + ( col.validator.startsWith("VALIDATOR_") ? col.validator.getSubString("_").toLowerCase().toFirstUpper():  "Pattern(" + getRegex() + " = \"" + col.validator + "\")" );
+	
+String getRegex():
+getCartridge() == "RICH" ? "regex" : "regexp";
+
+
+String getLengthAnnotations(Column col):
+col.minLength > 0 ?"@Size(min=" + col.minLength + ")"  :"";
+
+String getUniqueAnnotations(Column col):
+col.uniqueProperty == true  ||  col.type.name == "uniqueNameType" ?"//@Unique(entityName = " + "\"" + fqn(col.class) + "\"" + ", fieldName = " + "\"" + col.name + "\"" + ")":"";
+
+String getUniqueAnnotationsProp(Property  col):
+" @Column(unique= " + (col.isUnq() &&  !isMultiTenanted()  ? "true" : "false") + ")";
+
+
+String getBoostAnnotations(Column col):
+col.boost != null ?"@Boost(" + col.boost + "F)":"";
+
+
+//need to add quotes if default is a string type
+getDefaultVal(Property prop, PrimitiveType type):
+prop.type.name == "String" ? "\"" + prop.getDefault() + "\"": prop.getDefault();
+
+//need to add quotes if default is a string type
+getDefaultVal(Property prop, Enumeration type):
+prop.type.fqn() + "." +  prop.getDefault();
+
+
+getTransient(Column col):
+col.derivedFormula != null ? "@Formula(value =" +  "\"" + col.derivedFormula.appendBraces() + "\")":""; 
+
+appendBraces(String str):
+JAVA org.witchcraft.generatorutil.ClassUtil.appendBraces(java.lang.String);
+
+//whether this column is derived 
+//isDerived(Column col):
+//col.derivedProperty != null || col.derivedFormula != null;
+
+//isDerivedProperty(Column col):
+//col.derivedProperty != null;
+
+isDerivedProperty(DerivedProperty col):
+true;
+
+
+isDerived(DerivedProperty col):
+true;
+
+isDerivedProperty(Property col):
+false;
+
+isDerived(Property col):
+false;
+
+isSecret(Column col):
+col.secret == true;
+
+isSecret(Property prop):
+false;
+
+isType(Property prop, String typeName):
+prop.type.name == typeName;
+
+isString(Property prop):
+isType(prop, "String") || isType(prop, "uniqueNameType") || isType(prop, "nameType") || isType(prop, "largeText");
+
+isNameType(Property prop):
+isType(prop, "nameType");
+
+isVoid(Operation op):
+op.type == null || op.type.name == "void"; 
+
+isReturn(Parameter p):
+p.direction == uml::ParameterDirectionKind::return; 
+
+
+//Read property from workflow properties file
+String readProperty(String arg):
+JAVA org.witchcraft.generatorutil.ClassUtil.readProperty(java.lang.String);
+
+String readPropertyDef(String arg, String def):
+JAVA org.witchcraft.generatorutil.ClassUtil.readProperty(java.lang.String, java.lang.String);
+
+readPropertyDefB(String arg, String def):
+readPropertyDef(arg,def) == "true" ? true : false ;
+
+isFullTextSearchable(AbstractEntity ae):
+readPropertyDefB("allClassesFullTextSearchable","false") || ae.fullTextSearchable;
+
+boolean isMultiTenanted():
+readPropertyDef("multiTenanted", "false") == "true" ? true : false;
+
+boolean hasSavedSearches():
+readPropertyDef("savedSearch", "false") == "true" ? true : false;
+
+
+getDisplayName(Class entity):
+//JAVA org.witchcraft.generatorutil.ClassUtil.readProperty(java.lang.String);
+if( entity.displayName != null ) then
+	 entity.displayName
+else if ( ! ( entity.parents().isEmpty)  && entity.parents().get(0).displayName != null) then
+	"super.getDisplayName()"
+else 
+ 	entity.getDisplayNameFromAttribs();
+ 
+ //Read property from workflow properties file
+String getDisplayNameFromAttribs(Class entity):
+JAVA org.witchcraft.generatorutil.ClassUtil.getDisplayNameFromAttribs(org.eclipse.uml2.uml.Class);
+ 
+ 
+String getCurrentCartridge():
+getCartridge();
+
+
+setCurrentCartridge(String currentCartridge):
+JAVA org.witchcraft.generatorutil.ClassUtil.setCurrentCartridge(java.lang.String);
+
+
+getCurrentModel():
+JAVA org.witchcraft.generatorutil.ClassUtil.getModel();
+
+
+setCurrentModel(Model model):
+JAVA org.witchcraft.generatorutil.ClassUtil.setModel(org.eclipse.uml2.uml.Model);
+
+serialver (Class cls) : 
+JAVA org.witchcraft.generatorutil.ClassUtil.serialver(org.eclipse.uml2.uml.Class);
+
+outgoing (DecisionNode act) : 
+JAVA org.witchcraft.generatorutil.ClassUtil.outgoing(org.eclipse.uml2.uml.ActivityNode);
+
+outgoing (ForkNode act) : 
+JAVA org.witchcraft.generatorutil.ClassUtil.outgoing(org.eclipse.uml2.uml.ActivityNode);
+
+outgoing (JoinNode act) : 
+JAVA org.witchcraft.generatorutil.ClassUtil.outgoing(org.eclipse.uml2.uml.ActivityNode);
+
+
+outgoing (Action act) : 
+JAVA org.witchcraft.generatorutil.ClassUtil.outgoing(org.eclipse.uml2.uml.ActivityNode);
+
+outgoing (InitialNode act) : 
+JAVA org.witchcraft.generatorutil.ClassUtil.outgoing(org.eclipse.uml2.uml.ActivityNode);
+
+getSwimlane (Action act) : 
+JAVA org.witchcraft.generatorutil.ClassUtil.getSwimlane(org.eclipse.uml2.uml.ActivityNode);
+
+getSwimlane (InitialNode act) : 
+JAVA org.witchcraft.generatorutil.ClassUtil.getSwimlane(org.eclipse.uml2.uml.ActivityNode);
+
+ //split the given string by ',' and return a list 
+ getStringsAsList(String arg):
+ arg.split(","); 
+ 
+
+ getColJpaAnnotations(Column col):
+ col.association == null? "@Column(name = \"" +  (col.columnName != null ? col.columnName : col.name ) +  "\"," + "unique=" + col.isUnq() + ")":"";
+ 
+getTableName(wcprofile::Entity entity):
+entity.tableName!=null?entity.tableName:entity.name.toLowerCase();
+
+
+getTableNameUC(wcprofile::Entity entity):
+entity.getTableName().toUpperCase();
+
+getQyeryTypeByReturnType(Operation op):
+op.type.name == "List" ? "" : "SingleResult";
+
+getWorkflowActionPath(Activity act):
+getTopLevelPackage(act).packagePath() + "/web/action/workflowmgt/"  + act.name.toFirstLower() ;
+
+getWorkflowPathForFile(Activity act):
+getTopLevelPackage(act).packagePath() + "/web/action/workflowmgt/"  + act.name.toFirstUpper() ;
+
+getWebPackageName(Activity act):
+getTopLevelPackage(act) + ".web.action.workflowmgt" ;
+
+
+getTransName(ActivityEdge o):
+o.name;
+
+getNotify(Action a):
+getDefaultNotify();
+
+getNotify(Task a):
+a.notify == null ? getDefaultNotify() : a.notify;
+
+getDefaultNotify():
+readPropertyDef("defaultNotify", "false" );
+
+getTaskMassagedName(ActivityNode a):
+JAVA org.witchcraft.generatorutil.ClassUtil.getTaskMassagedName(org.eclipse.uml2.uml.NamedElement);
+
+getTaskMassagedName(ActivityPartition a):
+JAVA org.witchcraft.generatorutil.ClassUtil.getTaskMassagedName(org.eclipse.uml2.uml.NamedElement);
+
+
+
+getTaskMassagedName(ControlFlow a):
+JAVA org.witchcraft.generatorutil.ClassUtil.getTaskMassagedName(org.eclipse.uml2.uml.NamedElement);
+
+
+
+getCounter() :
+JAVA org.witchcraft.generatorutil.ClassUtil.getCounter();
+
+resetCounter():
+JAVA org.witchcraft.generatorutil.ClassUtil.resetCounter();
+
+//tree fields
+String getTreeParent(Entity e):
+getTreeParentJava ( e.treeFlds );
+
+String getTreeParentJava(String s):
+JAVA org.witchcraft.generatorutil.ClassUtil.getTreeParent(java.lang.String);
+
+String getTreeChildren(Entity e):
+getTreeChildrenJava ( e.treeFlds );
+
+String getTreeChildrenJava(String s):
+JAVA org.witchcraft.generatorutil.ClassUtil.getTreeChildren(java.lang.String);
+
+String getTreeDetailsFld(Entity e):
+getTreeDetailsFldJava ( e.treeFlds );
+
+String getTreeDetailsFldJava(String s):
+JAVA org.witchcraft.generatorutil.ClassUtil.getTreeDetails(java.lang.String);
+
+//get a property by name
+getAttrib(Class c,String s):
+JAVA org.witchcraft.generatorutil.ClassUtil.getAttrib(org.eclipse.uml2.uml.Class, java.lang.String);
+
+
+getCounters():
+JAVA org.witchcraft.generatorutil.ClassUtil.getCounters();
+
+String getRandValue (Property attribute) :
+JAVA org.witchcraft.generatorutil.RandomValueGenerator.getRandomValue(org.eclipse.uml2.uml.Property);
+
+
+boolean isPrimitive(Type type):
+JAVA org.witchcraft.generatorutil.ClassUtil.isPrimitive(org.eclipse.uml2.uml.Type);
+
+elToJava(String str):
+JAVA org.witchcraft.generatorutil.ClassUtil.elToJava(java.lang.String);
+
+
+getFirstTerm(String t ):
+JAVA org.witchcraft.generatorutil.ClassUtil.getCalc(java.lang.String);
+
+getSecondTerm(String t ):
+JAVA org.witchcraft.generatorutil.ClassUtil.getField(java.lang.String);
+
+isUnq(Property column):
+column.type.name == "uniqueNameType" || (column.isColumn() && column.uniqueProperty )  ;
+
+currentUser(Property prop):
+prop.isColumn() && prop.isCurrentUser;
+
+getDocumentation(Element e):
+e.ownedComment.body.isEmpty ? "": e.ownedComment.body.get(0);
+
+
+getAllConstraints(Parameter p):
+p.eRootContainer.allOwnedElements().select(c|c.isValidationConstraint() && c.constrainedElement.contains(p) );
+
+isValidationConstraint(Element e):
+e.getAppliedStereotype("wcprofile::ValidationConstraint") != null;
+
+isEmptyStr(String str):
+str == null || str == "";
+
+
+excludeFromGeneration(Package pack):
+pack.isEntitiesPackage() && pack.excludeFromGeneration == true;
+
+isEntitiesPackage(Package pack):
+pack.getAppliedStereotype("wcprofile::EntitiesPackage") != null;
+
+getSubString(String arg, String indexStr):
+JAVA org.witchcraft.generatorutil.ClassUtil.getSubString(java.lang.String, java.lang.String);
+
+
+
+
+

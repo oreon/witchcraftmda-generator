@@ -1,0 +1,127 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE Root FOR uml::Model»
+«FILE "entities.php"»
+<?php
+	«EXPAND genBusinessEntity»
+	«EXPAND PackageRoot FOREACH allOwnedElements().typeSelect(uml::Package)»
+	«REM» comment 
+	«EXPAND ORMGen::Root FOR this»
+	«ENDREM» 
+?>
+«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE PackageRoot FOR uml::Package»
+	«EXPAND EntityGen FOREACH allOwnedElements().typeSelect(wcprofile::AbstractEntity)»
+	
+«ENDDEFINE»
+
+
+«DEFINE EnumGen FOR uml::Enumeration»
+	
+«ENDDEFINE»
+
+«DEFINE EntityGen FOR wcprofile::MappedSuperClass»
+/**
+ * @MappedSuperclass
+ */
+ «EXPAND genClass FOR this»
+«ENDDEFINE»
+
+
+«DEFINE EntityGen FOR wcprofile::Entity»
+/**
+ * @Entity @Table(name="«name»")
+ */
+ «EXPAND genClass FOR this»
+«ENDDEFINE»
+
+«DEFINE EntityGen FOR wcprofile::Embeddable»
+ «EXPAND genClass FOR this»
+«ENDDEFINE»
+
+
+«DEFINE genClass FOR uml::Class»
+class «name» «getParent()» {	
+
+	«FOREACH getAllAttributes() AS e»
+	
+	«IF e.association != null && e.isNavigable()-»
+		«IF e.isMultivalued()-»
+			«IF e.opposite != null && e.opposite.isMultivalued()-»
+	/**
+     * @ManyToMany(targetEntity="«e.type.name»")
+     * @var «e.type.name»[]
+     */
+			«ELSE»
+	 /**
+     * @OneToMany(targetEntity="«e.type.name»", mappedBy="«e.opposite.name»")
+     * @var «e.type.name»[]
+     */
+			«ENDIF»
+		«ELSE»
+	/**
+     * @ManyToOne(targetEntity="«e.opposite.type.name»", inversedBy="«e.opposite.name-»")
+     */
+		«ENDIF»
+	«ELSE»
+	/**
+     * @Column(type="«e.type.name»")
+     * @var «e.type.name»
+     */
+	«ENDIF»
+	private $«e.name»;
+	
+	
+	public function get«e.name.toFirstUpper()»(){
+		return $this->«e.name»;
+	}
+	
+	public function set«e.name.toFirstUpper()»($«e.name»){
+		$this->«e.name» = $«e.name»;
+	}
+	
+	
+	«ENDFOREACH»
+}		
+«ENDDEFINE»
+
+
+«DEFINE genBusinessEntity FOR uml::Model»
+class BusinessEntity {
+
+    /**
+     * @Id @Column(type="integer") @GeneratedValue
+     */
+    public $id;
+    
+    
+    /**
+     * @Column(type="datetime")
+     */
+    public $created;
+}
+«ENDDEFINE»
+
+
+«DEFINE genController FOR  wcprofile::Entity»
+class «name»Controller extends BaseController {
+
+    /**
+     * @Id @Column(type="integer") @GeneratedValue
+     */
+    public $id;
+    
+    
+    /**
+     * @Column(type="datetime")
+     */
+    public $created;
+}
+«ENDDEFINE»
+

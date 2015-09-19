@@ -1,0 +1,20 @@
+//import metamodel;
+import uml;
+import java;
+import java::util;
+import wcprofile;
+
+extension org::openarchitectureware::uml2::profile::profiling;
+extension template::GeneratorExtensions;
+extension template::associationExtensions;
+
+getActorId(WorkflowSwimlane wfsl):
+if (wfsl.actorId == "#{__CREATOR__}")
+	then "#{jbpmProcessAction.task.variables['processToken'].createdByUser.userName}"
+else if(wfsl.actorId.contains("__PRTOKEN__"))	
+	then wfsl.actorId.replaceAll("__PRTOKEN__", "jbpmProcessAction.task.variables['processToken']")
+else
+	wfsl.actorId;
+	
+getPooledActors(WorkflowSwimlane wfsl):
+wfsl.pooledActors;	

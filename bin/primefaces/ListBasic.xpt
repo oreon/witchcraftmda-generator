@@ -1,0 +1,362 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE genListView FOR uml::Class»
+	«FILE getWebPath() +"/list" + name + "." + getExtension()»
+		
+<ui:composition «EXPAND WebRoot::genIncludes» template="«getAdminTemplate()»"  >	
+			
+			«setAsCurrentEntity(this)-»
+			«clearCurrentEmbeddable()-»
+			
+	<f:metadata>
+		<f:viewParam name="page" value="#{«getAction()».page}" />
+		<f:event type="preRenderView" listener="#{«getAction()».paginate}" />
+	</f:metadata>
+
+	<ui:param name="pageTitle" value="Search Customer entities" />
+	
+	<ui:define name="content">
+				«EXPAND genFullTextBtn FOR this»
+	
+				<c:set var="modalId" value="«name»ModalPanel-«name»" />
+				<!-- <ui:include src="search«name».«getExtension()»" /> -->
+				<br/> <br/>
+				«EXPAND genButtons FOR this»
+				<br/>
+				<ui:include src="list«name»Component.«getExtension()»"  >
+					<ui:param name="records" value="#{«asVar()»List.resultList}" />
+         		</ui:include>
+         		<br/>
+				«EXPAND genButtons FOR this»
+			
+	</ui:define>
+			
+			
+	</ui:composition>
+	«ENDFILE»
+	«EXPAND genListViewBasic FOR this»
+«ENDDEFINE»
+
+«DEFINE genListViewBasic FOR uml::Class»
+«FILE getWebPath() +"/list" + name + "Component." + getExtension()-»
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:p="http://primefaces.org/ui"
+>
+
+		<h:form id="form">
+
+			<p:dataTable var="_«name.toFirstLower()»" value="#{«getAction()».model}" paginator="true"
+				rows="10"
+				paginatorTemplate="{RowsPerPageDropdown} {FirstPageLink} {PreviousPageLink} {CurrentPageReport} {NextPageLink} {LastPageLink}"
+				rowsPerPageTemplate="5,10,15" selectionMode="single" 
+				selection="#{«getAction()».«name.toFirstLower()»}" id="«name»Table">
+
+				<p:ajax event="rowSelect" 
+					update=":form:display" oncomplete="«name»Dialog.show()"   listener="#{«getAction()».onRowSelect}" />
+				
+				«EXPAND genId FOR this-»	
+				«EXPAND genAttribAsOutput FOR this-»
+				«EXPAND genPropsFromBusinessEntity FOR this-»
+				«EXPAND genCreationDate FOR this-»	
+				
+			</p:dataTable>
+
+			<p:dialog header="«name» Detail" widgetVar="«name»Dialog" resizable="true">
+
+				<h:panelGrid id="display" columns="2" cellpadding="4">
+					<ui:include src = "«getComponentViewFile(customViewComponents ?"customEdit":"edit")»" />
+				</h:panelGrid>
+				
+				<p:commandButton value="Save" action="#{«getAction()».persistAndClear}" update=":form:display  :form" 
+					oncomplete="handleDialogSubmit(xhr, status, args, «name»Dialog)"   />
+				
+			</p:dialog>
+
+		</h:form>
+
+</ui:composition>
+«ENDFILE»
+«ENDDEFINE»
+		
+«DEFINE genFullTextBtn FOR uml::Class»
+ <h:form> 
+	   <p:button value="Full Text Search" outcome="textSearchResults«name».xhtml" > 
+        <f:param name="cid" value="#{javax.enterprise.context.conversation.id}"/> 
+       </p:button> 
+</h:form>
+«ENDDEFINE»
+
+«REM» Create the actual table component«ENDREM»
+«DEFINE genListComponent FOR uml::Class»
+	«FILE getWebPath() +"/list" + name + "Component2." + getExtension()»
+		<ui:composition «EXPAND WebRoot::genIncludes-» >	
+		
+		 <c:if test="${empty modalId}">
+       		 <c:set var="modalId" value="«name»ModalPanel" />
+    	</c:if>
+    	
+    	<c:if test="${empty listTitle}">
+       		 <c:set var="listTitle" value="«name» Search Results (#{empty records ? 0 : («asVar()»List.paginated ? «asVar()»List.resultCount : records.size)})" />
+    	</c:if>
+    	
+			
+		<rich:panel>
+		   <f:facet name="header">
+		   		${listTitle}
+		   </f:facet>
+		   <h:form>
+			
+				<p:dataTable  var="_«asVar()»" value="#{records}"  id="«name.toFirstLower()»List"
+					rowClasses="odd, even" styleClass="dataTable" 
+					     onRowMouseOver="this.style.backgroundColor='#F8F8F8'"
+                        onRowMouseOut="this.style.backgroundColor='#{a4jSkin.tableBackgroundColor}'"
+					 >	
+				«EXPAND genId FOR this-»	
+				«EXPAND genAttribAsOutput FOR this-»
+				«EXPAND genPropsFromBusinessEntity FOR this-»
+				«EXPAND genCreationDate FOR this-»	
+				«EXPAND genLink("view", "eye.png") FOR this»
+				«EXPAND genLink ("edit", "edit.png")FOR this»
+				«EXPAND genDeleteLink FOR this»
+				«EXPAND genQuickEditLink FOR this»
+				</p:dataTable>
+		 	</h:form>		
+		</rich:panel>	
+		
+		«EXPAND paginationLinks FOR this»
+		
+		</ui:composition>
+	«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE genButtons FOR wcprofile::Entity»
+	<h:form>
+		<p:button value="Create New" outcome="«getViewFile("edit")»"  />
+		<p:commandButton  oncomplete="«name»Dialog.show()" value="Quick Create" />
+	</h:form>
+		«IF templatable»
+		 <h:commandButton value="Create Template" view="«getTemplateViewFileName("edit")»"/>
+		 «ENDIF»
+«ENDDEFINE»
+
+
+«DEFINE paginationLinks FOR wcprofile::Entity»
+ <div class="tableControl">
+<h:commandLink
+	view="#{request.servletPath}"
+	rendered="#{«asVar()»List.previousExists}"
+	value="#{messages.left}#{messages.left} First Page" >
+	<f:param name="firstResult" value="0" />
+</h:commandLink> 
+
+<h:commandLink view="#{request.servletPath}"
+	rendered="#{«asVar()»List.previousExists}"
+	value="#{messages.left} Previous Page" >
+	<f:param name="firstResult" value="#{«asVar()»List.previousFirstResult}" />
+</h:commandLink> 
+
+<h:commandLink view="#{request.servletPath}"
+	rendered="#{«asVar()»List.nextExists}"
+	value="Next Page #{messages.right}" >
+	<f:param name="firstResult" value="#{«asVar()»List.nextFirstResult}" />
+</h:commandLink> 
+
+<h:commandLink view="#{request.servletPath}"
+	rendered="#{«asVar()»List.nextExists}"
+	value="Last Page #{messages.right}#{messages.right}" >
+	<f:param name="firstResult" value="#{«asVar()»List.lastFirstResult}" />
+</h:commandLink>
+</div>
+«ENDDEFINE»
+
+«DEFINE genPropsFromBusinessEntity FOR wcprofile::Entity»
+    «REM»comment
+	«IF fieldsFromSuperClass != null»	
+	«EXPAND genProperty FOREACH getStringsAsList(fieldsFromSuperClass)»
+	«ENDIF»
+	«ENDREM»
+«ENDDEFINE»
+
+
+
+«DEFINE genAttribAsOutput FOR uml::Class-»
+	«FOREACH allParents() AS e-»
+	 «EXPAND genPropertyRec FOREACH e.getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()  ) -»
+	«ENDFOREACH»
+	«EXPAND genPropertyRec FOREACH getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()   ) -»
+«ENDDEFINE»
+
+«DEFINE genPropertyRec FOR uml::Property-»
+	«IF isExpandableAssoc() -» 
+		«setCurrentEmbeddable()-» 
+		«EXPAND genPropertyRec FOREACH type.getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()  ) -»
+		«clearCurrentEmbeddable()-»
+	«ELSE-»
+		«EXPAND genAttribute -»
+	«ENDIF»
+«ENDDEFINE»
+
+«DEFINE genAttribute FOR uml::Property -»
+	«IF association != null -»
+		«EXPAND genAssociation FOR this-»
+	«ELSE-»
+		«EXPAND genProperty FOR this-»
+	«ENDIF»
+«ENDDEFINE»
+
+«DEFINE genLink(String action, String icon) FOR uml::Class»
+	<p:column  rendered="#{s:hasPermission('_«asVar()»', '«action»')}">
+		<f:facet name="header">
+			<h:outputText value=" " />
+		</f:facet>
+		<h:commandLink view="«getViewFile(action)»"  rendered="#{s:hasPermission(_«asVar()», '«action»')}" propagation="none">
+			<h:graphicImage value="/images/icons/«icon»" style="border: 0px" alt="«action»"/>
+			<f:param name="«asVar()»Id" value="#{_«asVar()».id}" />
+		</h:commandLink>
+	</p:column>
+«ENDDEFINE»
+
+«DEFINE genQuickEditLink FOR uml::Class»
+	<p:column >
+		<f:facet name="header">
+			<h:outputText value=" " />
+		</f:facet>
+		<h:commandLink action="#{«asVar()»Action.set«name»IdForModalDlg(_«asVar()».id)}"  rendered="#{s:hasPermission(_«asVar()», 'quickEdit')}" 
+			oncomplete="Richfaces.showModalPanel('${modalId}',{});"  reRender="${modalId}" > 
+			<h:graphicImage value="/images/icons/editQuick.png" style="border: 0px" alt="Quick Edit"/>
+			<s:conversationPropagation type="join"/>
+		</h:commandLink>
+	</p:column>
+«ENDDEFINE»
+
+
+
+«DEFINE genDeleteLink FOR uml::Class»
+	<p:column rendered="#{s:hasPermission('«asVar()»Action', 'archive')}" propagation="none">
+		<f:facet name="header">
+			<h:outputText value="" />
+		</f:facet>
+		
+		<h:commandLink action="#{«asVar()»Action.archiveById}" onclick="javascript:if(!confirm('Do you really want to delete #{_«asVar()».displayName} ?')){ return false; } else { return true; }" >
+			<h:graphicImage value="/images/icons/delete.png" style="border: 0px" alt="archive"/>
+			<f:param name="idToArchive" value="#{_«asVar()».id}"/>
+		</h:commandLink>
+	</p:column>
+«ENDDEFINE»
+
+«DEFINE genAssociation FOR uml::Property»
+	<p:column   headerText="«msgBundleKey()-»" sortBy="#{_«genPropertyLabel()»}" «IF isCompositionContainer()» groupOn="#{«genPropertyLabel()».displayName}" «ENDIF»    «EXPAND genPermission FOR this»>
+		<f:facet name="header">
+			
+		</f:facet>
+		«EXPAND genAssoc FOR this»
+	</p:column>
+«ENDDEFINE»
+
+
+«DEFINE genAssoc FOR uml::Property»
+	«REM»TODO  link should not be hard coded to path and should be of type action=view«type.name» «ENDREM»
+	<h:commandLink «getEscape()»   value="#{_«genPropertyLabel()».displayName}"  view="«type.getViewFile("view")»" propagation="none">
+			<f:param name="«type.name.toFirstLower()»Id" value="#{_«genPropertyLabel()».id}" />
+			<f:param name="from" value="#{request.servletPath}" />
+			«IF type.popupInfo != null»
+			 <rich:tooltip>
+	            <span>
+	              #{_«genPropertyLabel()».popupInfo} 
+	            </span>
+	        </rich:tooltip>
+	        «ENDIF»
+	</h:commandLink>
+«ENDDEFINE»
+
+
+
+«DEFINE genProperty FOR uml::Property-»
+	<p:column   «EXPAND genPermission FOR this» headerText="«msgBundleKey()-»" sortBy="#{_«genPropertyLabel()»}" filterBy="#{_«genPropertyLabel()»}" >
+		«IF isFile()»
+			«REM»comment		
+				<s:graphicImage rendered="#{_«genPropertyLabel()» ne null and  _«genPropertyLabel()».contentType.startsWith('image')}" value="#{_«genPropertyLabel()».data}">
+					<s:transformImageSize height="100" maintainRatio="true"/>
+				</s:graphicImage>
+			«ENDREM»	
+				<h:commandLink value="#{_«genPropertyLabel()».name}"  action="#{«class.asVar()»Action.download«name.toFirstUpper()»(_«class.asVar()».id)}" 
+					propagation="none"  rendered="#{not _«genPropertyLabel()».contentType.startsWith('image')}" >
+					<f:param name="currentEntityId" value="#{_«class.asVar()».id}" />
+          		</h:commandLink> 
+		«ELSEIF isDate()»
+			<h:outputText value="#{_«genPropertyLabel()»}">
+				 <f:convertDateTime pattern="dd-MMM-yyyy " />
+			</h:outputText>
+		«ELSEIF isBoolean()»
+			<h:outputText value="#{_«genPropertyLabel()»? msg.yes : msg.no }" />	
+		«ELSEIF isDouble()»
+			<h:outputText value="#{_«genPropertyLabel()»}">
+				<f:convertNumber pattern="$#,##0.00"/>
+			</h:outputText>
+		«ELSEIF isLargeText()»
+			«IF isColumn() && !abbreviateInListing»
+				<h:outputText value="#{_«genPropertyLabel()»}"   />	
+			«ELSE»
+			 <p:tooltip value="#{_«genPropertyLabel()»}" for="«name»Abbr">  </p:tooltip>
+	         <h:outputText id="«name»Abbr" value="#{_«genPropertyLabel()»Abbreviated}" /> 
+	         «ENDIF»				
+		«ELSE»
+			<h:outputText value="#{_«genPropertyLabel()»}"   />	
+		«ENDIF»
+	</p:column>
+«ENDDEFINE»
+
+«DEFINE genProperty FOR String-»
+	<p:column  «EXPAND genPermission FOR this»>
+		<f:facet name="header">
+			<h:outputText value="«msgBundleKey()-»" />
+		</f:facet>
+	 <h:outputText   value="#{«getCurrentEntity().asVar()».«this»«this == "createdByUser"?".displayName":""»}" />
+	</p:column>
+«ENDDEFINE»
+
+«DEFINE genPermission FOR uml::Property»
+	«REM»commentrendered="#{s:hasPermission('«name»', '«getCurrentEntity().asVar()»View'  )}"«ENDREM»
+«ENDDEFINE»
+
+«DEFINE genPermission FOR String»
+	«REM»commentrendered="#{s:hasPermission('«this»', '«getCurrentEntity().asVar()»View' )}" «ENDREM»
+«ENDDEFINE»
+
+
+
+«REM» Creation date and ID  «ENDREM»
+
+
+«DEFINE genId FOR uml::Class»
+	<p:column headerText="Id"  sortBy="#{_«getCurrentEntity().asVar()».id}" «EXPAND genPermission FOR 'id'» >
+		
+		<h:link outcome="view«name».xthml">
+			<f:param name="id" value="#{_«getCurrentEntity().asVar()».id}"  />
+			<h:outputText value="#{_«getCurrentEntity().asVar()».id}"  />				
+		</h:link>
+		
+	</p:column>
+«ENDDEFINE»
+
+
+«DEFINE genCreationDate FOR uml::Class»
+	<p:column headerText="#{msg.dateCreated}" «EXPAND genPermission FOR 'creationDate'»>
+		<h:outputText    value="#{_«getCurrentEntity().asVar()».dateCreated}"  >
+			 <f:convertDateTime pattern="dd-MMM-yyyy " />
+		</h:outputText>
+	</p:column>
+«ENDDEFINE»
+
+
+

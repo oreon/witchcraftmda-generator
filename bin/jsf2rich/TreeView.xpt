@@ -1,0 +1,57 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+
+
+«DEFINE genTreeViewComponent FOR wcprofile::Entity»
+«IF treeFlds != null»
+
+	«FILE getWebPath() +"/treeView" + name + "Component." + getExtension()»
+
+<ui:composition «EXPAND WebRoot::genIncludes-»>	
+
+<rich:panel id="dynamicTreePanel" header="Dynamic Tree User Interface">
+
+	<h:form>
+		<h:panelGrid columns="2">
+			<rich:tree icon="/image/node.gif" iconLeaf="/image/node.gif"
+				nodeSelectListener="#{«getAction()».processSelection}"
+				reRender="selectedNode, detailsView" ajaxSubmitSelection="true">
+
+				<rich:recursiveTreeNodesAdaptor
+					roots="#{«getAction()».topLevel«getTreeParent()»}" var="_«name»">
+					<rich:treeNode>
+						<h:outputText value="#{_«name».displayName}" />
+					</rich:treeNode>
+
+					<rich:recursiveTreeNodesAdaptor roots="#{_«name».«getTreeChildren()»}"
+						var="_child" nodes="#{_child.«getTreeChildren()»}">
+						<rich:treeNode>
+							<h:outputText value="#{_child.displayName}" />
+						</rich:treeNode>
+					</rich:recursiveTreeNodesAdaptor>
+
+				</rich:recursiveTreeNodesAdaptor>
+			</rich:tree>
+
+			«LET getAttrib(getTreeDetailsFld()) AS e»
+			<rich:panel id="detailsView">
+				<ui:include src="«getViewFile(e.type, "view")»">
+					<ui:param name="«e.type.name.toFirstLower()»Id" value="#{«e.type.getAction()».«e.type.name.toFirstLower()»Id}" />
+				</ui:include>
+			</rich:panel>
+			«ENDLET»
+			
+		</h:panelGrid>
+	</h:form>
+
+</rich:panel>
+
+</ui:composition>
+
+«ENDFILE»
+«ENDIF»
+«ENDDEFINE»

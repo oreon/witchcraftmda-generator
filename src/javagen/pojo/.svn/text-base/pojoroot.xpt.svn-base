@@ -1,0 +1,267 @@
+«IMPORT wcprofile»
+
+
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::associationExtensions»
+«EXTENSION template::javaextensions»
+
+
+«DEFINE root FOR uml::Model»
+	«EXPAND PackageRoot FOREACH allOwnedElements().typeSelect(uml::Package)»
+«ENDDEFINE»
+
+«DEFINE PackageRoot FOR uml::Package»
+	«IF !excludeFromGeneration()»
+		«EXPAND PackageRoot FOREACH  eContents().typeSelect(uml::Package)»
+		«EXPAND ClassRoot FOREACH eContents().typeSelect(uml::Class)»
+		«EXPAND ClassRoot FOREACH eContents().typeSelect(uml::Interface)»
+		«EXPAND EnumGen FOREACH eContents().typeSelect(uml::Enumeration)»
+		«EXPAND GenPackageInfo FOR this»
+	«ENDIF»
+«ENDDEFINE»
+
+«DEFINE ClassRoot FOR uml::Class»
+ «IF name != null && package != null»
+	
+	«FILE packagePath() +"/" + name + "Base.java"»
+		
+		package « packageName() »;
+		«EXPAND genImports FOR this»
+	
+		«EXPAND genDocumentation FOR this»
+		
+		«EXPAND genBaseClassAnnotations FOR this»
+		«EXPAND genClassDeclaration FOR this»{
+		 «EXPAND genProperties FOR this»
+		 «EXPAND genAdditionalMethods FOR this»
+		}
+	«ENDFILE»
+	
+	«EXPAND genConcrete FOR this»
+	
+	
+	
+ «ENDIF»
+«ENDDEFINE»
+
+«DEFINE genClassDeclaration FOR uml::Class»
+	public class «name»Base «getParent()» «getInterfaces()»
+«ENDDEFINE»
+
+
+
+«DEFINE genConcrete FOR uml::Class»
+	«FILE packagePath() +"/" +  name + ".java"  man_path» 
+		«EXPAND genFileHeader FOR this»
+		package « packageName() »;
+			
+		«EXPAND genImports FOR this»
+		
+		«EXPAND genDocumentation FOR this»
+
+		«EXPAND genClassBodyMan FOR this»
+	«ENDFILE»
+«ENDDEFINE»
+
+
+
+
+«DEFINE genClassBodyMan FOR uml::Class»
+	«EXPAND genClassAnnotations FOR this»
+	public class «name» extends «name»Base implements java.io.Serializable {
+		private static final long serialVersionUID = «serialver()»;
+	}
+«ENDDEFINE»
+
+
+
+
+
+«DEFINE genProperties FOR uml::Class»
+	«EXPAND genDecl FOREACH getAllAttributes()»
+	«EXPAND genGetterSetter FOREACH getAllAttributes()»
+«ENDDEFINE»
+
+
+«DEFINE genDecl FOR uml::Property»
+	«EXPAND genDocumentation FOR this»
+	«EXPAND genPropertyAnnotations FOR this»
+	«REM»«visibility»«ENDREM» protected «getCollectionBeginPartIfNeeded()»«type.fqnForPackage(this.class)»«getCollectionEndPartIfNeeded()» «name» «EXPAND genNewDeclaration FOR this»;
+«ENDDEFINE»
+
+
+«DEFINE genNewDeclaration FOR uml::Property»
+	«IF isMultivalued()» = new ArrayList<«type.fqnForPackage(this.class)»>()«ENDIF»
+«ENDDEFINE»
+
+«DEFINE genGetterSetter FOR uml::Property»
+	public void set«name.toFirstUpper()»(«getCollectionBeginPartIfNeeded()»«type.fqnForPackage(this.class)»«getCollectionEndPartIfNeeded()» «name»){
+		this.«name» = «name»;
+	}
+	
+	«EXPAND genPropertyGetterAnnotations FOR this»
+	public «getCollectionBeginPartIfNeeded()»«type.fqnForPackage(this.class)»«getCollectionEndPartIfNeeded()»  get«name.toFirstUpper()»( ){
+		«EXPAND initGetter FOR this»
+		return «name»;
+	}
+	
+	«IF isMultivalued()»
+	public void add«name.toFirstUpper().getSingular()» («type.fqnForPackage(this.class)» «name.getSingular()»){
+		«IF !isManyToMany() && opposite != null»
+		  «name.getSingular()».set«opposite.name.toFirstUpper()»((«class.name»)this);
+		«ENDIF»
+		if(«name» == null) {
+			«name» = new ArrayList<«type.fqn()»>();
+		}
+		
+		this.«name».add(«name.getSingular()»);
+	}
+	
+	@Transient
+	public String createList«name.toFirstUpper()»AsString() {
+		return listAsString(«name»);
+	}
+	
+	«ENDIF»
+«ENDDEFINE»
+
+
+«DEFINE genPropertyGetterAnnotations FOR uml::Property»
+«ENDDEFINE»
+
+
+«DEFINE initGetter FOR uml::Property»
+«ENDDEFINE»
+
+«DEFINE genClassAnnotations FOR uml::Class»
+«ENDDEFINE»
+
+
+«DEFINE genBaseClassAnnotations FOR uml::Class»
+«ENDDEFINE»
+
+
+«DEFINE genPropertyAnnotations FOR uml::Property»
+	
+«ENDDEFINE»
+
+
+«DEFINE genAdditionalMethods FOR uml::Class»
+«ENDDEFINE»
+
+
+«DEFINE genFileHeader FOR uml::Element»
+«ENDDEFINE»
+
+«DEFINE genClassDocs FOR wcprofile::Entity»
+//this is entity docs
+«ENDDEFINE»
+
+«DEFINE genClassDocs FOR uml::Class»
+//simple class
+«ENDDEFINE»
+
+
+
+«DEFINE GenPackageInfo FOR uml::Package»
+ «IF !name.startsWith("UML")»
+	
+	 «FILE packagePathPck() + "/package-info.java" man_path»
+		«EXPAND genPackageDetails FOR this»	
+	 «ENDFILE»
+	
+ «ENDIF»
+«ENDDEFINE»
+
+
+«DEFINE genPackageDetails FOR uml::Package»
+	«EXPAND genFileHeader FOR this»
+	package «packageNamePck()»;
+	«EXPAND genDocumentation FOR this»
+«ENDDEFINE»
+
+
+
+«DEFINE genImports FOR uml::Class»
+	«EXPAND genImportsGeneric FOR this»
+«ENDDEFINE»
+
+
+«DEFINE genImports FOR uml::Interface»
+	«EXPAND genImportsGeneric FOR this»
+«ENDDEFINE»
+
+
+«DEFINE genImportsGeneric FOR uml::Element»
+	import java.util.ArrayList;
+	import java.util.List;
+	import java.util.Date;
+«ENDDEFINE»
+
+
+
+«DEFINE EnumGen FOR uml::Enumeration»
+
+	«FILE packagePath() + "/"+ name +".java" man_path»  
+	package «packageName()»;
+	
+	public enum «name» {		
+		
+		«FOREACH  ownedLiteral AS e»
+			«e.name»,
+		«ENDFOREACH»
+	
+	} 
+	«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE genDocumentation FOR uml::Element»
+	«IF getDocumentation() != null  && getDocumentation().length > 0 »
+		/** 
+		* «getDocumentation()» 
+		**/
+	«ENDIF»
+«ENDDEFINE»
+
+
+«DEFINE genOperation FOR uml::Operation»
+	/** 
+	 * «ownedComment.body»
+	 */
+	«visibility» «getOpReturnType()» «getOpReturnTypeTemplateParam()»  «name» («getParametersSignature()»){ 
+		«IF !isVoid()»
+			return null;
+		«ENDIF»
+	}
+«ENDDEFINE»
+
+
+«DEFINE ClassRoot FOR uml::Interface»
+	«FILE packagePath() +"/" +name+".java"»
+	«EXPAND genFileHeader FOR this»
+	package « packageName() »;
+	«EXPAND genImports»
+	
+	public interface «name» «parents().size > 0 ?" extends " + parents().get(0).name:""»{
+		 «EXPAND genOperationDecl FOREACH getAllOperations()»
+	}
+	«ENDFILE»
+«ENDDEFINE»
+
+
+
+«DEFINE genOperationDecl FOR uml::Operation»
+	«visibility» «getOpReturnType()» «name» («EXPAND genParamSignature»);
+«ENDDEFINE»
+
+
+«DEFINE genParamSignature FOR uml::Operation-»  
+	«FOREACH ownedParameter.select( a |  a.name != ""  ) AS a  SEPARATOR ','-»
+	      «a.type.fqn()-» «a.name-»«REM» TODO - find a mechanism for generalizing many «ENDREM»
+	«ENDFOREACH-»
+«ENDDEFINE»
+
+

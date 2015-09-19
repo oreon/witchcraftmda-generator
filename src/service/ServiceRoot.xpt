@@ -1,0 +1,71 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE Root FOR uml::Model»
+	«EXPAND ClassRoot FOREACH allOwnedElements().typeSelect(wcprofile::Service)»
+	«EXPAND genConcreteService FOREACH allOwnedElements().typeSelect(wcprofile::Service)»
+«ENDDEFINE»
+
+
+«DEFINE ClassRoot FOR wcprofile::Service»
+	«IF name != null && package != null»
+	
+	«FILE packagePath() +"/base/Abstract" + name +".java"»
+	package « packageName() ».base;
+	«EXPAND genImports FOR this»
+			
+	public abstract class Abstract«name» «getParent()» «getInterfaces()»{
+		«EXPAND genDecl FOREACH getAllAttributes() »
+		«EXPAND template::Root::genGetterSetter FOREACH getAllAttributes() »
+		
+		«EXPAND template::Root::genOperation FOREACH getAllOperations()»
+		
+		«FOREACH getImplementedInterfaces() AS i»
+			«EXPAND template::Root::genOperation FOREACH i.getAllOperations()»
+		«ENDFOREACH»
+	}
+	«ENDFILE»
+	
+	«ENDIF»
+«ENDDEFINE»
+
+«DEFINE genDecl FOR uml::Property»
+	«IF isMultivalued()»
+		private Set<«type.fqnForPackage(this.class)»> «name» = new HashSet<«type.fqnForPackage(this.class)»>();
+	«ELSE»
+		«IF name.contains("Repository")» @Autowried  «ENDIF»
+		protected «type.fqnForPackage(this.class)» «name» «getDefault() != null?" = " +getDefaultVal(type):""»;
+	«ENDIF»
+«ENDDEFINE»
+
+
+
+«DEFINE genConcreteService FOR wcprofile::Service»
+«FILE packagePath() +"/" + name +".java"»
+package « packageName() »;
+
+@Service
+@Transactional
+public  class «name» extends « packageName() ».base.Abstract«name»  {
+		
+		
+}
+
+«ENDFILE»
+«ENDDEFINE»
+
+
+
+
+«DEFINE genImports FOR uml::Class»
+	import java.util.ArrayList;
+	import java.util.HashSet;
+	import java.util.List;
+	import java.util.Set;
+	import java.util.Date;
+«ENDDEFINE»
+
+

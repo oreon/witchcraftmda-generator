@@ -1,0 +1,133 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE Root FOR uml::Model»
+	«EXPAND PackageRoot FOREACH allOwnedElements().typeSelect(uml::Package)»
+«ENDDEFINE»
+
+
+«DEFINE PackageRoot FOR uml::Package»
+	«EXPAND ClassRootWithExt("Dto") FOREACH allOwnedElements().typeSelect(wcprofile::AbstractEntity)»
+	«EXPAND Root::ClassRoot FOREACH allOwnedElements().typeSelect(uml::Interface)»
+	«EXPAND EnumGen("Dto") FOREACH allOwnedElements().typeSelect(uml::Enumeration)»
+«ENDDEFINE»
+
+
+«DEFINE ClassRootWithExt(String ext) FOR uml::Class»
+	«IF name != null && package != null»
+	
+	«FILE packagePath() +  "/" + ext.toLowerCase() +  "/" +name + ext + ".java"»
+		package « packageName() + "." + ext.toLowerCase() »;
+		«EXPAND genImports FOR this»
+		«EXPAND genClassBodyExt(ext) FOR this»
+	«ENDFILE»
+	
+	«ENDIF»
+«ENDDEFINE»
+
+
+
+«DEFINE genClassBodyExt(String ext) FOR uml::Class»
+	public class «name»«ext» «getParent()» «getInterfaces()»{
+		«EXPAND genDecl(ext) FOREACH getAllAttributes() »
+		«EXPAND genGetterSetter(ext) FOREACH getAllAttributes() »
+		«REM»comment
+		«EXPAND genOperation FOREACH getAllOperations()»
+		«ENDREM»
+	}
+«ENDDEFINE»
+
+
+
+«DEFINE genDecl(String ext) FOR uml::Property»
+	«IF isMultivalued()»
+		«IF association != null»
+		private Set<«type.fqnForPackage(this.class)»«ext»> «name»«ext» = new HashSet<«type.fqnForPackage(this.class)»«ext»>();
+		«ELSE»
+		private Set<«type.fqnForPackage(this.class)»> «name» = new HashSet<«type.fqnForPackage(this.class)»>();
+		«ENDIF»
+	«ELSE»
+		«EXPAND genPropertyDecl(ext) FOR this»
+	«ENDIF»
+«ENDDEFINE»
+
+
+«DEFINE genPropertyDecl(String ext) FOR uml::Property»
+	«LET  (association == null ? name : name + ext )  AS pname»
+	«LET  (association == null ? type.fqnForPackage(this.class) :  type.fqnForPackage(this.class, ext.toLowerCase()) + ext) AS ptype» 
+	
+	protected «ptype» «pname» ;  «REM» «getDefault() != null?" = " +getDefaultVal(type):""»;  «ENDREM»
+	
+	«ENDLET»
+	«ENDLET»
+«ENDDEFINE»
+
+
+«DEFINE genGetterSetter(String ext) FOR uml::Property»
+	«LET  (association == null ? name : name + ext )  AS pname»
+	«LET  name.toFirstUpper()  AS pnameu»
+	«LET  (association == null ? type.fqnForPackage(this.class) :  type.fqnForPackage(this.class, ext.toLowerCase()) + ext) AS ptype» 
+	
+	«IF isMultivalued()»
+		public void set«pnameu»(Set<«ptype»> «pname»){
+			this.«pname» = «pname»;
+		}		
+		public Set<«ptype»> get«pnameu»( ){
+			return «pname»;
+		}
+	«ELSE»
+		public void set«pnameu»(«ptype» «pname»){
+			this.«pname» = «pname»;
+		}
+		
+		public «ptype» get«pnameu»( ){
+			return «isColumn() && derivedProperty != null ? derivedProperty :  pname»;
+		}
+	«ENDIF»
+	
+	«ENDLET»
+	«ENDLET»
+	«ENDLET»
+«ENDDEFINE»
+
+
+
+
+«DEFINE genGetterSetter FOR wcprofile::DerivedProperty»
+//derived property - «name»
+public «type.fqnForPackage(this.class)» get«name.toFirstUpper()»( ){
+	return «derivation != null ? derivation :  name»;
+}
+«ENDDEFINE»
+
+
+«DEFINE EnumGen(String ext) FOR uml::Enumeration»
+	«FILE packagePath() +  "/" + ext.toLowerCase() +  "/" +name +  ".java"»
+	package « packageName() + "." + ext.toLowerCase() »;
+	
+	public enum «name» {		
+		«FOREACH  ownedLiteral AS e»
+			«e.name»,
+		«ENDFOREACH»
+	} 
+	«ENDFILE»
+«ENDDEFINE»
+
+
+
+«DEFINE genImports FOR uml::Class»
+	import java.util.ArrayList;
+	import java.util.HashSet;
+	import java.util.List;
+	import java.util.Set;
+	import java.util.Date;
+	
+	import org.witchcraft.base.entity.BaseEntity;
+    import org.witchcraft.base.entity.FileAttachment;
+    import java.math.BigDecimal;
+«ENDDEFINE»
+
+

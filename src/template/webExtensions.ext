@@ -1,0 +1,465 @@
+//import metamodel;
+import uml;
+import java;
+import java::util;
+import wcprofile;
+
+extension org::openarchitectureware::uml2::profile::profiling;
+extension template::GeneratorExtensions;
+extension template::associationExtensions;
+
+
+String getAction(Class cls):
+cls.asVar() + "Action";
+
+String getList(Class cls):
+cls.asVar() + "List";
+
+String getActionFqn(Class type):
+type.getWebPackageName() + "." + type.name + "Action" ;
+
+String getActionFqn(Class type, String prefix, String postFix):
+type.getWebPackageName() + "." + prefix + type.name + "Action" + postFix;
+
+String getListFqn(Class type):
+type.getWebPackageName() + "." + type.name + "ListQuery" ;
+
+
+boolean isEnum(Type type):
+type.getAppliedStereotype("uml::Enumeration") != null;
+
+boolean isString(Property prop):
+prop.type.name == "String";
+
+
+String msgBundleKey(Property attr):
+"#{"  + attr.msgBundleKeyOnly()  +  "}";
+
+String msgBundleKeyOnly(Property attr):
+"msg." + attr.class.asVar() + "_" + attr.name;
+
+
+String msgBundleKey(String attr):
+"#{msg." + attr  + "}";
+
+
+
+setAsCurrentEntity(Class cls):
+JAVA org.witchcraft.generatorutil.ClassUtil.setCurrentEntity(org.eclipse.uml2.uml.Class);
+
+Class getCurrentEntity():
+JAVA org.witchcraft.generatorutil.ClassUtil.getCurrentEntity();
+
+setCurrentEmbeddable(Property cls):
+JAVA org.witchcraft.generatorutil.ClassUtil.setCurrentEmbeddable(org.eclipse.uml2.uml.Property);
+
+Class getCurrentEmbeddable():
+JAVA org.witchcraft.generatorutil.ClassUtil.getCurrentEmbeddable();
+
+setCurrentEmbeddableName(String name):
+JAVA org.witchcraft.generatorutil.ClassUtil.setCurrentEmbeddableName(java.lang.String);
+
+getCurrentEmbeddableName():
+JAVA org.witchcraft.generatorutil.ClassUtil.getCurrentEmbeddableName();
+
+
+clearCurrentEmbeddable():
+JAVA org.witchcraft.generatorutil.ClassUtil.clearCurrentEmbeddable();
+
+
+setCurrentMultiMode(boolean val):
+JAVA org.witchcraft.generatorutil.ClassUtil.setCurrentMultiMode(java.lang.Boolean);
+
+boolean isCurrentMultiMode():
+JAVA org.witchcraft.generatorutil.ClassUtil.isCurrentMultiMode();
+
+setCurrentContainer(boolean val):
+JAVA org.witchcraft.generatorutil.ClassUtil.setCurrentContainer(java.lang.Boolean);
+
+boolean isCurrentContainer():
+JAVA org.witchcraft.generatorutil.ClassUtil.getCurrentContainer();
+
+setCurrentTemplateMode(boolean val):
+JAVA org.witchcraft.generatorutil.ClassUtil.setCurrentTemplateMode(java.lang.Boolean);
+
+boolean isCurrentTemplateMode():
+JAVA org.witchcraft.generatorutil.ClassUtil.isCurrentTemplateMode();
+
+setCurrentEditMode(boolean val):
+JAVA org.witchcraft.generatorutil.ClassUtil.setCurrentEditMode(java.lang.Boolean);
+
+boolean isCurrentEditMode():
+JAVA org.witchcraft.generatorutil.ClassUtil.isCurrentEditMode();
+
+
+String getOutputMessage(Property prop):
+getLabelText(prop);
+
+String getColumnBegin(Property prop):
+"<h:column style=\"text-align:" + prop.getAlign() + "\"><f:facet name=\"header\">" + prop.getLabelText() + "</f:facet>";
+
+//types other than text e.g. integer, double should be right aligned
+getAlign(Property prop):
+prop.isString()?"left":"right";
+
+//Used for labeling in the UI e.g First Name for field firstName
+String getLabelText(Property prop):
+"<h:outputText value=\"" + prop.msgBundleKey()  +  " " + prop.getRequiredStar()  +  " \"" + " rendered=\"#{"  
+	+ prop.getRendered() +   "}\""  + "/>";
+	
+getRendered(Property prop):
+isCurrentEditMode()?prop.genEditPermission():prop.genViewPermission() ;
+
+//getRequiredStar(Property prop):
+//isCurrentEditMode() && (prop.getRequired() == "true" || ( prop.association != null && !prop.getAssocOptional() ) )?"":"";
+//isCurrentEditMode() && (prop.getRequired() == "true" || ( prop.association != null && !prop.getAssocOptional() ) )?"*":"";
+
+getRequiredStar(Property prop):
+//prop.isRequired() ? "*" : "";
+(getCartridge() == "SEAM3" )&& prop.isRequired() ? "*" : "";
+
+
+String getTextControl(Property prop):
+isCurrentEditMode() ? getInputControl(prop):getOutputControl(prop);
+
+isAutoComplete(Property p):
+p.isColumn() && p.autocomplete;
+
+
+//In case of lob properties e.g. description we need to escape the html 
+String getEscape(Property prop):
+"escape=\"false\"";
+//prop.isType("largeText")?" escape=\"false\" ":" ";
+
+getDisabled(Property prop):
+"false"; //todo 
+
+
+getComponentPanelId(Class cls, boolean isedit):
+(isedit?"edit":"view") + cls.name + "ComponentPanel";
+
+String getInputControl(Property prop):
+(getCartridge() == "RICH" || getCartridge() == "JSF2RICH" )?  getInputControlRich(prop) :  getInputControlPrime(prop)  ;
+
+
+String getInputControlRich(Property prop):
+if(prop.type.name == "largeText")  
+	then getRichTextEditor()
+else if ( prop.isType("boolean") || prop.isType("Boolean") )
+	then prop.getJSFPrefix() + ":selectBooleanCheckbox"
+else if (prop.isType("Date")) then
+	"rich:calendar" 
+else if (prop.isColumn() && prop.secret ) then
+	prop.getJSFPrefix() + ":inputSecret"
+else if (prop.isColumn() && prop.textSize > 0 ) then
+	prop.getJSFPrefix() + ":inputText size=\"" + prop.textSize +"\""
+else	
+	prop.getJSFPrefix() + ":inputText";
+	
+	
+String getInputControlPrime(Property prop):
+if(prop.type.name == "largeText")  
+	then "p:editor"
+else if ( prop.isType("boolean") || prop.isType("Boolean") )
+	then prop.getJSFPrefix() + ":selectBooleanCheckbox"
+else if (prop.isType("Date")) then
+	"p:calendar" 
+else if(prop.isCurrency()) then
+	"pe:inputNumber"
+else if (prop.isColumn() && prop.secret ) then
+	prop.getJSFPrefix() + ":inputSecret"
+else if ( prop.isType("Integer") )
+	then  "p:spinner"
+else if (prop.isColumn() && prop.textSize > 0 ) then
+	prop.getJSFPrefix() + ":inputText size=\"" + prop.textSize +"\""
+else	
+	prop.getJSFPrefix() + ":inputText";
+	
+	
+String  getInputControlAttributes(Property prop):
+if ( prop.isType("Integer") )
+	then  " size=\"2\" min=\"0\" "
+else if (prop.type.name == "largeText") then
+	" useSeamText=\"true\"   width=\"400\" height=\"130\"   " 
+else	
+	"";
+
+	  
+	
+//get the parent class for a web action class - for classes that derive from non  mappedsuperclass parent , we need to return special class Abstract<Parent>Base	
+String getParentForAction(Class cls):
+if(cls.hasParent())  
+ then (   cls.getFirstParentCls().getActionFqn("Abstract","")  ) + cls.getGenericType(cls.getFirstParentCls()) 
+else 
+	"BaseAction<" +  cls.name + ">";
+
+
+
+//String getParentForAction(Class cls):
+//if(cls.hasParent())  
+// then (  cls.getFirstParentCls().isMappedSuperClass() ? cls.getFirstParentCls().getActionFqn() : cls.getFirstParentCls().getActionFqn("Abstract","") ) + cls.getGenericType(cls.getFirstParentCls()) 
+//else 
+//	"BaseAction<" +  cls.name + ">";
+
+
+
+
+	
+	
+String getOutputControl(Property prop):
+//if(prop.type.name == "largeText")  
+//	then "s:formattedText"
+//else	
+	prop.getJSFPrefix() + ":outputText";	
+
+
+String getRichTextEditor():
+if (getCurrentCartridge() == "RICH" || getCurrentCartridge() ==  "JSF2RICH" )then
+	"rich:editor"
+else  
+   "inputRichText toolbar=\"Basic\" saveOnSubmit=\"true\"";
+	
+	
+String getInputControlSearch(Property prop):
+if (prop.type.name == "boolean" || prop.type.name == "Boolean" )
+	then prop.getJSFPrefix() + ":" + "selectBooleanCheckbox"
+else if (prop.isType("Date")) then
+	prop.getJSFPrefix() + ":" + "calendar"
+else
+	prop.getJSFPrefix() + ":" + "inputText";
+	
+//the jsf prefix for the library we are using e.g. for richfaces it'd be rich
+String getJSFPrefix(Property prop):
+(isCurrentEditMode() && prop.isType("Date"))?"wc":getCurrentJSFPrefix();
+
+String getCurrentJSFPrefix():
+getCurrentCartridge() != "ICE" ? "h" : "ice";
+
+String getFieldNameWithAction(Property prop):
+prop.class.getAction() + "." + prop.class.asVar() + "." + prop.name;
+
+getTextForImgFile(Property prop): 
+"<s:fileUpload data=\"#{" + prop.getFieldNameWithAction() + ".data}\" fileName=\"#{" + prop.getFieldNameWithAction() + ".name}\"  contentType=\"#{" + 
+	prop.getFieldNameWithAction() + ".contentType}\" />";
+
+
+
+
+String getWebPath(Class cls):
+ getEntitiesRoot() + cls.package.name +  "/" + cls.asVar()  + (isCurrentTemplateMode()?"Template":"");
+
+String getEntitiesRoot():
+getAdminRoot() +  "entities/";
+
+String getTasksRoot():
+getAdminRoot() + "tasks/";
+ 
+String getReportsRoot():
+getAdminRoot() + "reports/";
+ 
+
+String getAdminRoot():
+readPropertyDef("adminRoot", "../webapp/admin/");
+
+
+//returns full path of a state
+String getStateWebPath(State st):
+"../webapp/" + st.containingStateMachine().name + "/" + st.name + "." + getExtension();
+
+String getActivityWebPath(Action st):
+"../webapp/" +  "/" + st.activity.name + "/" + st.name + "." + getExtension();
+
+getTaskFromWebPath(ActivityNode node):
+"../webapp/admin/tasks/taskForms/" + node.activity.name + "/" + node.name + "TaskForm." + getExtension();
+
+String getStateWebName(State st):
+st.containingStateMachine().name + "/" + st.name + "." + getExtension();
+
+
+String getExtension():
+if( getCurrentCartridge() == "RICH"  || getCurrentCartridge() == "SEAM3" || getCurrentCartridge() == "JSF2RICH" ) then
+	 "xhtml"
+else if ( getCurrentCartridge() == "ICE") then
+	"jspx"
+else if ( getCurrentCartridge() == "DOT_NET") then
+ 	"aspx"
+else
+	"xhtml";
+
+String getAdminTemplate():
+"/admin/template." + getExtension();
+
+String getTemplateName(ViewState vs):
+if (vs.template != null ) then 
+	vs.template
+else if(vs.containingStateMachine().template != null) then 
+	vs.containingStateMachine().template
+else 
+  "/defaultTemplate/template." + getExtension();
+  
+  
+String getTemplateName(Action act):
+  "/defaultTemplate/template." + getExtension();
+
+String getSimpleId(Property prop):
+(prop.association != null ? prop.name.toFirstLower():"") + prop.class.name.toFirstLower() + "_" + prop.name;
+
+
+String getId(Property prop):
+ prop.getIdWithoutPrefix();
+
+//TODO find a better alternative for prefixes
+//String getId(Property prop):
+//"#{prefix}_" + prop.getIdWithoutPrefix();
+
+getIdWithoutPrefix(Property prop):
+prop.association != null ? prop.name.toFirstLower() + "Id" : prop.getEmbeddableClassNameSuffix("_") + prop.name;
+
+String getActionForViewMode():
+ "_"; 
+
+
+String getActionForMode():
+!isCurrentMultiMode()? "": "_";
+
+
+//String getActionForMode():
+//!isCurrentMultiMode()?getCurrentEntity().asVar() + "Action.": "_"; 
+
+getActionForFileMode():
+getCurrentEntity().asVar() + "Action." ; 
+
+
+
+String getErrorMessageHolder(Property prop):
+isCurrentEditMode()?getErrorMessage(prop):"";
+
+String getErrorMessage(Property prop):
+"<rich:message styleClass=\"error errors\" for=\"" + prop.getId() + "\"" + " rendered=\"#{" + prop.genEditPermission()  + "}\"" + "/>";
+
+
+//to get container  file  such as editCustomer.xhtml which will contain editCustomerComponent.xhtml
+String getViewFile(Class e,String mode):
+getViewFileName(e, mode) + "." + getExtension();
+
+//to get component file  such as editCustomerComponent.xhtml
+String getComponentViewFile(Class e,String mode):
+getViewFileName(e, mode) + "Component"   + "." + getExtension();
+
+String getComponentViewFileCustomizable(Class e,String mode):
+getViewFileName(e, mode) + "Component" + e.getCustom()  + "." + getExtension();
+
+String getCustomViewFileComponent(Class e,String mode):
+getViewFileName(e, mode) + "ComponentCustom." + getExtension();
+
+
+String getCustom(Class e):
+e.customViewComponents ?"Custom":"";
+
+
+//returns name without extension 
+String getViewFileName(Class e,String mode):
+"/admin/entities/" + e.package.name.toFirstLower() + "/" + e.asVar() + "/" + mode + e.name  ;
+
+String getTemplateViewFileName(Class e,String mode):
+"/admin/entities/" + e.package.name.toFirstLower() + "/" + e.asVar() + "Template/" + mode + e.name;
+
+String getRequired(Property prop):
+prop.isRequired()?"true":"false";
+
+
+//String getRequired(Column prop):
+//!isCurrentTemplateMode() && (prop.notNull || prop.type.name == "nameType" || prop.type.name == "uniqueNameType")?"true":"false";
+
+
+isRequired(Property prop):
+!isCurrentTemplateMode() && (prop.type.name == "nameType" || prop.type.name == "uniqueNameType");
+
+isRequired(Column prop):
+!isCurrentTemplateMode() && (prop.notNull || prop.type.name == "nameType" || prop.type.name == "uniqueNameType");
+
+
+getAccess(Column prop):
+prop.access;
+
+getAccess(Property prop):
+null;
+
+genEditPermission(Property prop):
+genPermission(prop,'edit');
+
+genViewPermission(Property prop):
+genPermission(prop,'view');
+
+genPermission(Property prop, String mode):
+ "skipPermissionCheck == 'true' || s:hasPermission('" + getCurrentEntity().asVar() + "', '"+  mode + prop.name.toFirstUpper()   + "')";
+
+//getgeneric type for an action, for abstract classes we have to return none
+getGenericType(Class child, Class parent):
+ "<" + child.name + ">";
+//!parent.isMappedSuperClass() ? "": "<" + child.name + ">";
+
+genPropertyLabel(Property prop):
+getCurrentEntity().asVar() + "." + (prop.getEmbeddableClassName()) + prop.name.toFirstLower();
+
+//audit log 
+genAuditLogPropertyLabel(Property prop):
+"entity." + (prop.getEmbeddableClassName()) + prop.name.toFirstLower();
+
+//check if the given property is contained in the class denoted by getcrruententity
+getEmbeddableClassName(Property prop):
+getEmbeddableClassNameSuffix( prop, ".");
+
+//prop.class.isEmbeddable() || prop.class.isContainedAssoc() ?getCurrentEmbeddable().asVar() + ".":"";
+
+getEmbeddableClassNameSuffix(Property prop, String suffix):
+getCurrentEmbeddable() != null? getCurrentEmbeddable().name + suffix:"" ;
+
+
+getWebPackagePath(Class cls, String prefix, string ext,  String subpackage):
+getTopLevelPackage(cls).packagePath() + "/web/action/"  +  cls.package.name + "/" + subpackage + "/" + prefix + cls.name + ext + ".java";
+
+getWebPackagePath(Class cls, String ext, String subpackage):
+getTopLevelPackage(cls).packagePath() + "/web/action/"  +  cls.package.name + "/" + subpackage + "/" + cls.name + ext + ".java";
+
+getWebPackagePath(Class cls, String ext):
+getTopLevelPackage(cls).packagePath() + "/web/action/"  + cls.package.name + "/" + cls.name + ext + ".java";
+
+getWebPackagePathWithPrefix(Class cls, String prefix, String ext):
+getTopLevelPackage(cls).packagePath() + "/web/action/"  + cls.package.name + "/" + prefix  + cls.name + ext + ".java";
+
+getWebPackagePathModified(Class cls, String prefix, String suffix):
+getTopLevelPackage(cls).packagePath() + "/web/action/"  + cls.package.name + "/" + prefix + cls.name + suffix + ".java";
+
+
+
+
+getWebPackageName(Class cls, String subpackage):
+getTopLevelPackage(cls) + ".web.action." + cls.package.name +  "." + subpackage;
+
+
+
+getWebPackageName(Class cls):
+getTopLevelPackage(cls) + ".web.action." + cls.package.name;
+
+getWebSvcPackagePath(Class cls, String ext):
+getTopLevelPackage(cls).packagePath() + "/websvc/"  + cls.package.name + "/" + cls.name + ext + ".java";
+
+getWebSvcPackageName(Class cls):
+getTopLevelPackage(cls) + ".websvc." + cls.package.name;
+
+//TODO : figure how to do ajax validation in jsf 2 
+genAjaxValidatorJSF2():
+ "";
+
+genAjaxValidator():
+ "<rich:ajaxValidator event=\"" + readPropertyDef("ajaxValidationOn", "onsubmit") + "\" />";
+ 
+getRestExtension():
+readPropertyDef("restfulExtension", "Service");
+
+genPropertyGetter(Property property):
+(getCurrentEmbeddable() != null ?  getSimpleGetter(getCurrentEmbeddableName()) + ".": ""  ) + getSimpleGetter(property.name); 
+
+getSimpleGetter(String name):
+"get" + name.toFirstUpper() + "()";

@@ -1,0 +1,204 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE Root FOR uml::Model»
+	«EXPAND PackageRoot FOREACH allOwnedElements().typeSelect(uml::Package)»
+«ENDDEFINE»
+
+«DEFINE PackageRoot FOR uml::Package»
+	«EXPAND genListAspx FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND genListCS FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+«ENDDEFINE»
+
+
+«DEFINE genListAspx FOR wcprofile::Entity»
+
+		«FILE getWebPath()  + "/" +name + "List.aspx"»
+	
+<%@ Page Language="C#" MasterPageFile="~/Shared/MasterPage.master" CodeFile="«name»List.aspx.cs" Inherits="«name»List" %>
+<%@ Reference page="«name»Editor.aspx" %>
+
+<asp:Content ID="content" ContentPlaceHolderID="content" runat="server">
+
+<h1>«name»s in database</h1>
+<br />
+      <asp:DataGrid id="«name.toFirstLower()»List" runat="server"
+           AllowPaging="true"
+           AllowSorting="true"
+           BorderColor="black"
+           BorderWidth="1"
+           CellPadding="3"
+           AutoGenerateColumns="false"
+           ShowFooter="true"
+      >
+         <Columns>
+
+            <asp:BoundColumn HeaderText="Id" DataField="Id" />
+           	«EXPAND genAttribAsOutput FOR this-»
+            <asp:ButtonColumn CommandName="View" Text="View" />
+            <asp:ButtonColumn CommandName="Edit" Text="Edit" />
+
+         </Columns>
+      </asp:DataGrid>
+</asp:Content>
+	«ENDFILE»	
+«ENDDEFINE»
+
+
+«DEFINE genAttribAsOutput FOR uml::Class-»
+	«FOREACH allParents() AS e-»
+	 «EXPAND genPropertyRec FOREACH e.getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()  ) -»
+	«ENDFOREACH»
+	«EXPAND genPropertyRec FOREACH getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()   ) -»
+«ENDDEFINE»
+
+«DEFINE genPropertyRec FOR uml::Property-»
+	«IF isExpandableAssoc() -» 
+		«setCurrentEmbeddable()-» 
+		«EXPAND genPropertyRec FOREACH type.getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()  ) -»
+		«clearCurrentEmbeddable()-»
+	«ELSE-»
+		«EXPAND genAttribute -»
+	«ENDIF»
+«ENDDEFINE»
+
+«DEFINE genAttribute FOR uml::Property -»
+	«IF association != null -»
+		«EXPAND genAssoc FOR this-»
+	«ELSE-»
+		«EXPAND genProperty FOR this-»
+	«ENDIF»
+«ENDDEFINE»
+
+«DEFINE genProperty FOR uml::Property-»
+	<asp:BoundColumn HeaderText="«name»" DataField="«name»"/>
+«ENDDEFINE»
+
+
+«DEFINE genAssoc FOR uml::Property»
+	 <asp:ButtonColumn CommandName="View«name»" Text="«name».displayName" />
+	 «REM»
+	<s:link «getEscape()»  value="#{_«genPropertyLabel()».displayName}"  action="view«type.name»" propagation="none">
+			<f:param name="«name»Id" value="#{_«genPropertyLabel()».id}" />
+			<f:param name="from" value="#{request.servletPath}" />
+			
+			«IF type.popupInfo != null»
+			 <rich:toolTip>
+	            <span>
+	              #{_«genPropertyLabel()».popupInfo} 
+	            </span>
+	        </rich:toolTip> 
+	        «ENDIF»
+	        
+	</s:link>  
+	«ENDREM»   
+«ENDDEFINE»
+
+
+
+«DEFINE genListCS FOR wcprofile::Entity»
+«FILE getWebPath()  + "/" +name + "List.cs"»
+using System;
+using System.Collections;
+using System.Web.UI.WebControls;
+using Spring.Northwind.Dao;
+using Spring.Northwind.Domain;
+
+public partial class «name»List : Spring.Web.UI.Page
+{
+  private I«name»EditController «name.toFirstLower()»EditController;
+  private I«name»Dao «name.toFirstLower()»Dao;
+
+  public I«name»Dao «name»Dao
+  {
+    set { this.«name.toFirstLower()»Dao = value; }
+  }
+
+  public I«name»EditController «name»EditController
+  {
+    set { this.«name.toFirstLower()»EditController = value; }
+  }
+
+  public «name» Selected«name»
+  {
+    get
+    {
+      return («name») this.«name.toFirstLower()»List.SelectedItem.DataItem;
+    }
+  }
+
+  public «name»List()
+  {
+    this.InitializeControls+=new EventHandler(Page_InitializeControls);
+    this.DataBound+=new EventHandler(Page_DataBound);
+    this.DataUnbound+=new EventHandler(Page_DataUnbound);
+  }
+
+  override protected void InitializeDataBindings()
+  {
+    base.InitializeDataBindings();
+
+    // do the "one time" setup for databinding
+  }
+
+  private void Page_DataBound(object sender, EventArgs e)
+  {
+    // perform custom tasks for binding data from model to the form
+  }
+
+  private void Page_DataUnbound(object sender, EventArgs e)
+  {
+    // perform custom tasks for unbinding data from form to the model
+  }
+
+  private void Page_InitializeControls(object sender, EventArgs e)
+  {
+    // create/initialize controls here
+    «name.toFirstLower()»List.DataSource = «name.toFirstLower()»Dao.GetAll();
+    «name.toFirstLower()»List.ItemCommand+=new DataGridCommandEventHandler(«name»List_ItemCommand);
+    «name.toFirstLower()»List.PageIndexChanged+=new DataGridPageChangedEventHandler(«name»List_PageIndexChanged);
+    if (!IsPostBack)
+    {
+      «name.toFirstLower()»List.DataBind();
+    }
+    else
+    {
+      «name.toFirstLower()»List.ItemCreated+=new DataGridItemEventHandler(this.«name»List_ItemCreated);
+    }
+  }
+
+  private void «name»List_PageIndexChanged(object source, DataGridPageChangedEventArgs e)
+  {
+    «name.toFirstLower()»List.CurrentPageIndex = e.NewPageIndex;
+    «name.toFirstLower()»List.DataBind();
+  }
+
+  private void «name»List_ItemCommand(object source, DataGridCommandEventArgs e)
+  {
+    switch(e.CommandName)
+    {
+      case "ViewOrders":
+      case "View«name»":
+        «name.toFirstLower()»List.SelectedIndex = e.Item.ItemIndex;
+        «name.toFirstLower()»EditController.Edit«name»(this.Selected«name»);
+        SetResult(e.CommandName);
+        break;
+    }
+  }
+
+  private void «name»List_ItemCreated(object sender, DataGridItemEventArgs e)
+  {
+    if(e.Item.DataSetIndex > -1)
+    {
+      e.Item.DataItem = ((IList) «name.toFirstLower()»List.DataSource)[e.Item.DataSetIndex];
+    }
+  }
+}
+
+
+«ENDFILE»
+«ENDDEFINE»

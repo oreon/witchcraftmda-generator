@@ -1,0 +1,19 @@
+//Java specific code should go here;
+import uml;
+import java;
+import wcprofile;
+
+extension org::openarchitectureware::uml2::profile::profiling;
+
+
+String implClassSuffix() : GLOBALVAR ImplClassSuffix;
+
+
+
+
+
+getCollectionBeginPartIfNeeded(uml::Property p):
+p.isMultivalued()?"List<":"";
+
+getCollectionEndPartIfNeeded(uml::Property p):
+p.isMultivalued()?">":"";

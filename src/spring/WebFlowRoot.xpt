@@ -1,0 +1,154 @@
+«IMPORT wcprofile»
+«IMPORT uml2»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+
+«DEFINE Root FOR uml::Model»
+	«EXPAND StateMachineRoot FOREACH allOwnedElements().typeSelect(wcprofile::ViewStateMachine)»
+	«REM»comment
+	«EXPAND NavigationRoot FOR this»
+	«ENDREM»
+«ENDDEFINE»
+
+
+«DEFINE NavigationRoot FOR uml::Element»
+	«EXPAND SeamPageEntry FOREACH allOwnedElements().typeSelect(wcprofile::ViewState)-»    
+«ENDDEFINE»
+
+
+«DEFINE StateMachineRoot FOR wcprofile::ViewStateMachine»
+«FILE "../webapp/WEB-INF/flows/" + name + "/flow.xml"-»
+<?xml version="1.0" encoding="UTF-8"?>
+<flow xmlns="http://www.springframework.org/schema/webflow"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/webflow http://www.springframework.org/schema/webflow/spring-webflow-2.0.xsd" parent="parent-flow">
+
+	«PROTECT CSTART '<!--' CEND '-->' ID  'USER_EDITABLE_PAGEFLOW'+name »
+
+	«ENDPROTECT»
+
+	«EXPAND genPage FOREACH allOwnedElements().typeSelect(wcprofile::ViewState)»
+	
+</flow>
+«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE SeamPageEntry FOR wcprofile::ViewState»
+ 	<view-state id="/«getStateWebName()»" >
+   		«EXPAND genTransitions FOR this»
+	</view-state>
+«ENDDEFINE»
+
+«DEFINE SeamPageEntry FOR wcprofile::ActionState»
+ 	<action-state id="/«getStateWebName()»" >
+   		«EXPAND genTransitions FOR this»
+	</action-state>
+«ENDDEFINE»
+
+«DEFINE genTransitions FOR uml::State»
+	«FOREACH getOutgoings() AS o-»
+		<transition on="«o.guard.specification.stringValue()-»"  to="«o.target.getStateWebName()-»">
+ 				
+        </transition>	
+     «ENDFOREACH»
+«ENDDEFINE»
+	 
+
+
+ «DEFINE genPage FOR wcprofile::ViewState»
+ 	«FILE getStateWebPath()»
+<ui:composition «EXPAND richfaces::WebRoot::genIncludes FOR this»
+ template = "«getTemplateName()»" >	
+	<ui:define name="content">
+	<!--
+	«FOREACH getOutgoings() AS a»
+	  <h:commandButton action="«a.guard.specification.stringValue()»" value="«a.guard.specification.stringValue()»" />
+	«ENDFOREACH»
+	-->
+	«EXPAND genComp FOR this»
+	
+	 «PROTECT CSTART '<!--' CEND '-->' ID  'USER_EDITABLE_RGN_' + getStateWebName()»
+
+	«ENDPROTECT»	
+	</ui:define> 
+</ui:composition>
+	«ENDFILE»
+ «ENDDEFINE»
+ 
+ «REM»generates a component include directive e.g Employee:Edit will create <ui include src = "/admin/entities/domain/editEmployee.xhtml" «ENDREM» 
+«DEFINE genComp FOR wcprofile::ViewState»
+ «IF component != null»
+	 <h:form>
+	 	«IF component.toFirstUpper().getEntityByName().size > 0 »
+	 	«LET component.toFirstUpper().getEntityByName().get(0) AS entity»
+	 	<ui:include src="«entity.getComponentViewFile(componentType.name.toLowerCase())»" />
+	 	«ENDLET»
+	 	«ELSE»
+			<!-- Invalid Entity  «component.getFirstTerm()» --> 
+	  	«ENDIF»
+	 </h:form>
+«ENDIF»
+«ENDDEFINE»
+ 
+ 
+ «DEFINE genComponent FOR wcprofile::ViewState»
+ 	
+ 	«IF component != null»
+	 <h:form>
+	  «IF component.getFirstTerm().getEntityByName().size > 0 »
+	 
+		«LET component.getFirstTerm().getEntityByName().get(0) AS entity»
+		
+	 	<ui:include src="«entity.getComponentViewFile(component.getSecondTerm())»" />
+	 		«FOREACH getOutgoings().select(o | !o.target.isViewState() && !o.trigger.isEmpty) AS o-»
+    	<h:commandButton action="#{«o.trigger.get(0).event.operation.class.name.toFirstLower() + "Action." 
+    			+ o.trigger.get(0).event.operation.name»}" />
+   			«ENDFOREACH»
+		«ENDLET»
+		
+		«ELSE»
+			<!-- Invalid Entity --> «component.getFirstTerm()»
+	  «ENDIF»
+	  </h:form>
+	 «ENDIF»
+ «ENDDEFINE»
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+«DEFINE SeamPageEntry22 FOR wcprofile::ViewState»
+ 	<view-state id="/«getStateWebName()»" >
+ 		«IF (getOutgoings().select( o|o.target.isViewState() ) ).size > 0  -»
+    	
+    		«FOREACH getOutgoings().select( o|o.target.isViewState() ) AS o-»
+    		<transition on="«o.guard.specification.stringValue()-»"  to="«o.target.getStateWebName()-»">
+ 				
+            </transition>	
+            «ENDFOREACH»
+		
+		«ENDIF»
+		
+    	«FOREACH getOutgoings().select(o | !o.target.isViewState() && !o.trigger.isEmpty) AS o-»
+    	<navigation from-action="#{«o.trigger.get(0).event.operation.class.name.toFirstLower() + "Action." + o.trigger.get(0).event.operation.name»}">
+    		«FOREACH o.target.getOutgoings() AS a-»
+    		«IF a.target.isViewState()-»
+			 <rule if-outcome="«a.guard.specification.stringValue()-»">
+ 				<redirect view-id="/«a.target.getStateWebName()-»" />
+            </rule>	
+            «ENDIF»
+            «ENDFOREACH» 
+        </navigation>
+        «ENDFOREACH»
+        <param name="currentEntityId" />
+	</view-state>
+«ENDDEFINE»
+
+

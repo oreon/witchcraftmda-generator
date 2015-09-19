@@ -1,0 +1,370 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+
+
+«DEFINE genView FOR uml::Class»
+	«clearCurrentEmbeddable()-»
+	«setCurrentEditMode(false)» 
+	«EXPAND genViewFile»
+	«EXPAND genViewComponent»
+«ENDDEFINE»
+
+«DEFINE genViewFile FOR uml::Class»
+	«FILE getWebPath() +"/" + "view" + name + "." + getExtension()»
+<ui:composition «EXPAND WebRoot::genIncludes-» template = "«getAdminTemplate()»" >	
+	<ui:define name="content">
+	
+	<f:metadata>
+		<f:viewParam name="id" value="#{«getAction()».id}"/>
+		<f:event type="preRenderView" listener="#{«getAction()».retrieve}"/>
+	</f:metadata>
+	
+		<h:form>
+			«REM»comment
+			 «PROTECT CSTART '<!--' CEND '-->' ID  'EDITABLE_RGN_VIEW_' + package.name + "_" + (isCurrentTemplateMode()?"Template_":"") + name»			
+			«ENDPROTECT»	
+			«ENDREM»
+			<p:tabView  dynamic="true" cache="true">
+				<p:tab title="«name»">
+					<ui:include src = "«getComponentViewFile(customViewComponents ?"customView":"view")»" >
+						<ui:param name="_«name.toFirstLower()»" value="#{«getAction()».«name.toFirstLower()»}" />
+					</ui:include>
+					«EXPAND genCancelSaveBtns FOR this»
+				</p:tab>
+			«FOREACH getOutgoingAssociations() AS a ITERATOR iter»
+				<p:tab title="«a.name.toFirstUpper()»"  rendered="#{«getAction()».«name.toFirstLower()».«a.name» != null}">
+					<ui:include src = "«a.type.getComponentViewFile("view")»" >
+						«REM»comment<ui:param name="entityId" value="«getRandomNumber()»" />«ENDREM»
+						«REM»<ui:param name="entityId" value="«iter.counter1»" />«ENDREM»
+						<ui:param name="_«a.name»" value="#{«getAction()».«name.toFirstLower()».«a.name»}" />
+					</ui:include>
+				</p:tab>
+			«ENDFOREACH»	
+			</p:tabView>
+			«EXPAND genBusinessFunctionButtons FOR this»
+		</h:form>
+		<br/>
+			
+			<p:tabView  switchType="client" >
+			«FOREACH getNonComposedManyAssociations() AS a»
+			<p:tab title="«a.name.toFirstUpper()»" icon="/images/icons/bricks.png">
+				<c:set var="modalId" value="«name»ModalPanel-«a.name»" />
+				«REM»comment
+				<ui:include src = "«a.type.getComponentViewFile("list")»" >
+					<ui:param name="records" value="#{«a.type.asVar()»List.get«a.name.toFirstUpper()»By«a.opposite.name.toFirstUpper()»(«getAction()».«name.toFirstLower()»)}" />
+         			<ui:param name="modalId" value="${modalId}" />
+         		</ui:include>
+         		<h:form> 
+		      		<h:button value="Create New" view="«a.type.getViewFile("edit")»" > 
+		      			<f:param name="«name.toFirstLower()»Id" value="#{«getAction()».«name.toFirstLower()».id}" />
+		      		    <f:param name="«a.type.name.toFirstLower()»Id" value="0"/> 
+		      		</h:button>
+		      		  <h:button oncomplete="Richfaces.showModalPanel('${modalId}',{});" value="Quick Create"  reRender="${modalId}" >
+			            <a:actionparam name="«a.type.name.toFirstLower()»Id" assignTo="#{«a.type.name.toFirstLower()»Action.«a.type.name.toFirstLower()»Id}" value="0"  />
+			         	<a:actionparam name="«name.toFirstLower()»Id" assignTo="#{«a.type.name.toFirstLower()»Action.«a.opposite.name»Id}" 
+			         		value="#{«name.toFirstLower()»Action.«name.toFirstLower()».id}"  />
+			         </h:button>
+		    	</h:form>
+		    	<ui:include src="«a.type.getComponentViewFile("modalDlg")»" > 
+		    		<ui:param name="modalId" value="${modalId}" />
+		    	</ui:include>
+		    	«ENDREM»
+			</p:tab>
+			«ENDFOREACH»
+			</p:tabView>
+		<br/>
+		
+		<p:tabView switchType="client">
+			<p:tab title="Notes">
+				<wc:comments backingAction="#{«getAction()»}"/>
+			</p:tab>
+			«IF getAuditable()-»
+			<p:tab title="Audit">
+				<ui:include
+					src="«getComponentViewFile("auditList")»" />
+			</p:tab>
+			«ENDIF»
+		</p:tabView>
+		
+		
+		«EXPAND generateWebFunctionIncludes FOR this»
+		
+	</ui:define> 
+</ui:composition>
+	«ENDFILE»
+«ENDDEFINE»
+
+
+
+«DEFINE genViewComponent FOR uml::Class»
+«FILE getWebPath() +"/" + "view" + name+ "Component." + getExtension()»
+<ui:composition «EXPAND WebRoot::genIncludes-» >	
+	
+	<h:panelGroup  id="«"edit"»«name»ComponentPanel" >
+		
+		«setAsCurrentEntity(this)-»
+		<h:panelGrid columns="1" onload="#{«getAction()».load(«asVar()»Id )  }"></h:panelGrid>
+		
+		«EXPAND genAttribAsOutput FOR this-»
+		<br/>
+		«EXPAND genTable FOR this-»
+		<br/>
+		«EXPAND genManyToManyShuttle FOR this-»
+	
+	</h:panelGroup>
+	
+</ui:composition>
+«ENDFILE»
+«ENDDEFINE»
+
+
+
+
+
+«DEFINE genCancelSaveBtns FOR uml::Class»
+	<div class="buttonBox">
+		<h:button value="Edit"
+			outcome="edit«name»" includeViewParams="true">
+		</h:button>
+		
+		<h:button value="Back To Listing"
+			outcome="list«name»" />
+	</div>		
+«ENDDEFINE»
+
+
+«DEFINE genBusinessFunctionButtons FOR uml::Class»
+	<div class="buttonBox">
+		«FOREACH getAllOperations() AS o»
+		«IF o.hasStereo("UserOperation") »
+			«IF o.hasUI»
+			
+			<a:button value="«o.name»"  rendered="#{s:hasPermission('«asVar()»', '«o.name»', «getAction()».«name.toFirstLower()»)  and  «getAction()».«o.name»Allowed }" 
+				oncomplete="Richfaces.showModalPanel('«o.name»«name.toFirstUpper()»Mdl',{});"  />
+	
+			«ELSE»
+			<h:button value="«o.name»"  rendered="#{s:hasPermission('«asVar()»', '«o.name»', «getAction()».«name.toFirstLower()») and  «getAction()».«o.name»Allowed}" 
+					action="#{«getAction()».«o.name»}" />
+			«ENDIF»
+		«ENDIF»
+		«ENDFOREACH»
+	</div>
+«ENDDEFINE»
+
+
+«DEFINE generateWebFunctionIncludes FOR wcprofile::Entity»
+	«FOREACH getAllOperations() AS o»
+		«IF o.hasStereo("UserOperation") && o.hasUI»
+		<ui:include src="«getComponentViewFile("modalDlg" + o.name.toFirstUpper())»" >
+				<ui:param name="modalId" value="«o.name»«name.toFirstUpper()»Mdl" />
+		</ui:include>
+		«EXPAND webFunctionModelDlg::gen(o) FOR this » 
+		«ENDIF»
+	«ENDFOREACH»
+«ENDDEFINE»
+
+«DEFINE genAttribAsOutput FOR uml::Class-»
+	«IF !isCurrentMultiMode()»
+	«IF getCurrentEmbeddable() == null»«EXPAND panelBegin FOR this»«ENDIF»
+	«FOREACH allParents() AS e-»
+	«EXPAND genLabelAndOutput FOREACH e.getAllAttributes().select(a|!a.isMultivalued() && a.association == null) -»
+	«ENDFOREACH»
+	«EXPAND genLabelAndOutput FOREACH getAllAttributes().select(a|!a.isMultivalued() && a.association == null) -»
+	«ENDIF»
+	
+	«FOREACH allParents() AS e-»
+	 «EXPAND genAttributeAssoc FOREACH e.getAllAttributes().select(a| !a.isMultivalued() && a.association != null && !a.isExpandableAssoc()) -»
+	«ENDFOREACH»
+	«EXPAND genAttributeAssoc FOREACH getAllAttributes().select(a| !a.isMultivalued() && a.association != null && !a.isExpandableAssoc() ) -»
+	«IF getCurrentEmbeddable() == null»«EXPAND panelEnd FOR this»«ENDIF»
+ «REM»expand the contained associations e.g contactDetails«ENDREM»
+	«FOREACH allParents() AS e-»
+		 «EXPAND genAttributeAssoc FOREACH e.getAllAttributes().select(a| !a.isMultivalued() && a.association != null && a.isExpandableAssoc()) -»
+	«ENDFOREACH»
+	«EXPAND genAttributeAssoc FOREACH getAllAttributes().select(a| !a.isMultivalued() && a.association != null && a.isExpandableAssoc() ) -»
+	
+	
+	«IF isCurrentMultiMode()»
+	«IF getCurrentEmbeddable() == null»«EXPAND panelBegin FOR this»«ENDIF»
+	«FOREACH allParents() AS e-»
+	«EXPAND genLabelAndOutput FOREACH e.getAllAttributes().select(a|!a.isMultivalued() && a.association == null) -»
+	«ENDFOREACH»
+	«EXPAND genLabelAndOutput FOREACH getAllAttributes().select(a|!a.isMultivalued() && a.association == null) -»
+	«ENDIF»
+	
+«ENDDEFINE»
+
+«REM»For multivalued attributes e.g. an order's order items«ENDREM»
+«DEFINE genTable FOR uml::Class»
+	«FOREACH allParents() AS e-»
+		«EXPAND genViewTable FOREACH e.getComposed() -»
+	«ENDFOREACH»
+	«EXPAND genViewTable FOREACH getComposed() -»
+«ENDDEFINE»
+
+
+«DEFINE genManyToManyShuttle FOR uml::Class»
+	«FOREACH allParents() AS e-»
+		«EXPAND genEditManyToManyShuttle FOREACH e.getLeadingManyToMany() -»
+	«ENDFOREACH»
+	«EXPAND genEditManyToManyShuttle FOREACH getLeadingManyToMany() -»
+«ENDDEFINE»
+
+«DEFINE genEditManyToManyShuttle FOR uml::Property»
+	<p:panel label="«msgBundleKey()»" >
+        <p:dataTable value="#{«class.getAction()».list«name.toFirstUpper()».target}" var="item" >
+        	<p:column> #{item.displayName} </p:column>
+     	</p:dataTable>
+     </p:panel>
+«ENDDEFINE»
+
+ «DEFINE genViewTable FOR uml::Property»
+ «setCurrentMultiMode(true)-»
+	«IF isCurrentEditMode() && !isPreloadedComposition() -» «EXPAND genNewButton FOR this» «ENDIF»
+	<p:dataTable id="«name»" var="_«type.asVar()»" 
+		«IF !isCurrentEditMode()» 
+			rendered="#{not empty «class.getAction()».list«name.toFirstUpper()» and «genViewPermission()» }"
+			«ELSE»
+				rendered="#{«genEditPermission()»}"
+		 «ENDIF»
+				value="#{«class.getAction()».list«name.toFirstUpper()»}" 
+				rowKeyVar="rowIndex" 
+				rowClasses="odd, even" styleClass="viewInfo" rules="all">
+		«setAsCurrentEntity(type)»
+		«EXPAND genAttribAsOutput FOR type-»
+	</p:dataTable>
+	«setCurrentMultiMode(false)-»
+
+ «ENDDEFINE»
+ 
+ 	
+
+
+«DEFINE genAttributeAssoc FOR uml::Property -»
+	«IF opposite.type.name != getCurrentEntity().name || !isCurrentMultiMode() »
+		«IF isExpandableAssoc()  -»
+			«IF getCurrentEmbeddable() == null» «EXPAND panelBegin FOR this.type» «ENDIF»
+			«setCurrentEmbeddable()»
+			«EXPAND genAttribAsOutput FOR this.type-»
+			«clearCurrentEmbeddable()-»
+			«EXPAND panelEnd FOR this.type»
+		«ELSE»
+			«clearCurrentEmbeddable()»
+			«EXPAND genLabelAndOutput FOR this-»
+		«ENDIF»
+	«ENDIF»
+«ENDDEFINE»
+
+
+
+
+«DEFINE genLabelAndOutput FOR uml::Property-»
+	«IF !isSecret()  »
+		
+		«isCurrentMultiMode()?"<p:column><f:facet name=\"header\">":""»
+		«getOutputMessage()-»
+		«isCurrentMultiMode()?"</f:facet>":""»
+		
+		«IF association != null»
+			«EXPAND genAssociation-»
+		«ELSE»
+			«EXPAND genPropertyEntry(type) FOR this-»
+		«ENDIF»
+		
+		«getErrorMessageHolder()-»
+		«isCurrentMultiMode()?"</p:column>":""»
+	«ENDIF»
+«ENDDEFINE»
+
+
+
+
+«DEFINE genAssociation FOR uml::Property -»
+	«EXPAND genAssocLink FOR this»
+«ENDDEFINE»
+
+
+«DEFINE panelBegin FOR uml::Class»
+	«IF !isCurrentMultiMode()»
+		<c:if test="${numColumns == null }" > <c:set var="numColumns" value="2" /> </c:if>
+		 <c:if test="${prefix == null }">  <c:set var="prefix" value="«asVar()»"/> </c:if>  
+		<c:if test="${_«name.toFirstLower()» == null }"> 
+      		<c:set var="${_«name.toFirstLower()»}" value="#{«getAction()».entity}"/> 
+    	</c:if>  
+  		<h:panelGrid columns="${numColumns}" styleClass="«isCurrentEditMode()?"edit":"view"»Info" columnClasses="leftCol, rightCol"   rendered="#{ hidePanel«name» eq null}" >
+  		<f:facet name="header"> 
+			<h:outputText value="#{msg.«name»}"/> 
+  		</f:facet>
+  	«ENDIF»
+«ENDDEFINE»
+
+«DEFINE panelEnd FOR uml::Class»
+	«IF !isCurrentMultiMode()»
+		</h:panelGrid>
+	«ENDIF»
+«ENDDEFINE»
+
+«DEFINE genAssocLink FOR uml::Property»
+	<h:link «getEscape()»  value="#{«getActionForViewMode()»«genPropertyLabel()».displayName}"  
+			outcome="«type.getViewFile("view")»" >
+			<f:param name="id" value="#{«getActionForViewMode()»«genPropertyLabel()».id}" />
+			<f:param name="from" value="#{request.servletPath}" />
+			«IF type.popupInfo != null»
+			 <p:tooltip>
+	            <span>
+	              #{«getActionForViewMode()»«genPropertyLabel()».popupInfo} 
+	            </span>
+	        </p:tooltip>
+	        «ENDIF»
+	</h:link>
+«ENDDEFINE»
+
+
+
+«REM»Generate text control for the given property «ENDREM»
+«DEFINE genPropertyEntry(uml::PrimitiveType cls) FOR uml::Property-»
+	<h:outputText id="«getId()»"  value="#{«getActionForViewMode()»«genPropertyLabel()»}"  «IF isType("largeText")» escape="false" «ENDIF» />
+«ENDDEFINE»
+
+«DEFINE genPropertyEntry(wcprofile::largeText cls) FOR uml::Property-»
+	<h:outputText id="«getId()»"  value="#{«getActionForViewMode()»«genPropertyLabel()»}" escape="false"  />
+«ENDDEFINE»
+
+«DEFINE genPropertyEntry(uml::Enumeration enm) FOR uml::Property-»
+	<h:outputText id="«getId()»"  value="#{«getActionForViewMode()»«genPropertyLabel()»}"  />
+«ENDDEFINE»
+
+
+
+
+«DEFINE genFilePropertyEntry FOR uml::Property-»
+«LET isCurrentMultiMode()?"_" + getCurrentEntity().asVar() + "." + name: getFieldNameWithAction() AS currentFile»
+«REM»comment
+	<c:choose>
+		<c:when test="${«currentFile».contentType.startsWith('image')}">
+			<s:graphicImage value="#{«currentFile».data}" />
+		</c:when>
+		<c:otherwise>
+			<h:link value="#{«currentFile».name}"  action="#{«class.getAction()».download«name.toFirstUpper()»(null)}" propagation="none" >
+				<f:param name="currentEntityId" value="#{«class.getAction()».«name.toFirstLower()».id}" />
+			</h:link>
+		</c:otherwise>
+	</c:choose>
+«ENDREM»
+«ENDLET»
+«ENDDEFINE»
+
+
+
+
+
+«DEFINE genProperty FOR String-»
+	<h:outputText value="«msgBundleKey()-»" />
+	<h:outputText value="#{«getCurrentEntity().asVar()».«this»«this == "createdByUser"?".displayName":""»}" />
+«ENDDEFINE»
+
+

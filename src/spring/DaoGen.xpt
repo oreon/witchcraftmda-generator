@@ -1,0 +1,130 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::associationExtensions»
+
+«EXTENSION template::WebExtensions»
+
+
+«DEFINE GenerateDao FOR wcprofile::Entity»
+	
+	«EXPAND GenerateDaoInterface»
+	
+	«FILE packagePath()+"/dao/impl/"+name+"DaoImplBase.java"»  
+	
+	«REM»comment
+	«EXPAND ManualFileGen::genManualFile("/dao/impl", "DaoImpl", "@org.springframework.stereotype.Repository")»
+	«ENDREM»
+	
+	«EXPAND template::JavaBean::GenCodeWarning»
+	package «packageName()».dao.impl;
+	
+	«EXPAND GenImports FOR this»
+	
+	@Repository
+	public class «name»DaoImplBase extends BaseDao<«name»> implements «name»Dao {
+	
+			//// FINDERS ///// 
+			private static final Logger logger = Logger.getLogger(«name»DaoImplBase.class);
+	
+			 
+			 /** This function adds associated entities to an example criterion
+	 		 * @see org.witchcraft.model.support.dao.BaseDao#createExampleCriteria(java.lang.Object)
+	 		 */
+			 public void addAssoications(Criteria criteria, «name» exampleInstance) {
+			 	
+			 	«FOREACH getOutgoingAssociations() AS a»
+			 	if(exampleInstance.get«a.name.toFirstUpper()»() != null){
+			 		criteria = criteria.add
+			 		 (Restrictions.eq("«a.name».id", exampleInstance.get«a.name.toFirstUpper()»().getId() ));
+				}	
+			 	«ENDFOREACH»
+			}
+			
+			«EXPAND template::Root::genUnqNamedQryOp  FOREACH getAllAttributes()»
+			
+			«EXPAND template::Root::genOperation FOREACH getAllOperations().typeSelect(wcprofile::NamedQueryOp)»
+			
+		} 
+	«ENDFILE»	
+	
+«ENDDEFINE»
+
+
+
+
+«DEFINE GenerateDaoInterface FOR Entity»
+	«FILE packagePath()+"/dao/"+name+"Dao.java"» 
+	
+	package «packageName()».dao;
+	
+	import «packageName()».«name»;
+	import org.witchcraft.model.support.dao.GenericDAO;
+	import java.util.List;
+	
+	public interface «name»Dao extends GenericDAO<«name»> {
+		«EXPAND template::Root::genOperationDecl FOREACH getAllOperations().typeSelect(wcprofile::NamedQueryOp)»
+	}		
+	
+	«ENDFILE»	
+«ENDDEFINE»
+
+«REM»comment
+«DEFINE genNamedQueryDec FOR NamedQuery»
+	public «ReturnType.name» «name»();
+«ENDDEFINE»
+«ENDREM»
+
+«DEFINE genNamedQueryDecWithSemicolon FOR Operation»
+	«EXPAND genNamedQueryDec FOR this-»;
+«ENDDEFINE»
+
+«DEFINE genNamedQueryDec FOR Operation»
+		public «ReturnType.name == "List"? "java.util.List" :
+			ReturnType.fqn()» «name»( «getOperationParams()» )
+«ENDDEFINE»
+
+
+«DEFINE GenerateEntityMapping FOR Entity-»
+	<mapping class="«fqn()»" />
+«ENDDEFINE»
+
+
+«DEFINE finderInvoke(AbstractEntity e) FOR Column»
+	«e.asInstanceVar()»Service.findBy«name.toFirstUpper()»(«e.asInstanceVar()»Instance.«getContainerGetter()»get«name.toFirstUpper()»())
+«ENDDEFINE»
+
+«DEFINE GenImports FOR Entity»
+	import «packageName()».«name»;
+	import «packageName()».dao.«name»Dao;
+	
+	import org.apache.log4j.Logger;
+	import org.hibernate.Criteria;
+	import org.hibernate.criterion.Restrictions;
+	
+	import javax.persistence.NoResultException;
+	import javax.persistence.Query;
+	import org.hibernate.search.annotations.Analyzer;
+	import org.hibernate.search.annotations.Indexed;	
+	
+	import java.util.List;
+	
+	import org.springframework.stereotype.Repository;
+	import org.witchcraft.model.support.dao.BaseDao;
+«ENDDEFINE»
+
+
+	«REM»comment
+			 «IF isValid(getTreeFields)»
+			 /**
+			 * For tree view , this method returns top level
+			 * elements (whose parent is null )
+			 */ 
+			 public List<«name»> findTopLevelElements(){
+			 	String queryStr = "Select c from «name» c where c.«getTreeTopLevel» is null";
+				Query query = entityManager.createQuery(queryStr);
+				return query.getResultList();
+			 }
+			 «ENDIF»
+			 «ENDREM»

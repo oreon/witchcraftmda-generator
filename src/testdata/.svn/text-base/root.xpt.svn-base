@@ -1,0 +1,228 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::associationExtensions»
+«EXTENSION template::WebExtensions»
+
+«DEFINE Root FOR uml::Model»
+	«EXPAND GenerateTestDataFactoryManager FOR this»
+	«EXPAND GenerateTestDataFactory FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+«ENDDEFINE»
+
+
+«DEFINE GenerateTestDataFactoryManager FOR uml::Model»
+«FILE "../../test/java/" + getTopLevelPackagePath() + "/testdata/" +  "TestDataGenerator.java"»  
+
+
+import java.util.List;
+import java.util.ArrayList;
+import org.witchcraft.action.test.AbstractTestDataFactory;
+
+public class TestDataGenerator{
+
+	public static List<AbstractTestDataFactory> listDataFactory = new ArrayList<AbstractTestDataFactory>();
+
+	static {
+	«FOREACH allOwnedElements().typeSelect(wcprofile::Entity)  AS a»
+		listDataFactory.add(new «a.packageName()».testdata.«a.name»TestDataFactory());
+	«ENDFOREACH»
+	}
+	
+	public void persist(){
+		for (AbstractTestDataFactory dataFactory: listDataFactory) {
+			dataFactory.persistAll();
+		}
+	}
+
+	/** Execute this method to manually generate objects
+	 * @param args
+	 */
+	public static void main(String args[]) {
+		new TestDataGenerator().persist();
+	}
+	
+
+}
+«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE GenerateTestDataFactory FOR wcprofile::Entity»
+	«FILE "../../test/java/" + packagePath()+ "/testdata/" + name + "TestDataFactory.java"»  
+
+	package «packageName()».testdata;
+	
+	import java.text.SimpleDateFormat;
+	import java.util.List;
+	import java.util.Random;
+	import java.util.ArrayList;
+	import org.jboss.seam.Component;
+	import org.witchcraft.action.test.AbstractTestDataFactory;
+	
+	//import org.witchcraft.model.support.errorhandling.BusinessException;
+	//import org.witchcraft.model.randomgen.RandomValueGeneratorFactory;
+	
+	import org.apache.log4j.Logger;
+	
+	public class «name»TestDataFactory extends AbstractTestDataFactory<«fqn()»> {
+	
+		private List<«fqn()»>  «asVar()»s = new ArrayList<«fqn()»>();
+		
+		private static final Logger logger = Logger.getLogger(«name»TestDataFactory.class);
+		
+		private static int RECORDS_TO_CREATE = 30;
+	
+		private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss z");
+		
+		«this.getActionFqn()» «getAction()»;
+		
+		«FOREACH getOutgoingAssociations() AS e»
+		«IF !e.isOneOnOne() ||( e.isOneOnOne() && e.isAggregate() )»
+		 «e.type.fqnPackage("testdata")»TestDataFactory «e.name»TestDataFactory = new «e.type.fqnPackage("testdata")»TestDataFactory();
+		 «ENDIF»
+		«ENDFOREACH»
+		
+		«FOREACH getNonComposedManyAssociations() AS e»
+		// @In(create = true,  value="«e.type.name.toFirstLower()»List")
+	 	//«e.type.getListFqn()» «e.name.getSingular()»List;
+		«ENDFOREACH»
+	
+	
+		public void register(«fqn()» «asVar()»){
+			«asVar()»s.add(«asVar()»);
+		}
+		
+
+	«FOREACH getCounters() AS counter-»
+
+		public  «fqn()» create«name»«counter»(){
+			«fqn()» «asVar()» = new «fqn()»();
+			
+			try{
+			
+			«EXPAND genData(this) FOREACH allParents() -»
+	 		«EXPAND genData(this) FOR this»
+			
+			register(«asVar()»);
+			
+			}catch(Exception ex){
+				ex.printStackTrace();
+			}
+			
+			return «asVar()»;
+		}
+	
+	«ENDFOREACH»
+	
+		
+		public List<«fqn()»> createAll(){
+			«FOREACH getCounters() AS counter-»
+				create«name»«counter»();
+			«ENDFOREACH»
+		
+			return «asVar()»s;
+		}
+		
+		@Override
+		public List<«fqn()»> getListOfRecords() {
+			return  «asVar()»s;
+		}
+		
+		@Override
+		public String getQuery() {
+			return "Select e from «fqn()» e ";
+		}
+		
+		
+		public  void persistAll(){
+			init();
+			createAll();
+		
+			for («fqn()» «asVar()» : «asVar()»s) {
+				persist(«asVar()»);
+			}
+		}
+		
+		/** Execute this method to manually generate objects
+		 * @param args
+		 */
+		public static void main(String args[]){
+			new «name»TestDataFactory().persistAll(); 
+		}
+	
+    }
+	«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE genData(uml::Class target) FOR uml::Class»
+	«FOREACH getAllAttributes().select(a| a.association == null && !a.isFile()) AS attrib-»
+			«EXPAND randValue(attrib.type, target) FOR attrib»
+	«ENDFOREACH»
+	
+	«FOREACH getAllAttributes().select(a| a.type.isEmbeddable() || a.isContainedAssoc()) AS attrib-»
+			«attrib.setCurrentEmbeddable()»
+			 «FOREACH attrib.type.getAllAttributes().select(a| a.association == null && !a.isFile()) AS a»
+			 «EXPAND randValue(a.type, target) FOR a »
+			 «ENDFOREACH»
+			«clearCurrentEmbeddable()-»		
+	«ENDFOREACH»
+	
+	«FOREACH getOutgoingAssociations().select(a| !( a.type.isEmbeddable() || a.isContainedAssoc()) ) AS a»
+		«IF !a.isOneOnOne() ||( a.isOneOnOne() && a.isAggregate() )»«REM» need to have only one side in one to one bidrecitonals«ENDREM»
+		 «target.asVar()».set«a.name.toFirstUpper()»(«a.name»TestDataFactory.getRandomRecord());
+		«ENDIF»
+	«ENDFOREACH»
+
+«REM»comment
+	«FOREACH getNonComposedManyAssociations() AS attrib»
+ 		//	 «asVar()».addAll«attrib.name.toFirstUpper()»(«attrib.name»TestDataFactory.getFewRandomRecords());
+	«ENDFOREACH»
+«ENDREM»
+
+«ENDDEFINE»
+
+«DEFINE randValue(uml::Enumeration e, uml::Class target ) FOR uml::Property»
+	
+«ENDDEFINE»
+
+«DEFINE randValue(uml::PrimitiveType e , uml::Class target) FOR uml::Property»
+	«target.asVar()»«getCurrentEmbeddable() != null? ".get" + getCurrentEmbeddable().name.toFirstUpper() + "()" :"" ».set«name.toFirstUpper()»(«getRandValue()»);
+«ENDDEFINE»
+
+«DEFINE randValue(uml::Class e, uml::Class target ) FOR uml::Property»
+	«target.asVar()»«getCurrentEmbeddable() != null? ".get" + getCurrentEmbeddable().name.toFirstUpper() + "()" :"" ».set«name.toFirstUpper()»(«getRandValue()»);
+«ENDDEFINE»
+
+
+
+«REM» Create a random object using random value generator (static) «ENDREM»
+«DEFINE createRandomObject(String name) FOR wcprofile::Entity»
+	«FOREACH getAllAttributes() AS attrib-»
+		«name».set«attrib.name.toFirstUpper()»(«attrib.getRandValue()»);
+	«ENDFOREACH»
+	
+	«EXPAND addDependencies(name) FOR this-»
+«ENDDEFINE»
+
+«DEFINE createDynamicRandomObject(String name) FOR wcprofile::Entity»
+	«name».randomValueDynamic
+	«REM»comment
+	«FOREACH getAllAttributes() AS attrib-»
+		«name».«attrib.set«attrib.NameS.toFirstUpper()»((«attrib.type.name.getObjectTypeFromPrimitive()»)RandomValueGeneratorFactory.createInstance("«attrib.Type.NameS»"));
+	«ENDFOREACH»
+	«ENDREM»
+	«EXPAND addDependencies(name) FOR this-»
+«ENDDEFINE»
+
+«REM» Create an object from the given value for the given attribute «ENDREM»
+«DEFINE createObjectFromValue(String name, String value) FOR Entity»
+	«FOREACH getAllAttributes() AS attrib-»
+		«name».«attrib.getContainerGetter()»set«attrib.name.toFirstUpper()»
+			(«attrib.type.name =="String"?("\"" + value + "\""):value»);
+	«ENDFOREACH»
+	
+	«EXPAND addDependencies(name) FOR this-»
+	
+«ENDDEFINE»
+

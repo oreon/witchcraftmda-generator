@@ -1,0 +1,138 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+
+
+«DEFINE genEditFile FOR uml::Class»
+
+«EXPAND genManageComponentFile FOR this»
+
+«FILE getWebPath() +"/" + "custom" + name + "Component." + getExtension()»
+<ui:composition «EXPAND WebRoot::genIncludes-» >
+  <div class="entry errors"><h:messages globalOnly="true" /></div>
+  <s:validateAll >
+	<h:panelGrid columns="3" styleClass="summarywrap">
+	«setAsCurrentEntity(this)-»
+	«EXPAND genAttribAsOutput FOR this-»
+	</h:panelGrid>
+  </s:validateAll>
+</ui:composition>
+«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE genManageComponentFile FOR uml::Class»
+«IF !getCompositionParent().isEmpty»
+«FILE getWebPath() +"/" + "manage" + name + "Component." + getExtension()»
+<ui:composition «EXPAND WebRoot::genIncludes-» >
+	
+	<c:set var="modalId" value="«name»ModalPanel-«name»" />
+<s:div styleClass="mortgage_status_formwrap2">
+		<ui:include src = "«getComponentViewFile("list")»" >
+			<ui:param name="listTitle" value="${listTitle}" />
+			<ui:param name="records" 
+				value="#{«asVar()»List.get«name.toFirstUpper().getPlural()»By«getCompositionParent().get(0).name.toFirstUpper()»(loanDataAction.instance.«getCompositionParent().get(0).name»)}" />
+         </ui:include>
+		
+	<a:form>
+		<a:commandButton action="#{«asVar()»Action.set«name»Id(0)}"
+			oncomplete="Richfaces.showModalPanel('${modalId}',{});"   reRender="${modalId}" 
+			value="#{msg.Add} #{msg.«name»}" styleClass="button" />
+	</a:form>
+	<ui:include src="«getComponentViewFile("modalDlg")»" >
+		<ui:param name="modalId" value="${modalId}"/> 
+	</ui:include>
+</s:div>
+</ui:composition>
+«ENDFILE»
+«ENDIF»
+«ENDDEFINE»
+
+
+
+«DEFINE genCancelSaveBtns FOR uml::Class»
+	<div class="actionButtons"><h:commandButton id="search"
+		value="Search" 
+		action="«getViewFile("list")»" >
+			 <s:conversationPropagation type="end"/>
+		</h:commandButton> 
+		<s:button   propagation="none" 
+		id="reset" value="Reset" includePageParams="false" />
+	</div>
+«ENDDEFINE»
+
+«DEFINE genAttribAsOutput FOR uml::Class-»
+	«FOREACH allParents() AS e-»
+	 «EXPAND genPropertyRec FOREACH e.getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()  ) -»
+	«ENDFOREACH»
+	«EXPAND genPropertyRec FOREACH getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()   ) -»
+«ENDDEFINE»
+
+«DEFINE genPropertyRec FOR uml::Property-»
+	«IF isExpandableAssoc() -» 
+		«setCurrentEmbeddable()-» 
+		«EXPAND genProperty FOREACH type.getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret() && a.type.name != "imageFile" ) -»
+		«clearCurrentEmbeddable()-»
+	«ELSE-»
+		«EXPAND genAttribute -»
+	«ENDIF»
+«ENDDEFINE»
+
+«DEFINE genAttribute FOR uml::Property -»
+	«IF type.name != getCurrentEntity().name»
+	«IF association != null -»
+		«EXPAND genAssociation FOR this-»
+	«ELSE-»
+		«EXPAND genProperty FOR this»
+	«ENDIF»
+	«ENDIF»
+«ENDDEFINE»
+
+«DEFINE genProperty FOR uml::Property-»
+	<h:panelGroup>
+	«getOutputMessage()» <br/>
+	«EXPAND genPropertyEntry(type) FOR this-»
+	</h:panelGroup>
+«ENDDEFINE»
+
+«DEFINE genAssociation FOR uml::Property -»
+	<h:panelGroup>
+	«getOutputMessage()» <br/>
+	<h:selectOneMenu id="«getId()»" value="#{«getCurrentEntity().asVar()»Action.«genPropertyLabel()»}" >
+		<s:selectItems value="#{«type.asVar()»List}" var="itemIter"
+			label="#{itemIter.displayName}"
+			noSelectionLabel="Select.." />
+		<s:convertEntity />
+		
+	</h:selectOneMenu>
+	«getErrorMessage()»
+	</h:panelGroup>
+«ENDDEFINE»
+
+«DEFINE genPropertyEntry(uml::PrimitiveType cls) FOR uml::Property-»
+	«IF type.name == "imageFile"»
+	«" "» 
+	«ELSE»
+		<«getInputControl()»  id="«getId()»" value="#{«getCurrentEntity().asVar()»Action.«genPropertyLabel()»}" />
+		«getErrorMessage()»
+	«ENDIF»
+«ENDDEFINE»
+
+
+«DEFINE genPropertyEntry(uml::Enumeration enm) FOR uml::Property-»
+	<h:selectOneMenu id="«getId()»" value="#{«getCurrentEntity().asVar()»Action.«genPropertyLabel()»}" required="«getAssocOptional()»">
+		<f:selectItem itemLabel="Please Select..." itemValue="" />
+		«FOREACH  enm.ownedLiteral AS e-»
+		<f:selectItem itemValue="«e.name»"  itemLabel="«e.name.toLowerCase().getVariableNameForDisplay()-»" />
+		«ENDFOREACH»
+	</h:selectOneMenu>
+	«getErrorMessage()»
+«ENDDEFINE»
+
+
+
+
+«

@@ -1,0 +1,98 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE genModelDlgComponent FOR uml::Class»
+	«EXPAND genEditModelDlgComponent FOR this»
+	«EXPAND genViewModelDlgComponent FOR this»
+«ENDDEFINE»
+
+
+«DEFINE genEditModelDlgComponent FOR uml::Class»
+	«FILE getWebPath() +"/modalDlg" + name + "Component." + getExtension()  man_path»
+
+<ui:composition «EXPAND WebRoot::genIncludes-»>	
+
+  <c:set var="opId" value="outputPanel-${modalId}"/>
+
+	<rich:modalPanel id="${modalId}" autosized="true" zindex="2000" domElementAttachment="parent"
+		onshow="adoptCTDialogHeight()"
+		>
+			<f:facet name="header">
+				<h:panelGroup>
+					<h:outputText value="#{«name.toFirstLower()»Action.id == null ? msg.new : msg.edit} «name»"></h:outputText>
+				</h:panelGroup>
+			</f:facet>
+			<f:facet name="controls">
+				<h:panelGroup>
+					<h:graphicImage value="/images/icons/close.png" alt="Close"
+						styleClass="hidelink" id="hide${modalId}" />
+					<rich:componentControl for="${modalId}" attachTo="hide${modalId}"
+							operation="hide" event="onclick" />
+				</h:panelGroup>
+			</f:facet>
+			
+			<s:div id="ctContent-«name.toFirstLower()»-${modalId}"  style="padding-right:15px" layout="block" >
+					<rich:messages passedLabel=""
+						style="width:100%; text-align: left; color: red; font-weight: bold;" layout="list" >
+					</rich:messages>
+				
+					<h:form>
+						<ui:include src = "«getComponentViewFile(customViewComponents ?"customEdit":"edit")»" />
+	
+						<a:commandButton action="#{«getAction()».saveWithoutConversation}" styleClass="button"
+						oncomplete="if (#{facesContext.maximumSeverity == null || facesContext.maximumSeverity.ordinal le 1 }) { Richfaces.hideModalPanel('#{modalId}'); }"
+						reRender="«name.toFirstLower()»List, ${opId}"
+									value="Save" >
+								 <f:param name="conversationPropagation" value="end"/>
+								 <a:actionparam name="taskId" value="#{taskId}" />
+						</a:commandButton>
+						<rich:spacer />
+						<a:commandButton  immediate="true" oncomplete="Richfaces.hideModalPanel('${modalId}')" value="Hide" styleClass="button" />
+						<h:outputText value=" " />
+						<a:commandButton  immediate="true" type="reset" oncomplete="Richfaces.hideModalPanel('${modalId}');"  value="Cancel" styleClass="button"> 
+				          <f:param name="conversationPropagation" value="end"/> 
+				        </a:commandButton>
+
+					</h:form>
+			</s:div>
+		</rich:modalPanel>
+</ui:composition>
+«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE genViewModelDlgComponent FOR uml::Class»
+	«FILE getWebPath() +"/modalDlgView" + name + "Component." + getExtension()»
+	
+<ui:composition «EXPAND WebRoot::genIncludes-»>	
+	<rich:modalPanel id="view${modalId}" autosized="true" zindex="2000" domElementAttachment="parent">
+			<f:facet name="header">
+				<h:panelGroup>
+					<h:outputText value="New «name»"></h:outputText>
+				</h:panelGroup>
+			</f:facet>
+			<f:facet name="controls">
+				<h:panelGroup>
+					<h:graphicImage value="/img/close.png" alt="Close"
+						styleClass="hidelink"  />
+					<rich:componentControl for="view${modalId}" attachTo="hidelink"
+						operation="hide" event="onclick" />
+				</h:panelGroup>
+			</f:facet>
+			
+			<s:div >
+				<a:outputPanel ajaxRendered="true"  id="view«name»OutputPanel">
+					<a:form>
+						<ui:include src = "«getComponentViewFile(customViewComponents ?"customEdit":"edit")»" />
+						<h:outputText value=" " />
+						<a:commandButton oncomplete="Richfaces.hideModalPanel('${modalId}')" value="Hide" />
+					</a:form>
+				</a:outputPanel>
+			</s:div>
+		</rich:modalPanel>
+</ui:composition>
+«ENDFILE»
+«ENDDEFINE»

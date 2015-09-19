@@ -1,0 +1,90 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE Root FOR uml::Model»
+	«EXPAND PackageRoot FOREACH allOwnedElements().typeSelect(uml::Package)»
+«ENDDEFINE»
+
+«DEFINE PackageRoot FOR uml::Package»
+	«EXPAND genInterface FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND genDao FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+«ENDDEFINE»
+
+
+«DEFINE genInterface FOR uml::Interface»
+
+
+	«FILE packagePath() +"/I" +name+"Dao.cs"»
+	
+#region Imports
+
+using System.Collections;
+
+using Spring.Northwind.Domain;
+
+#endregion	
+	
+namespace « packageName() -» {
+	public interface I«name»Dao  : IDao<«name», int>, ISupportsDeleteDao<«name»>, ISupportsSave<«name», int>
+    {
+
+    }
+}
+	«ENDFILE»	
+«ENDDEFINE»
+
+«DEFINE genDao FOR wcprofile::Entity»
+
+
+	«FILE packagePath() +"/" +name+"Dao.cs"»
+	
+#region Imports
+
+using System.Collections;
+
+using Spring.Northwind.Domain;
+
+#endregion	
+	
+namespace « packageName() -» {
+	[Repository]
+	public class «name»Dao  : HibernateDao, I«name»Dao
+	{
+		[Transaction(ReadOnly = true)]
+        public «name» Get(int «name.toFirstLower()»Id)
+        {
+            return CurrentSession.Get<«name»>(«name.toFirstLower()»Id);
+        }
+
+        [Transaction(ReadOnly = true)]
+        public IList<«name»> GetAll()
+        {
+            return GetAll<«name»>();
+        }
+
+        [Transaction]
+        public int Save(«name» «name.toFirstLower()»)
+        {
+            return (int) CurrentSession.Save(«name.toFirstLower()»);
+        }
+
+        [Transaction]
+        public void Update(«name» «name.toFirstLower()»)
+        {
+            CurrentSession.SaveOrUpdate(«name.toFirstLower()»);
+        }
+
+        [Transaction]
+        public void Delete(«name» «name.toFirstLower()»)
+        {
+            CurrentSession.Delete(«name.toFirstLower()»);
+        }
+		
+    }
+}
+	«ENDFILE»	
+«ENDDEFINE»
+

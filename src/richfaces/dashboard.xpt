@@ -1,0 +1,46 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+
+
+«DEFINE gen FOR uml::Class»
+
+«FILE getWebPath() +"/" + "dashBoard" + name + "Component." + getExtension()»
+<ui:composition «EXPAND WebRoot::genIncludes-» >
+  
+	<h:panelGrid columns="1" styleClass="summarywrap">
+	«FOREACH getMultiValued() AS e»
+		<p:panel id="pnl«e.name.toFirstUpper()»" header="«e.name.toFirstUpper()»" toggleable="true" closable="true" >
+			<h:panelGrid columns="2">
+				
+			<p:pieChart value="#{«name.toFirstLower()»List.resultList}" var="dep"
+				categoryField="#{dep.displayName}" dataField="#{dep.«e.name»Count}" />
+
+			<p:barChart value="#{«name.toFirstLower()»List.resultList}" var="dep" yfield="#{dep.displayName}">
+				<p:chartSeries label="Incidents" value="#{dep.«e.name»Count}" />
+			</p:barChart>
+			
+			</h:panelGrid>
+		</p:panel>
+	«ENDFOREACH»
+	</h:panelGrid>
+</ui:composition>
+«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE genEditFile FOR uml::Class»
+«FILE getWebPath() +"/" + "dashBoard" + name + "." + getExtension()»
+<ui:composition «EXPAND WebRoot::genIncludes-» >
+  
+</ui:composition>
+«ENDFILE»
+«ENDDEFINE»
+
+
+
+
+«

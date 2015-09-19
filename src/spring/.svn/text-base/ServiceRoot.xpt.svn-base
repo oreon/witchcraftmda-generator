@@ -1,0 +1,246 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::associationExtensions»
+
+«EXTENSION template::WebExtensions»
+
+
+«DEFINE Root FOR uml::Model»
+	«EXPAND genServiceImpl FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND genServiceInterface FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND DaoGen::GenerateDao FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND SpringConfig::GenSpringConfig»
+	«EXPAND Persistence::GenPersistence»
+	«EXPAND GenServiceFacade FOR this»
+«ENDDEFINE»
+
+
+«DEFINE genServiceImpl FOR wcprofile::Entity»
+
+	«FILE packagePath()+"/service/impl" + "/"+name+"ServiceImplBase.java"»  
+	«REM»comment
+	«EXPAND ManualFileGen::genManualFile("/service/impl", "ServiceImpl",
+		 "@Transactional(readOnly=false, propagation=Propagation.REQUIRED)\n" + 
+	«ENDREM»
+	
+	package «packageName()».service.impl;
+	 
+	import «packageName()».«name»;
+	import «packageName()».service.«name»Service;
+	import «packageName()».dao.«name»Dao;
+	import java.util.List;
+	
+	import org.springframework.transaction.annotation.Transactional;
+	import org.springframework.transaction.annotation.Propagation;
+	
+	import org.acegisecurity.Authentication;
+	import org.acegisecurity.context.SecurityContextHolder;
+	import org.acegisecurity.userdetails.UserDetails;
+	import org.apache.log4j.Logger;
+	
+	import org.witchcraft.model.support.dao.GenericDAO;
+	import org.witchcraft.model.support.errorhandling.BusinessException;
+	import org.witchcraft.model.support.service.BaseServiceImpl;
+	import org.witchcraft.model.support.Range;
+
+	
+	@Transactional(readOnly=false, propagation=Propagation.REQUIRED)
+	public class «name»ServiceImplBase extends BaseServiceImpl<«name»> implements «name»Service{
+	
+		private static final Logger log = Logger.getLogger(«name»ServiceImplBase.class);
+		
+		private «name»Dao «asVar()»Dao;
+
+		public void set«name»Dao(«name»Dao «asVar()»Dao) {
+			this.«asVar()»Dao = «asVar()»Dao;
+		}
+		
+		@Override
+		public GenericDAO<«name»> getDao() {
+			return «asVar()»Dao;
+		}
+		
+		//// Delegate all crud operations to the Dao ////
+			
+		public «name» save(«name» «asVar()») {
+			«asVar()»Dao.save(«asVar()»);
+			return «asVar()»;
+		}
+		
+	
+		public void delete(«name» «asVar()») {
+			«asVar()»Dao.delete(«asVar()»);
+		}			
+		
+		public «name» load(Long id) {
+			return «asVar()»Dao.load(id);
+		}
+		
+	    public List<«name»> loadAll() {
+	    	return «asVar()»Dao.loadAll();
+	    }
+	    	
+		
+		public List<«name»> searchByExample(«name» «asVar()») {
+			return «asVar()»Dao.searchByExample(«asVar()»);
+		}
+		
+		public List<«name»> searchByExample(«name» «asVar()», List<Range> rangeObjects){
+			return «asVar()»Dao.searchByExample(«asVar()», rangeObjects);
+		}
+		
+		 /** This method should be overridden by classes that want to filter the load all behavior e.g.
+	     * showing 
+	     * @return
+	     */
+	    public «name» getFilterRecord(){
+	    	return null;
+    	}
+    	
+    	«EXPAND template::Root::genOperation FOREACH getAllOperations().select(o|o.getAppliedStereotype("wcprofile::NamedQueryOp") == null)»
+    	
+    	«FOREACH getAllOperations().typeSelect(wcprofile::NamedQueryOp) AS o»
+			«o.visibility» «o.getOpReturnType()» «o.getOpReturnTypeTemplateParam()»  «o.name» («o.getParametersSignature()»){ 
+				return «name.toFirstLower()»Dao.«o.name»(«o.getParameters()»);
+			}
+		«ENDFOREACH»
+	
+	}
+	
+	«ENDFILE»	
+«ENDDEFINE»
+
+«DEFINE FinderDeclaration(AbstractEntity entity) FOR Column»
+	public
+		« uniqueProperty ? entity.name : "List<" + entity.name + ">" »
+			findBy«name.toFirstUpper()»(«Type.name» «name»){
+			return «entity.asVar()»Dao.findBy«name.toFirstUpper()»(«name»);
+		}
+«ENDDEFINE»
+
+«DEFINE GenServiceFacade FOR Model»
+	«FILE  "facades/" + "ServiceFacade.java"» 
+	
+		package facades;
+		
+		import org.springframework.context.ApplicationContext;
+		import org.springframework.context.support.ClassPathXmlApplicationContext;
+		
+		import org.witchcraft.model.support.springbeanhelpers.BeanHelper;
+		
+		«FOREACH getEntities() AS e-»
+			import «e.parentPackageName()+".service." +  e.name + "Service"-»;
+		«ENDFOREACH»
+		
+		«FOREACH getMetaEnvironment.getElements("MailerTask") AS e»
+			import «e.fqn()»;
+		«ENDFOREACH»
+		
+		«EXPAND genImports FOREACH getMetaEnvironment.getElements("Service")-»
+		
+		
+		public class ServiceFacade{
+			private static ServiceFacade instance;
+	
+			private static ApplicationContext applicationContext;
+			
+			static {
+				applicationContext =  new ClassPathXmlApplicationContext
+					(new String[]{/*"classpath:/persistenceContext.xml",*/ "classpath:/applicationContext.xml"});
+			}
+			
+		
+			public static ServiceFacade getInstance() {
+				if (instance == null)
+					instance = (ServiceFacade) applicationContext.getBean("serviceFacade");
+				return instance;
+			}
+		
+		// Construction is disabled
+		private ServiceFacade(){}
+			
+		«EXPAND CommonUtils::genDeclGetterSetter("Service") FOREACH getEntities()»
+		
+		«EXPAND genGetterSetter FOREACH getMetaEnvironment.getElements("Service")»
+		
+		«EXPAND CommonUtils::genDeclGetterSetter("") FOREACH getMetaEnvironment.getElements("MailerTask")»
+		}
+	
+	«ENDFILE»
+«ENDDEFINE»
+
+
+
+
+
+«DEFINE genServiceInterface FOR wcprofile::Entity»
+
+	«FILE packagePath() + "/service/" + name + "Service.java"» 
+	
+	package «packageName()».service;
+	
+	import «packageName()».«name»;
+	import «packageName()».dao.«name»Dao;
+	import org.witchcraft.model.support.service.BaseService;
+	
+		
+	/** The Service interface for entity - «name»
+	 * @author - Witchcraft Generated {Do not Modify } 
+	 */
+	public interface «name»Service extends «name»Dao, BaseService<«name»>  {
+		 «EXPAND template::Root::genOperationDecl FOREACH getAllOperations()»
+	}	
+	«ENDFILE»	
+«ENDDEFINE»
+
+
+«DEFINE GenServiceFacade FOR uml::Model»
+	«FILE  "facades/" + "ServiceFacade.java"» 
+	
+		package facades;
+		
+		import org.springframework.context.ApplicationContext;
+		import org.springframework.context.support.ClassPathXmlApplicationContext;
+		
+		import org.witchcraft.model.support.springbeanhelpers.BeanHelper;
+		
+		«FOREACH getEntities() AS e-»
+			import «e.packageName()+".service." +  e.name + "Service"-»;
+		«ENDFOREACH»
+		
+		«REM»comment
+		«EXPAND genImports FOREACH getMetaEnvironment.getElements("Service")-»
+		«ENDREM»
+		
+		public class ServiceFacade{
+			private static ServiceFacade instance;
+	
+			private static ApplicationContext applicationContext;
+			
+			static {
+				applicationContext =  new ClassPathXmlApplicationContext
+					(new String[]{/*"classpath:/persistenceContext.xml",*/ "classpath:/applicationContext.xml"});
+			}
+			
+		
+			public static ServiceFacade getInstance() {
+				if (instance == null)
+					instance = (ServiceFacade) applicationContext.getBean("serviceFacade");
+				return instance;
+			}
+		
+		// Construction is disabled
+		private ServiceFacade(){}
+			
+		«EXPAND template::CommonUtils::genDeclGetterSetter("Service") FOREACH getEntities()»
+	
+		}
+	
+	«ENDFILE»
+«ENDDEFINE»
+
+
+
+	

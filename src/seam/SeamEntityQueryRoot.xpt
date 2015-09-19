@@ -1,0 +1,416 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::associationExtensions»
+
+«EXTENSION template::WebExtensions»
+
+«DEFINE Root FOR uml::Model»
+	«EXPAND BaseGen FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND ManualGen FOREACH allOwnedElements().typeSelect(wcprofile::Entity)» 
+«ENDDEFINE»
+
+
+«DEFINE ManualGen FOR wcprofile::Entity»
+«FILE getWebPackagePath("ListQuery")  man_path »
+package « getWebPackageName() »;
+
+«EXPAND genImports FOR this»	
+@Name("«asVar()»List")
+@Scope(ScopeType.CONVERSATION)
+public class «name»ListQuery extends «name»ListQueryBase implements java.io.Serializable{
+	
+}
+«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE BaseGen FOR uml::Class»
+
+«setAsCurrentEntity(this)-»
+«FILE getWebPackagePath("ListQueryBase")   »
+package « getWebPackageName() »;
+
+import « packageName() ».«name»;
+
+import org.witchcraft.seam.action.BaseAction; 
+
+«EXPAND genImports FOR this»
+
+
+import «packageName()».«name»;
+
+/**
+* 
+ * @author WitchcraftMDA Seam Cartridge - 
+ *
+ */
+public abstract class «name»ListQueryBase«IF isAbstractEntity()» <T  extends «name»> «ENDIF» extends 
+ «IF isParentAbstractEntity() » 
+   «getFirstParentCls().name»ListQueryBase<«name»>  
+ «ELSE-» 
+ BaseQuery<«isAbstractEntity()?"T":name», Long> 
+ «ENDIF-» {
+
+    private static final String EJBQL = "select «asVar()» from «name» «asVar()»";
+    
+    protected «name» «asVar()» = new «IF isAbstract» «getFirstChild().fqn()» «ELSE» «name» «ENDIF»();
+    
+    «REM»comment
+    @In(create=true)
+	«name»Action «asVar()»Action;
+	«ENDREM»
+	
+	
+	«IF isJsf2Rich()»
+		«name»DataModel «asVar()»DataModel;
+	«ENDIF»
+	
+	public «name»ListQueryBase() {
+		super();
+		setOrderColumn("id" );
+		setOrderDirection("desc");
+	}
+	
+	«IF isJsf2Rich()»
+	
+	protected static final class «name»DataModel extends
+			EntityQueryDataModel<«name», Long> {
+
+		public «name»DataModel(«name»ListQuery «asVar()»ListQuery) {
+			super(«asVar()»ListQuery, «name».class);
+		}
+
+		@Override
+		protected Long getId(«name» item) {
+			// TODO Auto-generated method stub
+			return item.getId();
+		}
+	}
+	
+	@Override
+    public DataModel<«name»> getDataModel() {
+		
+        if («asVar()»DataModel == null) {
+        	«asVar()»DataModel = new «name»DataModel((«name»ListQuery) Component.getInstance("«asVar()»List"));
+        }
+        return «asVar()»DataModel;
+    }
+    «ENDIF»
+    
+    public «name» get«name»() {
+		return «asVar()»;
+	}
+	
+	
+	
+	@Override
+	protected String getql() {
+		return EJBQL;
+	}
+	
+	
+	«FOREACH allParents() AS e-»
+	 «EXPAND genManyToManySearch FOREACH e.getAllAttributes().select(a|a.isManyToMany()  ) -»
+	«ENDFOREACH»
+	
+	«EXPAND genManyToManySearch FOREACH getAllAttributes().select(a|a.isManyToMany()  ) -»
+
+	«IF isAbstractEntity()»
+	
+
+	@Override
+	public T getInstance() {
+		return (T) get«name»();
+	}
+
+	@Override
+	//@Restrict("#{s:hasPermission('«asVar()»', 'view')}")
+	public List<T> getResultList() {
+		return super.getResultList();
+	}
+	
+	@Override
+	public Class<T> getEntityClass() {
+		return (Class<T>) «name».class;
+	}
+	«ELSE»
+	@Override
+	public «name» getInstance() {
+		return get«name»();
+	}
+	
+	@Override
+	//@Restrict("#{s:hasPermission('«asVar()»', 'view')}")
+	public List<«name»> getResultList() {
+		return super.getResultList();
+	}
+	
+
+	@Override
+	public Class<«name»> getEntityClass() {
+		return «name».class;
+	}
+	
+	«ENDIF»
+	
+	@Override
+	public String[] getEntityRestrictions() {
+		return RESTRICTIONS;
+	}
+	
+	
+	«IF cacheType != null && cacheType.name != "NONE"»
+	@Override
+	@SuppressWarnings("unchecked")
+	public void validate() {
+		setQueryCacheable();
+		super.validate();
+	}
+	«ENDIF»
+	
+    
+    «EXPAND genAttribAsOutput(true) FOR this»
+   
+   	private static final String[] RESTRICTIONS = {
+   		"«asVar()».id = #{«asVar()»List.«asVar()».id}",
+   		
+   		"«asVar()».archived = #{«asVar()»List.«asVar()».archived}",
+   	
+		«EXPAND genAttribAsOutput(false) FOR this»
+		
+		"«asVar()».dateCreated <= #{«asVar()»List.dateCreatedRange.end}",
+		"«asVar()».dateCreated >= #{«asVar()»List.dateCreatedRange.begin}",
+	};
+	
+	«EXPAND genFindByMethods FOR this»
+	
+	@Observer("archived«name»")
+	public void onArchive(){
+		refresh();
+	}	
+	
+	«IF autoCompleteColumns != null»
+	@Override
+	protected void setupForAutoComplete(String input){
+		«FOREACH autoCompleteColumns.getAsList() AS e»
+			«name.toFirstLower()».«e.elToJava()»(input);
+		«ENDFOREACH»
+	}
+	«ENDIF»
+	
+	
+	«FOREACH getOutgoingAssociations() AS e»
+		«IF !e.type.isAbstract»
+		public void set«e.name.toFirstUpper()»Id(Long id){
+			if(«asVar()».get«e.name.toFirstUpper()»() == null ){
+				«asVar()».set«e.name.toFirstUpper()»(new «e.type.fqn()»());
+			}
+			«asVar()».get«e.name.toFirstUpper()»().setId(id);
+		}
+		
+		public Long get«e.name.toFirstUpper()»Id(){
+			return «asVar()».get«e.name.toFirstUpper()»() == null ? null : «asVar()».get«e.name.toFirstUpper()»().getId();
+		}
+		«ENDIF»
+	«ENDFOREACH»
+	
+	
+	«REM»comment
+	//@Restrict("#{s:hasPermission('«asVar()»', 'delete')}")
+	public void archiveById(Long id) {
+		«asVar()»Action.archiveById(id);
+		refresh();
+	}
+	«ENDREM»
+	
+}
+«ENDFILE»
+«ENDDEFINE»
+
+
+
+«DEFINE genFindByMethods FOR wcprofile::Entity»
+ «FOREACH getOutgoingAssociations() AS e»
+	«IF !e.type.isAbstract && e.opposite.name != null»
+	
+	«LET !isAbstractEntity()? name : "T" AS param»
+	
+	
+	/** 
+	 * List of all «e.opposite.type.name»s for the given «e.type.name»
+	 * @param patient
+	 * @return 
+	 */
+	public List<«param»>  getAll«e.opposite.name.toFirstUpper()»By«e.name.toFirstUpper()»(final «e.type.fqn()» «e.type.asVar()») {
+		setMaxResults(ABSOLUTE_MAX_RECORDS);
+		«asVar()».set«e.name.toFirstUpper()»(«e.type.asVar()»);
+		return getResultListTable();
+	}
+	
+	public «isPrimeSeam2()?"LazyDataModel":"List"»<«param»> get«e.opposite.name.toFirstUpper()»By«e.name.toFirstUpper()»(final «e.type.fqn()» «e.type.asVar()»){
+		«IF isPrimeSeam2()»
+			EntityLazyDataModel<«param», Long> «asVar()»LazyDataModel = new EntityLazyDataModel<«param»,Long>(
+				this) {
+
+			@Override
+			public List<«param»> load(int first, int pageSize,String sortField, SortOrder sortOrder,
+					Map<String, Object> filters) {
+
+				«asVar()».set«e.name.toFirstUpper()»(«e.type.asVar()»);
+				return super.load(first, pageSize, sortField, sortOrder,filters);
+			}
+		};
+
+		return «asVar()»LazyDataModel;
+			
+		«ELSE»
+			«asVar()».set«e.name.toFirstUpper()»(«e.type.asVar()»);
+			return getResultList();
+		«ENDIF»
+		
+	}
+	«ENDLET»
+	«ENDIF»
+  «ENDFOREACH»
+«ENDDEFINE»
+
+
+«DEFINE genAttribAsOutput(boolean createRangeDeclarations)  FOR uml::Class-»
+	«FOREACH allParents() AS e-»
+	 «EXPAND genPropertyRec(createRangeDeclarations) FOREACH e.getAllAttributes().select(a|a.isSearchable()  ) -»
+	«ENDFOREACH»
+	«EXPAND genPropertyRec(createRangeDeclarations) FOREACH getAllAttributes().select(a|a.isSearchable()  ) -»
+«ENDDEFINE»
+
+«DEFINE genPropertyRec(boolean createRangeDeclarations)  FOR uml::Property-»
+	«IF isExpandableAssoc() -» 
+		«setCurrentEmbeddable()-» 
+		«EXPAND genPropertyRec(createRangeDeclarations) FOREACH type.getAllAttributes().select(a|a.isSearchable()  ) -»
+		«clearCurrentEmbeddable()-»
+	«ELSE-»
+		«EXPAND genAttribute(createRangeDeclarations) -»
+	«ENDIF»
+«ENDDEFINE»
+
+
+«DEFINE genManyToManySearch FOR uml::Property»
+		private «type.fqn()» «name»ToSearch;
+   		
+   		public void set«name.toFirstUpper()»ToSearch(«type.fqn()» «type.asVar()»ToSearch){
+   			this.«name»ToSearch = «type.asVar()»ToSearch;
+   		}
+   		
+   		public «type.fqn()» get«name.toFirstUpper()»ToSearch(){
+   			return «name»ToSearch;
+   		}
+«ENDDEFINE»
+
+
+«DEFINE genAttribute(boolean createRangeDeclarations) FOR uml::Property -»
+	«EXPAND genProperty(createRangeDeclarations) FOR this-»
+«ENDDEFINE»
+
+«DEFINE genProperty(boolean createRangeDeclarations) FOR uml::Property-»
+	«IF createRangeDeclarations == true »
+	«IF this.type.isRangeType()»
+		private Range<«type.name.getTypeName()»> «getIdWithoutPrefix()»Range = new Range<«type.name.getTypeName()»>();
+		
+		public Range<«type.name.getTypeName()»> get«getIdWithoutPrefix().toFirstUpper()»Range(){
+			return «getIdWithoutPrefix()»Range;
+		}
+		public void  set«getIdWithoutPrefix().toFirstUpper()»(Range<«type.name.getTypeName()»> «getIdWithoutPrefix()»Range ){
+			this.«getIdWithoutPrefix()»Range = «getIdWithoutPrefix()»Range;
+		}
+	«ENDIF»	
+	«ELSE»
+		«EXPAND genPropertyRestrictions»
+	«ENDIF»
+«ENDDEFINE»
+
+«DEFINE genPropertyRestrictions FOR uml::Property»
+
+	«IF this.isString()-»
+	  "lower(«genPropertyLabel()») like concat(lower(#{«getCurrentEntity().asVar()»List.«genPropertyLabel()»}),'%')",
+	«ELSEIF this.type.isRangeType()»
+		"«genPropertyLabel()» >= #{«getCurrentEntity().asVar()»List.«getIdWithoutPrefix()»Range.begin}",
+		"«genPropertyLabel()» <= #{«getCurrentEntity().asVar()»List.«getIdWithoutPrefix()»Range.end}",			
+	«ELSE»
+	   «IF isManyToMany() »
+	   	«IF getCurrentEmbeddable() == null»
+	   		"#{«getCurrentEntity().asVar()»List.«name»ToSearch} in elements(«genPropertyLabel()»)",
+	   	«ENDIF»
+	   «ELSE»
+	  	"«genPropertyLabel()»«association != null ? ".id" : "" » = #{«getCurrentEntity().asVar()»List.«genPropertyLabel()»«association != null ? ".id" : "" »}",
+	  	«ENDIF»
+	«ENDIF»
+
+«ENDDEFINE»
+
+«REM» comment
+«DEFINE genAssociation(boolean createRangeDeclarations) FOR uml::Property-»	
+«IF !createRangeDeclarations»
+
+ «IF isManyToMany()»
+ 	"#{«getCurrentEntity().asVar()»List.«type.asVar()»ToSearch} in elements(«genPropertyLabel()».«name»)"
+ «ELSE»
+ 	"«genPropertyLabel()».id = #{«getCurrentEntity().asVar()»List.«genPropertyLabel()».id}",
+ «ENDIF»
+ 
+«ENDIF»   
+«ENDDEFINE»
+«ENDREM»
+
+«DEFINE genProperty(boolean createRangeDeclarations) FOR uml::Enumeration-»	
+«IF !createRangeDeclarations»
+" «genPropertyLabel()» = #{«getCurrentEntity().asVar()»List.«genPropertyLabel()»})",
+«ENDIF»
+ 
+«ENDDEFINE»
+
+
+«DEFINE genImports FOR wcprofile::Entity»
+
+import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+
+import org.jboss.seam.ScopeType;
+import org.jboss.seam.annotations.Name;
+import org.jboss.seam.annotations.Scope;
+import org.jboss.seam.framework.EntityQuery;
+«IF isRich()»
+import org.witchcraft.base.entity.BaseQuery;
+«ELSE»
+import org.witchcraft.seam.action.BaseQuery;
+«ENDIF»
+
+
+
+import org.witchcraft.base.entity.Range;
+
+«IF isJsf2Rich()»
+import org.witchcraft.base.entity.EntityQueryDataModel;
+
+
+«ENDIF»
+
+«IF isPrimeSeam2()»
+import org.primefaces.model.SortOrder;
+import org.witchcraft.seam.action.EntityLazyDataModel;
+import org.primefaces.model.LazyDataModel;
+import java.util.Map;
+«ENDIF»
+
+import org.jboss.seam.annotations.Observer;
+
+import java.math.BigDecimal;
+import javax.faces.model.DataModel;
+
+import org.jboss.seam.annotations.security.Restrict;
+
+import org.jboss.seam.annotations.In;
+import org.jboss.seam.Component;
+	
+«ENDDEFINE»

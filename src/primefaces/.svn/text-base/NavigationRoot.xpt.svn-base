@@ -1,0 +1,49 @@
+«IMPORT wcprofile»
+«IMPORT uml»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+
+«DEFINE genNav FOR uml::Model»
+	«FILE getEntitiesRoot() +"/" + "navigation"  + "." + getExtension()»
+	<ui:composition «EXPAND WebRoot::genIncludes-» >
+		<h:form>
+		<p:accordionPanel> 
+		«FOREACH allOwnedElements().typeSelect(uml::Package) AS p»
+		
+		«IF !p.packagedElement.typeSelect(wcprofile::Entity).isEmpty-»
+		<p:tab title="«p.name.toFirstUpper()»">  
+	    <ul>
+		
+		«FOREACH p.packagedElement.typeSelect(wcprofile::Entity) AS e-»
+		<li>
+			<h:link outcome="«e.getViewFile("list")»" value="«e.name»"/>
+		</li>
+		«ENDFOREACH»
+		</ul>
+		</p:tab>
+		«ENDIF»
+		«ENDFOREACH»
+		</p:accordionPanel>
+		</h:form>
+	</ui:composition>
+	«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE genSummaryPage FOR uml::Model»
+	«FILE getEntitiesRoot() +"/" + "summary"  + "." + getExtension()»
+<ui:composition «EXPAND WebRoot::genIncludes-»
+	template = "«getAdminTemplate()»" >	
+	<ui:define name="content">
+	<h:form>
+	<ul>
+	«FOREACH allOwnedElements().typeSelect(wcprofile::Entity) AS e»
+			<li><h:commandLink value="«e.name»" action="«e.asVar()»" /> </li>
+	«ENDFOREACH»
+	</ul>
+	</h:form>
+	</ui:define> 
+</ui:composition>
+	«ENDFILE»
+«ENDDEFINE»

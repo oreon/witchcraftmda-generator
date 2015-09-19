@@ -1,0 +1,95 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::associationExtensions»
+«EXTENSION template::WebExtensions»
+
+«DEFINE Root FOR uml::Model»
+	«EXPAND BaseGen FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND ManualGen FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	
+«ENDDEFINE»
+
+«DEFINE BaseGen FOR uml::Class»
+«IF !isAbstract»
+«FILE getWebPackagePath("ActionTestBase")   »
+
+
+package « getWebPackageName() »;
+
+		«EXPAND genImports FOR this»
+		«EXPAND genClassBody FOR this»
+	«ENDFILE»
+«ENDIF»
+«ENDDEFINE»
+
+«DEFINE ManualGen FOR uml::Class»
+«IF !isAbstract»
+«FILE getWebPackagePath("ActionTest")  man_path »
+
+package « getWebPackageName() »;
+
+«EXPAND genImports FOR this»
+
+public class «name»ActionTest extends «name»ActionTestBase{
+	
+}
+«ENDFILE»
+«ENDIF»
+«ENDDEFINE»
+
+
+
+«DEFINE genClassBody FOR uml::Class»
+public class «name»ActionTestBase extends org.witchcraft.action.test.BaseTest<«name»>{
+
+	«getAction().toFirstUpper()» «getAction()» = new «name»Action();
+
+	@Override
+	public BaseAction<«name»> getAction() {
+		return «getAction()»;
+	}
+	
+	«EXPAND genOperationTest FOREACH getAllOperations()»
+}
+«ENDDEFINE»
+
+
+«DEFINE genOperationTest FOR uml::Operation»
+	//@Test
+	public void test«name.toFirstUpper()»() throws Exception {
+		new ComponentTest() {
+
+			protected void testComponents() throws Exception {
+			   	 «class.name»Action  «class.getAction()» = («class.name»Action)org.jboss.seam.Component.getInstance("«class.getAction()»");
+			   	 
+				// assert(«class.getAction()».«name»(«getParameters()»)).equals("");
+			}
+
+		}.run();
+	}
+«ENDDEFINE»
+
+
+
+«DEFINE genImports FOR uml::Class»
+	
+	«IF isPrimeSeam2()»
+		import org.junit.Test;
+	«ELSE»
+		import org.testng.annotations.Test;
+		import org.testng.annotations.BeforeClass;
+		import org.witchcraft.base.entity.*;
+		import org.hibernate.annotations.Filter;
+		import javax.persistence.EntityManager;
+		import javax.persistence.Query;
+		import org.jboss.seam.security.Identity;
+	«ENDIF»
+	
+	
+	import org.witchcraft.seam.action.BaseAction;
+	import «fqn()»;
+«ENDDEFINE»
+
+

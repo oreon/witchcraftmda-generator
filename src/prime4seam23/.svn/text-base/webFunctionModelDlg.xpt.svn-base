@@ -1,0 +1,50 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+
+
+«DEFINE gen( uml::Operation op) FOR wcprofile::Entity »
+
+«FILE getWebPath() +"/modalDlg" + op.name.toFirstUpper() + name +  "Component." + getExtension()»
+
+<ui:composition «EXPAND WebRoot::genIncludes-»>	
+
+  <c:set var="opId" value="outputPanel-${modalId}"/>  
+
+	<p:dialog id="${modalId}" resizable="true"  header="#{msg.«op.name.toFirstUpper()»}"  widgetVar="«op.name»«name.toFirstUpper()»Dialog">
+			
+			<p:messages autoUpdate="true" />
+		
+			<h:form>
+			
+			«PROTECT CSTART '<!--' CEND '-->' ID  'MDL_RGN_VIEW_' + op.name.toFirstUpper() + name»
+
+			«ENDPROTECT»	
+			
+			«REM»comment
+					 «FOREACH op.ownedParameter AS e-» 
+					 	«EXPAND EditRoot::genLabelAndOutput FOREACH e.clientDependency.getTargets.get(0)»
+ 						«IF e.name != null && e.name != ""» «e.name»  «e.type.name» «e.getDocumentation()» «ENDIF» 
+ 					 «ENDFOREACH»
+ 				«ENDREM»
+
+				<h:commandButton action="#{«getAction()».«op.name»}" styleClass="button" value="Save" >
+					 <f:param name="conversationPropagation" value="end"/>
+					 «REM»<a:actionparam name="taskId" value="#{taskId}" />«ENDREM»
+						</h:commandButton>
+						
+						<h:commandButton  immediate="true" value="Hide" styleClass="button" />
+						<h:outputText value=" " />
+						<h:commandButton  immediate="true" type="reset"  value="Cancel" styleClass="button"> 
+				          <f:param name="conversationPropagation" value="end"/> 
+				        </h:commandButton>
+
+				</h:form>
+			
+	</p:dialog>
+</ui:composition>
+«ENDFILE»
+«ENDDEFINE»
