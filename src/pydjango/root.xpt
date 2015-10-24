@@ -1,0 +1,117 @@
+«IMPORT wcprofile»
+
+
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::djangoExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE Root FOR uml::Model»
+	«EXPAND PackageRoot FOREACH allOwnedElements().typeSelect(uml::Package)»
+«ENDDEFINE»
+
+«DEFINE PackageRoot FOR uml::Package»
+	«IF !excludeFromGeneration()»
+		«EXPAND PackageGen FOREACH  allOwnedElements().typeSelect(uml::Package)»
+		«REM»comment
+		«EXPAND GenPackageInfo FOR this»
+		«EXPAND ClassRoot FOREACH allOwnedElements().typeSelect(uml::Class)»
+		«EXPAND ClassRoot FOREACH allOwnedElements().typeSelect(uml::Interface)»
+		«ENDREM»
+		«EXPAND EnumGen FOREACH allOwnedElements().typeSelect(uml::Enumeration)»
+		
+	«ENDIF»
+«ENDDEFINE»
+
+
+«DEFINE PackageGen FOR uml::Package»
+////
+«ENDDEFINE»
+
+
+«DEFINE PackageGen FOR wcprofile::EntitiesPackage»
+«FILE name + "/modelsBase.py"»
+	
+	from django.db import models
+	
+	«EXPAND EntityGen FOREACH allOwnedElements().typeSelect(uml::Class)»
+
+«ENDFILE»
+
+«FILE name + "/models.py"»
+	
+	from django.db import models
+	
+	«EXPAND genClassManual FOREACH allOwnedElements().typeSelect(uml::Class)»
+
+«ENDFILE»
+
+«ENDDEFINE»
+
+
+
+«DEFINE EnumGen FOR uml::Enumeration»
+	
+«ENDDEFINE»
+
+«DEFINE EntityGen FOR wcprofile::MappedSuperClass»
+ «EXPAND genClass FOR this»
+«ENDDEFINE»
+
+
+«DEFINE EntityGen FOR wcprofile::Entity»
+ «EXPAND genClass FOR this»
+«ENDDEFINE»
+
+«DEFINE EntityGen FOR wcprofile::Embeddable»
+ «EXPAND genClass FOR this»
+«ENDDEFINE»
+
+«DEFINE EntityGen FOR uml::Class»
+ 	 «EXPAND genClass FOR this»
+«ENDDEFINE»
+
+
+«DEFINE genClass FOR uml::Class»
+class «name»Base(«getParentDj()-»): 
+
+	«FOREACH getAllAttributes() AS e-»
+		«IF e.association != null && e.isNavigable()-»
+			«IF e.isMultivalued()-»
+				«IF e.opposite != null && e.opposite.isMultivalued()-»
+				 	«e.name» =	ManyToManyField(targetEntity="«e.type.name»") «e.type.name-»
+				«ENDIF»
+			«ELSE-»
+			# @ManyToOne(targetEntity="«e.opposite.type.name»", inversedBy="«e.opposite.name-»")
+	     	  «e.name» = models.ForeignKey(«e.type.name», related_name='«e.opposite.name-»')
+			«ENDIF»
+		«ELSE-»
+	     	  «e.name» = models.«getModelFieldType(e)-»(null = False, blank = True  , «IF getModelFieldType(e) == "CharField"» max_length=30«ENDIF»)
+		«ENDIF»
+	«ENDFOREACH»
+	
+	«IF isAbstract»
+		class Meta:
+			abstract = True
+	«ENDIF»
+	
+«ENDDEFINE»
+
+
+«DEFINE genClassManual FOR uml::Class»
+class «name»(«name»Base): 
+	
+	«IF isAbstract»
+		class Meta:
+			abstract = True
+	«ELSE»
+		pass
+	«ENDIF»
+	
+«ENDDEFINE»
+
+
+
+
+
+
+

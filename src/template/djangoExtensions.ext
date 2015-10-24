@@ -1,0 +1,36 @@
+//import metamodel;
+import uml;
+import java;
+import java::util;
+import wcprofile;
+
+
+extension template::GeneratorExtensions;
+extension template::associationExtensions;
+
+
+String getModelFieldType(Property prop):
+	if(prop.type.name == "largeText")  
+		then "TextField"
+	else if ( prop.isType("boolean") || prop.isType("Boolean") )
+		then "NullBooleanField"
+	else if (prop.isType("Date")) 
+		then "DateField" 
+	else if (prop.isType("DateTime")) 
+		then "DateTimeField" 
+	else if (prop.isType("ImageFile")) 
+		then "ImageField" 
+	else if(prop.isCurrency()) then
+		"DecimalField"
+	//else if (prop.isColumn() && prop.secret ) then
+	//	prop.getJSFPrefix() + ":inputSecret"
+	else if ( prop.isType("Integer") )
+		then  " IntegerField"
+	else	
+		"CharField";
+		
+		
+String getParentDj(Class cls):
+	cls.parents().size > 0 ?  cls.getFirstParent() :"models.Model";
+	
+
