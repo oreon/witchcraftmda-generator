@@ -29,22 +29,31 @@
 
 
 «DEFINE PackageGen FOR wcprofile::EntitiesPackage»
-«FILE name + "/modelsBase.py"»
 	
-	from django.db import models
-	
-	«EXPAND EntityGen FOREACH allOwnedElements().typeSelect(uml::Class)»
+  «FILE name + "/" +   "modelsBase.py"»
+from django.db import models
+	«EXPAND EntityGen FOREACH allOwnedElements().typeSelect(wcprofile::AbstractEntity)»
+  «ENDFILE»
 
-«ENDFILE»
-
-«FILE name + "/models.py"»
-	
-	from django.db import models
-	
-	«EXPAND genClassManual FOREACH allOwnedElements().typeSelect(uml::Class)»
-
-«ENDFILE»
-
+  «FILE  name + "/" +   "models.py"»
+    from django.db import models
+    from .modelsBase import *
+	«EXPAND genClassManual FOREACH allOwnedElements().typeSelect(wcprofile::AbstractEntity)»
+  «ENDFILE»
+  
+  
+  «FILE  name + "/" +  "serializers.py"»
+    from rest_framework import serializers
+    from .models import *
+	«EXPAND genSerializer FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+  «ENDFILE»
+  
+  «FILE  name + "/" +  "views.py"»
+    from rest_framework import serializers
+    from .serializers import *
+	«EXPAND genViewSet FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+  «ENDFILE»
+       
 «ENDDEFINE»
 
 
@@ -71,33 +80,34 @@
 «ENDDEFINE»
 
 
-«DEFINE genClass FOR uml::Class»
-class «name»Base(«getParentDj()-»): 
+«DEFINE genClass FOR wcprofile::AbstractEntity»
 
-	«FOREACH getAllAttributes() AS e-»
-		«IF e.association != null && e.isNavigable()-»
-			«IF e.isMultivalued()-»
-				«IF e.opposite != null && e.opposite.isMultivalued()-»
-				 	«e.name» =	ManyToManyField(targetEntity="«e.type.name»") «e.type.name-»
-				«ENDIF»
-			«ELSE-»
-			# @ManyToOne(targetEntity="«e.opposite.type.name»", inversedBy="«e.opposite.name-»")
-	     	  «e.name» = models.ForeignKey(«e.type.name», related_name='«e.opposite.name-»')
+class «name»(«getParentDj()-»): 
+
+ «FOREACH getAllAttributes() AS e-»
+	«IF e.association != null && e.isNavigable()-»
+		«IF e.isMultivalued()-»
+			«IF e.opposite != null && e.opposite.isMultivalued()-»
+    «e.name» =	ManyToManyField(targetEntity="«e.type.name»") «e.type.name-»
 			«ENDIF»
 		«ELSE-»
-	     	  «e.name» = models.«getModelFieldType(e)-»(null = False, blank = True  , «IF getModelFieldType(e) == "CharField"» max_length=30«ENDIF»)
+    «e.name» = models.ForeignKey(«e.type.name», related_name='«e.opposite.name-»')
 		«ENDIF»
-	«ENDFOREACH»
-	
-	«IF isAbstract»
-		class Meta:
-			abstract = True
+	«ELSE-»
+    «e.name» = models.«getModelFieldType(e)-»(null = False, blank = True, «IF getModelFieldType(e) == "CharField"» max_length=30«ENDIF»)
 	«ENDIF»
-	
+ «ENDFOREACH»
+ 
+ 	«IF isAbstract»
+    class Meta:
+        abstract = True
+	«ENDIF»
+     
 «ENDDEFINE»
 
 
-«DEFINE genClassManual FOR uml::Class»
+«DEFINE genClassManual FOR wcprofile::AbstractEntity»
+
 class «name»(«name»Base): 
 	
 	«IF isAbstract»
@@ -106,10 +116,36 @@ class «name»(«name»Base):
 	«ELSE»
 		pass
 	«ENDIF»
-	
+
 «ENDDEFINE»
 
 
+«DEFINE genSerializer FOR wcprofile::Entity»
+class «name»Serializer(serializers.HyperlinkedModelSerializer):
+
+    class Meta:
+        model = «name»
+        
+        
+class «name»LookupSerializer(serializers.HyperlinkedModelSerializer):
+    
+    displayName = serializers.ReadOnlyField()
+    
+    class Meta:
+        model = «name»
+        fields = ('displayName', 'url', )   
+«ENDDEFINE»
+
+
+«DEFINE genViewSet FOR wcprofile::Entity»
+class «name»ViewSet(viewsets.ModelViewSet):
+    queryset = «name».objects.all()
+    serializer_class = «name»Serializer
+    
+class «name»LookupViewSet(viewsets.ModelViewSet):
+    queryset = «name».objects.all()
+    serializer_class = «name»LookupSerializer
+«ENDDEFINE»
 
 
 

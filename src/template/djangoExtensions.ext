@@ -31,6 +31,6 @@ String getModelFieldType(Property prop):
 		
 		
 String getParentDj(Class cls):
-	cls.parents().size > 0 ?  cls.getFirstParent() :"models.Model";
+	cls.parents().size > 0 ?  cls.parents().get(0).package.name + "."  + cls.parents().get(0).name:"models.Model";
 	
 

@@ -11,30 +11,13 @@
 «ENDDEFINE»
 
 «DEFINE genListContainer FOR wcprofile::Entity»
-«FILE getWebPath() +"/list" +name+ "." + "tpl"»
+«FILE getWebPath() +"/list" +name+ "." + "html"»
 
 <ui:composition «EXPAND genImports FOR this»
-                template="/layout/stub/clientXpress.seam">
-
-    <!--selected script/css includes file-->
-    <ui:param name="layout_jsIncludes" value="/layout/scripts/cxpImports.seam"/>
-    <!--selected tab template file-->
-    <ui:param name="layout_tabTemplate" value="/layout/menu/tabSelectionOperations.seam"/>
-    <!--selected left nav template file-->
-    <ui:param name="layout_navTemplate" value="/layout/menu/nav/operationsClientXpressProfile.seam"/>
-
-    <ui:param name="layout_pageTitle" value="#{uvs:label('PROFILES')}"/>
-    <ui:param name="step" value="library"/>
-
-    <ui:define name="page-header">
-        <ui:include src="/cxp/operations/controls/clientProfileTabs.seam"/>
-    </ui:define>
-
-    <ui:define name="page-content">
+                template="/layout/stub/clientXpress.seam"
     	
     	<ui:include src="list«name»Component.tpl" />
     	
- 
     </ui:define>
 </ui:composition>
 «ENDFILE»
@@ -43,71 +26,53 @@
 
 
 «DEFINE genListComponent FOR wcprofile::Entity»
-«FILE getWebPath() +"/list" +name+ "Component." + "tpl"»
+«FILE getWebPath() +"/list" +name+ "Component.html"»
 
+	<div ng-controller="CartController">
+	
+	
+	<table>
+		<thead>	
+			«FOREACH allParents() AS e-»
+			 «EXPAND genColHeader FOREACH e.getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()  ) -»
+			«ENDFOREACH»
+			«EXPAND genColHeader FOREACH getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()   ) -»
+		</thead>
+		<tbody>
+			<tr>
+			<tr ng-repeat="customerOrder in vm.customerOrders">
+				«FOREACH allParents() AS e-»
+			 	«EXPAND genAttribute FOREACH e.getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()  ) -»
+				«ENDFOREACH»
+				«EXPAND genAttribute FOREACH getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()   ) -»
+				<td>
+					<a class="btn btn-primary">View</a> 
+					<a class="btn btn-primary" href="orders/{{customerOrder.id}}">Edit</a>
+					<a class="btn btn-danger" ng-click="deleteMovie(customerOrder)">Delete</a>
+				</td>
+			</tr>
+		</tbody>
+		
+		 
+	</table>
 
-<ui:composition xmlns="http://www.w3.org/1999/xhtml"
-«EXPAND genImports FOR this»
- >
- 	 «setAsCurrentEntity(this)-»
-   <uvs:secured fsaid="20000" access-type="8">
-            <h:panelGroup id="panelProfiles" layout="block">
-                 <rich:datascroller for="recordsTable" maxpages="10" id="dsTop" fastcontrols="hide"
-                    renderifsinglepage="false" rerender="dsBtm" />
-
-                <rich:dataTable id="recordsTable"      rows="10"
-                                value="#{«getAction()».all}"
-                                var="«asVar()»"
-                                style="border-right:solid 1px #c4c0c9;"
-                                headerClass="lj"
-                                columnClasses="autoWrapText bottomBorderOnly, autoWrapText bottomBorderOnly, autoWrapText bottomBorderOnly, autoWrapText bottomBorderOnly"
-                        >
-                        
-                        
-                  «EXPAND genAttribAsOutput FOR this»
-                  
-                   <rich:column>
-                        <f:facet name="header">
-                        </f:facet>
-                        <uvs:secured fsaid="20000" access-type="2">
-                            <h:commandLink action="#{«getAction()».delete(profile.code)}"
-                                       title="#{uvs:label('DELETE')}"
-                                       onmouseout="elem('img_#{profile.code}').src='#{uvs:nonJsfServletPath()}/files/cob/del_inactive.png'"
-                                       onmouseover="elem('img_#{profile.code}').src='#{uvs:nonJsfServletPath()}/files/cob/del_active.png'"
-                                       onclick='if(confirm("#{uvs:label("CONFIRM_DELETE_CLIENT_PROFILE_FROM_LIST")}")) return true; else return false;'>
-                            <img id="img_#{profile.code}" src="#{uvs:nonJsfServletPath()}/files/cob/del_inactive.png"/>
-                            </h:commandLink>
-                        </uvs:secured>
-                    </rich:column>
-                </rich:dataTable>
-
-			</h:panelGroup>
-            </uvs:secured>
-   
-</ui:composition>
+	<div> <pagination total-items="vm.itemCount" ng-model="vm.currentPage" max-size="vm.maxSize" class="pagination-sm"
+		 boundary-links="true" rotate="false" num-pages="vm.numPages"></pagination></div>
+	
+</div>
 «ENDFILE»
 «ENDDEFINE»
 
-
-«DEFINE genAttribAsOutput FOR uml::Class-»
-	«FOREACH allParents() AS e-»
-	 «EXPAND genPropertyRec FOREACH e.getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()  ) -»
-	«ENDFOREACH»
-	«EXPAND genPropertyRec FOREACH getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()   ) -»
+«DEFINE genColHeader FOR uml::Property»
+	<th> «name.toFirstUpper()» </th>
 «ENDDEFINE»
 
-«DEFINE genPropertyRec FOR uml::Property-»
-	«IF isExpandableAssoc() -» 
-		«setCurrentEmbeddable()-» 
-		«EXPAND genPropertyRec FOREACH type.getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()  ) -»
-		«clearCurrentEmbeddable()-»
-	«ELSE-»
-		«EXPAND genAttribute -»
-	«ENDIF»
-«ENDDEFINE»
 
 «DEFINE genAttribute FOR uml::Property -»
+	<td>{{record.«name»}}</td>
+	«REM»comment
 	«EXPAND genProperty FOR this-»
+	«ENDREM»
 «ENDDEFINE»
 
 
