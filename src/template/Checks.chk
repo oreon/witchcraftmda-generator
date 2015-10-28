@@ -19,7 +19,7 @@ this.name != null && this.name.length > 0 && this.name.matches("\\w*");
 //TODO: see if this rule can be removed
 context wcprofile::Entity WARNING 'an entity class should not be abstract ' + this.name:
 !this.isAbstract;
-
+ 
 
 //context uml::Action ERROR 'an Action name must not have a special character -> ' + this.name:
 //this.name != null && this.name.length > 0 && this.name.matches("\\w*");

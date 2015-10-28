@@ -13,13 +13,9 @@
 «DEFINE genListContainer FOR wcprofile::Entity»
 «FILE getWebPath() +"/list" +name+ "." + "html"»
 
-<ui:composition «EXPAND genImports FOR this»
-                template="/layout/stub/clientXpress.seam"
-    	
-    	<ui:include src="list«name»Component.tpl" />
-    	
-    </ui:define>
-</ui:composition>
+<div>
+    	<img src="list«name»Component.tpl" />
+  </div>
 «ENDFILE»
 «ENDDEFINE»
 
@@ -28,9 +24,11 @@
 «DEFINE genListComponent FOR wcprofile::Entity»
 «FILE getWebPath() +"/list" +name+ "Component.html"»
 
-	<div ng-controller="CartController">
+	<div ng-controller="«name»Controller">
 	
-	
+	«FOREACH getAllAttributes()  AS e»
+		«e.name»
+	«ENDFOREACH»
 	<table>
 		<thead>	
 			«FOREACH allParents() AS e-»
@@ -39,8 +37,7 @@
 			«EXPAND genColHeader FOREACH getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()   ) -»
 		</thead>
 		<tbody>
-			<tr>
-			<tr ng-repeat="customerOrder in vm.customerOrders">
+			<tr ng-repeat="record in vm.«asVar()»Records">
 				«FOREACH allParents() AS e-»
 			 	«EXPAND genAttribute FOREACH e.getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()  ) -»
 				«ENDFOREACH»
@@ -69,7 +66,13 @@
 
 
 «DEFINE genAttribute FOR uml::Property -»
-	<td>{{record.«name»}}</td>
+	«IF association != null -»
+		<td><a href="#" >{{record.«name»}} </a></td>
+	«ELSE-»
+		<td>{{record.«name»}}</td>
+	«ENDIF»
+	
+	
 	«REM»comment
 	«EXPAND genProperty FOR this-»
 	«ENDREM»
