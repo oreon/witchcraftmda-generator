@@ -71,13 +71,13 @@
 
 
 «DEFINE genProperty FOR uml::Property-»
-   <td data-title="'«getVariableNameForDisplay()»'" sortable="'«name»'" filter="{ 'firstName': 'text' }">
+   <td data-title="'«name.getVariableNameForDisplay()»'" sortable="'«name»'" filter="{ 'firstName': 'text' }">
 	«EXPAND genPropertyValue FOR this»
    </td>
 «ENDDEFINE»
 
 «DEFINE genAssocValue FOR uml::Property»
-	 <a class="btn btn-default" title="View" href="/«type.asVar()»/{{«genPropertyLabel()».id}}">
+	 <a class="btn btn-default" title="View" href="/vm.«type.asVar()»/{{vm.«genPropertyLabel()».id}}">
         {{«genPropertyLabel()».displayName}}
      </a>
 «ENDDEFINE»
@@ -111,7 +111,7 @@
 	         «ENDIF»
 	    «ENDREM»				
 		«ELSE»
-			<label>First Name</label> {{vm.{«genPropertyLabel()»}}	
+			{{vm.«genPropertyLabel()»}}	
 		«ENDIF»
 «ENDDEFINE»?
 

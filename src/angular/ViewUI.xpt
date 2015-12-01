@@ -23,7 +23,7 @@
 
 
 «DEFINE genEditComponent FOR wcprofile::Entity»
-«FILE getWebPath() +"/edit" +name+ "Component." + "html"»
+«FILE getWebPath() +"/view" +name+ "Component." + "html"»
 <div>
     <panel>
           «EXPAND genAttribAsOutput FOR this»
@@ -44,9 +44,9 @@
 
 «DEFINE genTable FOR uml::Class»
 	«FOREACH allParents() AS e-»
-		«EXPAND genEditableTable FOREACH e.getComposed() -»
+		«EXPAND genViewTable FOREACH e.getComposed() -»
 	«ENDFOREACH»
-	«EXPAND genEditableTable FOREACH getComposed() -»
+	«EXPAND genViewTable FOREACH getComposed() -»
 «ENDDEFINE»
 
 «DEFINE genPropertyRec FOR uml::Property-»
@@ -64,11 +64,22 @@
 «ENDDEFINE»
 
 
+«DEFINE genViewTable FOR uml::Property-»
+	«setCurrentMultiMode(true)-»
+	<div ng-repeat="«type.asVar()» in «class.asVar()».«name» ">
+		«setAsCurrentEntity(type)»
+		«EXPAND genAttribAsOutput FOR type-»
+     </div>
+	«setCurrentMultiMode(false)-»
+«ENDDEFINE»
+
+
+
 
 «DEFINE genProperty FOR uml::Property-»
 «IF !isCurrentMultiMode()»
 	<div>
-	 <label for="«getId()»">«name»</label>
+	 <label for="«getId()»">«name.getVariableNameForDisplay()»</label>
 	 «EXPAND ListUI::genPropertyValue FOR this»
 	</div>
 «ENDIF»
@@ -78,15 +89,15 @@
 
 «DEFINE genInputBegin FOR uml::Property»
 	«IF isCurrentMultiMode()»
-		<rich:column >
-			<f:facet name="header"> «getOutputMessage()» </f:facet>
+		<td>
+			<name="header"> «getOutputMessage()» </name>
 	«ENDIF»
 «ENDDEFINE»
 
 
 «DEFINE genInputEnd FOR uml::Property»
 	 «IF isCurrentMultiMode()»
-		</rich:column >
+		</td>
 	«ENDIF»
 «ENDDEFINE»
 

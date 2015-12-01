@@ -55,22 +55,26 @@
 		«EXPAND genPropertyRec FOREACH type.getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()  ) -»
 		«clearCurrentEmbeddable()-»
 	«ELSE-»
-		«EXPAND genAttribute -»
+		«EXPAND genAttribute(type)-»
 	«ENDIF»
 «ENDDEFINE»
 
-«DEFINE genAttribute FOR uml::Property -»
+«DEFINE genAttribute(wcprofile::Entity entity) FOR uml::Property-»
+	«EXPAND genProperty FOR this-»
+«ENDDEFINE»
+
+«DEFINE genAttribute(uml::PrimitiveType type) FOR uml::Property-»
 	«EXPAND genProperty FOR this-»
 «ENDDEFINE»
 
 
-«DEFINE genPropertyEntry(uml::Enumeration enm) FOR uml::Property-»
-	 <select class="form-control" name="«getId()»" ng-model="«genPropertyLabel()»"  ng-required="«getRequired()»">
-	     <option value="">--Select--</option>
-	     «FOREACH  enm.ownedLiteral AS e-»
-	     <option value="«e.name»" ng-selected="{{'«e.name»' == vm.employee.gender}}"> «e.name» </option>
-	     «ENDFOREACH»
-     </select>
+«DEFINE genAttribute(uml::Enumeration enm) FOR uml::Property-»
+ <select class="form-control" name="«getId()»" ng-model="«genPropertyLabel()»"  ng-required="«getRequired()»">
+     <option value="">--Select--</option>
+     «FOREACH  enm.ownedLiteral AS e-»
+     <option value="«e.name»" ng-selected="{{'«e.name»' == vm.«genPropertyLabel()»}}">«e.name»</option>
+     «ENDFOREACH»
+ </select>
 «ENDDEFINE»
 
 
@@ -101,11 +105,11 @@
 		«ELSEIF isDate()»
            <DATE/>
 		«ELSEIF isBoolean()»
-            <h:selectBooleanCheckbox id="«getId()»" value="#{«genPropertyLabel()»}" />		
+            <input radio id="«getId()»" name="«getId()»" type="text" class="form-control" maxlength="50" ng-model="«genPropertyLabel()»"
+                        ng-minlength="2" ng-maxlength="50"/>		
 		«ELSEIF isCurrency()»
-			<h:outputText value="#{«prefix»«genPropertyLabel()»}">
-				<f:convertNumber pattern="$#,##0.00"/>
-			</h:outputText>
+			 <input id="«getId()»" name="«getId()»" type="text" class="form-control" maxlength="50" ng-model="«genPropertyLabel()»"
+                        ng-minlength="2" ng-maxlength="50"/>
 		«ELSEIF isDouble()»
 			<input id="«getId()»" name="«getId()»" type="text" class="form-control" maxlength="50" ng-model="«genPropertyLabel()»"
                         ng-minlength="2" ng-maxlength="50"/>
@@ -118,8 +122,10 @@
 «ENDDEFINE»
 
 «DEFINE genAssocValue(String prefix) FOR uml::Property»
-	<select class="form-control" name="«getId()»" ng-model="«genPropertyLabel()-»" 
-                            	ng-options="item.id as item.displayName for item in «type.asVar()»List">
+	<select class="form-control" name="«getId()»" ng-model="vm.«genPropertyLabel()»" ng-required="true">
+        <option>--Select--</option> 
+        <option ng-repeat="item in vm.«name»s" value="{{item.id}}"
+          ng-selected="{{item.id == vm.«genPropertyLabel()»}}"> {{item.displayName}}</option>
     </select>
 «ENDDEFINE»
 
@@ -138,16 +144,14 @@
 
 «DEFINE genInputBegin FOR uml::Property»
 	«IF isCurrentMultiMode()»
-		<rich:column >
-			<f:facet name="header"> «getOutputMessage()» </f:facet>
+		<td> «getOutputMessage()» 
 	«ENDIF»
-	 
 «ENDDEFINE»
 
 
 «DEFINE genInputEnd FOR uml::Property»
 	 «IF isCurrentMultiMode()»
-		</rich:column >
+		</td>
 	«ENDIF»
 «ENDDEFINE»
 
@@ -169,9 +173,9 @@
 
 
 «DEFINE genNew FOR uml::Property»
-	<h:column>
+	<td>
 		«EXPAND genNewButton FOR this»
-	</h:column>
+	</td>
 «ENDDEFINE»
 
 «DEFINE genNewButton FOR uml::Property»

@@ -7,6 +7,7 @@
 
 «DEFINE Root FOR uml::Model»
 	«EXPAND ListUI::Root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND ViewUI::Root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
 	«EXPAND routes::Root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
 	«EXPAND controller::root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
 	

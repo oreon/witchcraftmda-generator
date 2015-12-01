@@ -3,7 +3,7 @@
 «EXTENSION template::webExtensions»
 «EXTENSION template::associationExtensions»
 
-«DEFINE root FOR wcprofile::Entity»
+«DEFINE Root FOR wcprofile::Entity»
 «FILE getWebPath() +"/" + asVar() + ".client.routes.js"»
 (function() {
     'use strict';
