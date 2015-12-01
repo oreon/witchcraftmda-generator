@@ -98,7 +98,7 @@ class «name»(«getParentDj()-»):
 	«ENDIF»
  «ENDFOREACH»
  
- 	«IF isAbstract»
+ 	«IF isAbstract || isEmbeddable() »
     class Meta:
         abstract = True
 	«ENDIF»

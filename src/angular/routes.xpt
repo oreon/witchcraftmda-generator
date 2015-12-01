@@ -1,0 +1,62 @@
+«IMPORT wcprofile»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE root FOR wcprofile::Entity»
+«FILE getWebPath() +"/" + asVar() + ".client.routes.js"»
+(function() {
+    'use strict';
+
+    angular
+        .module('app.«asVar()»')
+        .run(appRun);
+
+    appRun.$inject = ['routerHelper'];
+    /* @ngInject */
+    function appRun(routerHelper) {
+        routerHelper.configureStates(getStates());
+    }
+
+    function getStates() {
+        return [
+            {
+                state: 'list«name»',
+                config: {
+                    url: '/«asVar()»',
+                    templateUrl: 'app/«asVar()»/views/list.html',
+                    controller: '«name»Controller',
+                    controllerAs: 'vm',
+                    title: 'List «name»s',
+                    settings: {
+                        nav: 3,
+                        content: '<i class="fa fa-folder-open"></i> «name»s'
+                    }
+                }
+            },
+            {
+                state: 'view«name»',
+                config: {
+                    url: '/«asVar()»/:id',
+                    templateUrl: 'app/«asVar()»/views/view.html',
+                    controller: '«name»Controller',
+                    controllerAs: 'vm',
+                    title: 'View «name»'
+                }
+            },
+            {
+                state: 'edit«name»',
+                config: {
+                    url: '/«asVar()»/:id/edit',
+                    templateUrl: 'app/«asVar()»/views/edit.html',
+                    controller: '«name»Controller',
+                    controllerAs: 'vm',
+                    title: 'Edit «name»'
+                }
+            }
+        ];
+    }
+})();
+«ENDFILE»
+
+«ENDDEFINE»

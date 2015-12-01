@@ -230,9 +230,7 @@
 
 «DEFINE genDelete FOR uml::Property»
 	<h:column>
-		<h:commandButton value="Delete" immediate="true" action="#{«class.getAction()».delete«name.toFirstUpper()»(rowIndex)}"  
-			reRender="«name»"
-			>
+		<h:commandButton value="Delete" immediate="true" action="#{«class.getAction()».delete«name.toFirstUpper()»(rowIndex)}"  reRender="«name»">
 			<s:conversationId/>
 		</h:commandButton>
 	</h:column>

@@ -1,6 +1,4 @@
 «IMPORT wcprofile»
-
-«EXTENSION org::openarchitectureware::uml2::profile::profiling»
 «EXTENSION template::GeneratorExtensions»
 «EXTENSION template::webExtensions»
 «EXTENSION template::associationExtensions»
@@ -8,14 +6,15 @@
 «DEFINE Root FOR wcprofile::Entity»
 	 «EXPAND genListContainer FOR this»
 	 «EXPAND genListComponent FOR this»
+	 «EXPAND EditUI::Root FOR this»
 «ENDDEFINE»
 
 «DEFINE genListContainer FOR wcprofile::Entity»
 «FILE getWebPath() +"/list" +name+ "." + "html"»
 
 <div>
-    	<img src="list«name»Component.tpl" />
-  </div>
+   <ng-include src="list«name»Component.tpl" />
+</div>
 «ENDFILE»
 «ENDDEFINE»
 
@@ -66,52 +65,30 @@
 
 
 «DEFINE genAttribute FOR uml::Property -»
-	«IF association != null -»
-		<td><a href="#" >{{record.«name»}} </a></td>
-	«ELSE-»
-		<td>{{record.«name»}}</td>
-	«ENDIF»
-	
-	
-	«REM»comment
 	«EXPAND genProperty FOR this-»
-	«ENDREM»
-«ENDDEFINE»
-
-
-
-
-
-«DEFINE genAssocValue(String prefix) FOR uml::Property»
-	«REM»TODO  link should not be hard coded to path and should be of type action=view«type.name» «ENDREM»
-	<s:link «getEscape()»  value="#{«prefix»«genPropertyLabel()».displayName}"  view="«type.getViewFile("view")»" propagation="none">
-			<f:param name="«type.name.toFirstLower()»Id" value="#{«prefix»«genPropertyLabel()».id}" />
-			<f:param name="from" value="#{request.servletPath}" />
-			«IF type.popupInfo != null»
-			 <rich:toolTip>
-	            <span>
-	              #{«prefix»«genPropertyLabel()».popupInfo} 
-	            </span>
-	        </rich:toolTip>
-	        «ENDIF»
-	</s:link>
 «ENDDEFINE»
 
 
 
 «DEFINE genProperty FOR uml::Property-»
-	 <rich:column sortBy="#{record.«name»}">
-        <f:facet name="header">
-            #{uvs:label('«name.toUpperCase()»')}
-        </f:facet>
-		«EXPAND genPropertyValue("") FOR this»
-	</rich:column>
+   <td data-title="'«getVariableNameForDisplay()»'" sortable="'«name»'" filter="{ 'firstName': 'text' }">
+	«EXPAND genPropertyValue FOR this»
+   </td>
 «ENDDEFINE»
 
-«DEFINE genPropertyValue(String prefix) FOR uml::Property»
-		«IF association != null -»
-			«EXPAND genAssocValue(prefix) FOR this»
+«DEFINE genAssocValue FOR uml::Property»
+	 <a class="btn btn-default" title="View" href="/«type.asVar()»/{{«genPropertyLabel()».id}}">
+        {{«genPropertyLabel()».displayName}}
+     </a>
+«ENDDEFINE»
+
+«DEFINE genPropertyValue FOR uml::Property»
+	«IF association != null -»
+		«EXPAND genAssocValue FOR this»	
+			
+	«REM»comment
 		«ELSEIF isFile()»
+			<h4>TODO </h4>
 		«ELSEIF isDate()»
 			<h:outputText value="#{«prefix»«genPropertyLabel()»}">
 				<s:convertDateTime type="date" dateStyle="medium" />
@@ -131,23 +108,12 @@
 				<h:outputText value="#{«prefix»«genPropertyLabel()»}"  escape="false" />	
 			«ELSE»
 			    <h:outputText id="«name»Abbr" value="#{«prefix»«genPropertyLabel()»Abbreviated}" escape="false"/> 
-	         «ENDIF»				
+	         «ENDIF»
+	    «ENDREM»				
 		«ELSE»
-			<h:outputText value="#{«prefix»«genPropertyLabel()»}"  escape="false" />	
+			<label>First Name</label> {{vm.{«genPropertyLabel()»}}	
 		«ENDIF»
-«ENDDEFINE»
+«ENDDEFINE»?
 
 
-
-«DEFINE genImports FOR uml::Class»
-	xmlns:ui="http://java.sun.com/jsf/facelets"
-                xmlns:c="http://java.sun.com/jstl/core"
-                xmlns:uvs="http://www.univeris.com/jsf/ewms/8.x"
-                xmlns:f="http://java.sun.com/jsf/core"
-                xmlns:h="http://java.sun.com/jsf/html"
-                xmlns:s="http://jboss.com/products/seam/taglib"
-                xmlns:a="http://richfaces.org/a4j"
-                xmlns:p="http://primefaces.prime.com.tr/ui"
-                xmlns:rich="http://richfaces.org/rich"
-«ENDDEFINE»
 

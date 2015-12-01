@@ -1,65 +1,115 @@
+«IMPORT wcprofile»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
 
+«DEFINE root FOR wcprofile::Entity»
+«FILE getWebPath() +"/" +name+ "Controller.js"»
+(function () {
+    'use strict';
 
-angular.module('jhipsterApp')
-.controller('MyController', function ($scope,  Â«nameÂ»Service) {
-	
-	//$scope.data = Student;
-	$scope.books = [];
-	$scope.page = 1;
-	
-	
-	//$scope.authors = authorSvc.authors;
-	
-	$scope.create = function (book) {
+    angular
+        .module('app.«asVar()»')
+        .controller('«name»Controller',  «name»Controller);
+
+     «name»Controller.$inject = ['logger',
+        '$stateParams',
+        '$location',
+        'TableSettings',
+        'ngTableParams',
+        'Api',];
+    /* @ngInject */
+    function  «name»Controller(logger,
+        $stateParams,
+        $location,
+        TableSettings,
+        ngTableParams,
+        Api
+        ) {
+
+        var vm = this;
+      
+        vm.«asVar()»s = [];
+        vm.tableParams =   new ngTableParams( );//TableSettings.getParams( «name»);
+        vm.«asVar()» = {};
        
-        toastr.success("Success" + book.title);
-        Â«nameÂ»Service.update(book,
-                function () {
-                   	$scope.loadAll();
-                   // $('#saveBookModal').modal('hide');
-                   $scope.clear();
-                });
+     
+        activate();
+
+        function activate() {
+            if(!$stateParams.id){
+                vm.tableParams.settings({dataset: vm.«asVar()»s});
+                get«name»s();
+            };
+        }
         
-    };
-    
-    
-    $scope.gridOptions = { 
-    	 data: 'books' ,
-    	 showGroupPanel: true,
-    	 showFilter: true,
-    	 columnDefs: [{field:'title', displayName:'Title'}, 
-    	              {field:'price', displayName:'Price'},
-    	              {field:'author.name', displayName:'Author'},
-    	 			]
-    	 
-    };
-    
-    $scope.clear = function () {
-        $scope.book = {title: null, price: null, id: null};
-        $scope.editBookForm.$setPristine();
-        $scope.editBookForm.$setUntouched();
-    };
+        vm.toEdit«name» = function(){
+            Api.get«name»ForEdit($stateParams.id).then(function(data) {  
+                 vm.«asVar()» = data
+                 «FOREACH getOutgoingAssociations() AS e»
+                 get«e.name.toFirstUpper()»s();
+                 «ENDFOREACH»
+            });
+        }
+        
+         vm.toView«name» = function(){
+            Api.get«name»($stateParams.id).then(function(data) {  
+                  vm.«asVar()» = data
+            });
+        }
+        
+        function get«name»s() {
+            return Api.get«name»s()
+                .then(function(data) {
+                    vm.«asVar()»s = data;
+                    logger.info('Activated  «name»s View');
+                    return vm.«asVar()»s;
+                });
+        }
+        
+        
+        
+      «FOREACH getOutgoingAssociations() AS e»
+      
+       vm.«e.name»s  = [];
        
-    $scope.loadAll = function() {
-        Â«nameÂ»Service.query({page: $scope.page, per_page: 20}, function(result, headers) {
-            //$scope.links = ParseLinks.parse(headers('link'));
-            $scope.books = result;
-        });
-    };
-    
-    $scope.addTag = function(postin) {
-		$scope.post = postin;
-		$scope.post.tags.push({});
-	};
-
-	$scope.removeTag = function(item) {
-		// var index = $scope.post.tags.indexOf(item);
-		console.log('removing ' + item);
-		$scope.post.tags.splice(item, 1);
-	}
-
-  //TODO put in activate function
-    $scope.loadAll();
-    
+		function get«e.name.toFirstUpper()»s() {
+            return Api.get«e.name.toFirstUpper()»s()
+                .then(function(data) {
+                    vm.«e.name»s = data;
+                });
+        }
+	  «ENDFOREACH»
+        
+       
+        vm.create = function() {
+            /* if(!vm.«asVar()».id )
+                vm.«asVar()».dob = "1988-11-01";*/
+        };
+        
+        vm.remove = function( «asVar()»){
+            return Api.remove«name»( «asVar()»).then(function (data){  
+                logger.success('«name» Deleted');
+                $location.path('«asVar()»');
+            });
+        }
  
-});
+        vm.update = function() {
+        	var msg = 'updated';
+            if(!vm.«asVar()».id ){
+                vm.create();
+                msg = 'created';
+            }
+        
+            return Api.save«name»(vm.«asVar()»).then(function (data){  
+                logger.success('«name» ' + msg);
+                $location.path('«asVar()»/' + data.id);
+            });
+        };
+    
+    }
+
+})();
+«ENDFILE»
+
+«ENDDEFINE»

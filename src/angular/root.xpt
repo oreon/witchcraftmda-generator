@@ -7,4 +7,35 @@
 
 «DEFINE Root FOR uml::Model»
 	«EXPAND ListUI::Root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND routes::Root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND controller::root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	
+	«FILE "/appStates.js"»
+		«EXPAND genStates FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»s
+	«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE genStates FOR wcprofile::Entity»
+	
+		.when('/«asVar()»s', {
+                templateUrl: 'app/«asVar()»/«asVar()»List.html',
+                controller: '«name»ListCtrl',
+                controllerAs: 'vm',
+                resolve: {
+                    initialData: ['eliteApi', function (eliteApi) {
+                        return eliteApi.get«name»s();
+                    }]
+                }
+            })
+        .when('/«asVar()»s/:id', {
+            templateUrl: 'app/«asVar()»s/view«name».html',
+            controller: '«name»ViewCtrl',
+            controllerAs: 'vm',
+            resolve: {
+                initialData: ['$route', 'eliteApi', function ($route, eliteApi) {
+                    return eliteApi.get«name»($route.current.params.id);
+                }]
+            }
+        })
 «ENDDEFINE»
