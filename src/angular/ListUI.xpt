@@ -4,9 +4,10 @@
 «EXTENSION template::associationExtensions»
 
 «DEFINE Root FOR wcprofile::Entity»
+	 «EXPAND EditUI::Root FOR this»
+	 «EXPAND ViewUI::Root FOR this»
 	 «EXPAND genListContainer FOR this»
 	 «EXPAND genListComponent FOR this»
-	 «EXPAND EditUI::Root FOR this»
 «ENDDEFINE»
 
 «DEFINE genListContainer FOR wcprofile::Entity»
@@ -71,14 +72,14 @@
 
 
 «DEFINE genProperty FOR uml::Property-»
-   <td data-title="'«name.getVariableNameForDisplay()»'" sortable="'«name»'" filter="{ 'firstName': 'text' }">
+   <td data-title="'«name.getVariableNameForDisplay()»'" sortable="'«name»'" filter="{ '«name»': 'text' }">
 	«EXPAND genPropertyValue FOR this»
    </td>
 «ENDDEFINE»
 
 «DEFINE genAssocValue FOR uml::Property»
-	 <a class="btn btn-default" title="View" href="/vm.«type.asVar()»/{{vm.«genPropertyLabel()».id}}">
-        {{«genPropertyLabel()».displayName}}
+	 <a class="btn btn-default" title="View" href="/«type.asVar()»/{{vm.«genPropertyLabel()».id}}">
+        {{vm.«genPropertyLabel()».displayName}}
      </a>
 «ENDDEFINE»
 
