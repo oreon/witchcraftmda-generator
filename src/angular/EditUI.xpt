@@ -69,26 +69,8 @@
 		«EXPAND genPropertyRec FOREACH type.getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()  ) -»
 		«clearCurrentEmbeddable()-»
 	«ELSE-»
-		«EXPAND genAttribute(type)-»
+		«EXPAND genProperty-»
 	«ENDIF»
-«ENDDEFINE»
-
-«DEFINE genAttribute(wcprofile::Entity entity) FOR uml::Property-»
-	«EXPAND genProperty FOR this-»
-«ENDDEFINE»
-
-«DEFINE genAttribute(uml::PrimitiveType type) FOR uml::Property-»
-	«EXPAND genProperty FOR this-»
-«ENDDEFINE»
-
-
-«DEFINE genAttribute(uml::Enumeration enm) FOR uml::Property-»
- <select class="form-control" name="«getId()»" ng-model="vm.«genPropertyLabel()»"  ng-required="«getRequired()»">
-     <option value="">--Select--</option>
-     «FOREACH  enm.ownedLiteral AS e-»
-     <option value="«e.name»" ng-selected="{{'«e.name»' == vm.«genPropertyLabel()»}}">«e.name»</option>
-     «ENDFOREACH»
- </select>
 «ENDDEFINE»
 
 
@@ -98,7 +80,11 @@
 
  «EXPAND genLabel FOR this»
 
- «EXPAND genPropertyInput("") FOR this»
+ «IF association != null -»
+	«EXPAND genAssocValue FOR this»
+ «ELSE»
+ 	«EXPAND genPropertyInput(type) FOR this»
+ «ENDIF»
  
  «EXPAND genMessage FOR this»
  
@@ -107,10 +93,9 @@
 «ENDDEFINE»
 
 
-«DEFINE genPropertyInput(String prefix) FOR uml::Property»
-		«IF association != null -»
-			«EXPAND genAssocValue(prefix) FOR this»
-		«ELSEIF isFile()»
+«DEFINE genPropertyInput(uml::PrimitiveType type) FOR uml::Property»
+		
+		«IF isFile()»
 			<h2>TODO </h2>
 		«ELSEIF isDate()»
           <input type="text" class="form-control"  uib-datepicker-popup="dd/MM/yyyy" ng-model="vm.«genPropertyLabel()»"
@@ -132,7 +117,17 @@
 		«ENDIF»
 «ENDDEFINE»
 
-«DEFINE genAssocValue(String prefix) FOR uml::Property»
+«DEFINE genPropertyInput(uml::Enumeration enm) FOR uml::Property-»
+ <select class="form-control" name="«getId()»" ng-model="vm.«genPropertyLabel()»"  ng-required="«getRequired()»">
+     <option value="">--Select--</option>
+     «FOREACH  enm.ownedLiteral AS e-»
+     <option value="«e.name»" ng-selected="{{'«e.name»' == vm.«genPropertyLabel()»}}">«e.name»</option>
+     «ENDFOREACH»
+ </select>
+«ENDDEFINE»
+
+
+«DEFINE genAssocValue FOR uml::Property»
 	<select class="form-control" name="«getId()»" ng-model="vm.«genPropertyLabel()»"  
 		ng-options='option.id as option.displayName for option in vm.«name»s' ng-required="true">
     </select>
