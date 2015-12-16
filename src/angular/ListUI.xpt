@@ -22,41 +22,38 @@
 
 
 «DEFINE genListComponent FOR wcprofile::Entity»
-«FILE getWebPath() +"/list" +name+ "Component.html"»
+«FILE getWebPath() +"/" +name+ "Table.html"»
 
-	<div ng-controller="«name»Controller">
-	
-	«FOREACH getAllAttributes()  AS e»
-		«e.name»
-	«ENDFOREACH»
-	<table>
-		<thead>	
-			«FOREACH allParents() AS e-»
-			 «EXPAND genColHeader FOREACH e.getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()  ) -»
-			«ENDFOREACH»
-			«EXPAND genColHeader FOREACH getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()   ) -»
-		</thead>
-		<tbody>
-			<tr ng-repeat="record in vm.«asVar()»Records">
-				«FOREACH allParents() AS e-»
-			 	«EXPAND genAttribute FOREACH e.getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()  ) -»
-				«ENDFOREACH»
-				«EXPAND genAttribute FOREACH getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()   ) -»
-				<td>
-					<a class="btn btn-primary">View</a> 
-					<a class="btn btn-primary" href="orders/{{customerOrder.id}}">Edit</a>
-					<a class="btn btn-danger" ng-click="deleteMovie(customerOrder)">Delete</a>
-				</td>
-			</tr>
-		</tbody>
-		
-		 
-	</table>
+<div class="pull-right">
+    <a type="button" class="btn btn-success" href="/«asVar()»//edit">
+      <i class="glyphicon glyphicon-open"></i> New «name»
+    </a>
+ </div>
 
-	<div> <pagination total-items="vm.itemCount" ng-model="vm.currentPage" max-size="vm.maxSize" class="pagination-sm"
-		 boundary-links="true" rotate="false" num-pages="vm.numPages"></pagination></div>
-	
-</div>
+<table ng-table="tableParams" show-filter="true" class="table table-condensed table-striped">
+      <tr ng-repeat="«asVar()» in «asVar()»s">
+         «FOREACH allParents() AS e-»
+			«EXPAND genAttribute FOREACH e.getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()  ) -»
+		  «ENDFOREACH»
+		  «EXPAND genAttribute FOREACH getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()   ) -»
+          
+    
+          <td>
+              <div class="table-actions">
+                  <a class="btn btn-default" title="View" href="/«asVar()»/{{«asVar()».id}}">
+                    <span class="glyphicon glyphicon-eye-open"></span>
+                  </a>
+                  <a class="btn btn-default" title="Edit" href="/«asVar()»/{{«asVar()».id}}/edit">
+                    <span class="glyphicon glyphicon-edit"></span>
+                  </a>
+                  <a class="btn btn-danger" title="Remove" ng-really-message="Are you sure you want to remove {{«asVar()».displayName}} ?" ng-really-click="vm.remove(«asVar()»)" item="«asVar()»">
+                    <span class="glyphicon glyphicon-remove-circle"></span>
+                  </a>
+              </div>
+          </td>
+      </tr>
+ </table>
+
 «ENDFILE»
 «ENDDEFINE»
 
@@ -100,7 +97,7 @@
 			<h:outputText value="#{«prefix»«genPropertyLabel()»}">
 				<f:convertNumber pattern="$#,##0.00"/>
 			</h:outputText>
-		«ELSEIF isDouble()»
+		«ELSEIF isDouble()»	
 			<h:outputText value="#{«prefix»«genPropertyLabel()»}">
 				<f:convertNumber pattern="000.00"/>
 			</h:outputText>

@@ -7,8 +7,10 @@
 
 «DEFINE Root FOR uml::Model»
 	«EXPAND ListUI::Root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	
 	«EXPAND routes::Root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
 	«EXPAND controller::root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND service::root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
 	
 	«FILE "/appStates.js"»
 		«EXPAND genStates FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»s

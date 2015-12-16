@@ -15,7 +15,7 @@
 «FILE getWebPath() +"/view" +name+ "." + "html"»
 
 <div>
-   <ng-include src="edit«name»Component.html" />
+   <ng-include src="view«name»Component.html" />
 </div>
 «ENDFILE»
 «ENDDEFINE»
@@ -24,17 +24,38 @@
 
 «DEFINE genEditComponent FOR wcprofile::Entity»
 «FILE getWebPath() +"/view" +name+ "Component." + "html"»
-<div>
-    <panel>
-          «EXPAND genAttribAsOutput FOR this»
-     </panel>  
-     «EXPAND genTable FOR this»
- </div>
+<section class="mainbar" data-ng-init="vm.toView«name»()">
+
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+	 	View «name» -  {vm.«asVar()».displayName} 
+    </div>
+    <div class="panel-body">
+   «EXPAND genAttribAsOutput FOR this»
+     
+   «EXPAND genTable FOR this»
+       <hr/>
+        <div>
+        <a class="btn btn-success" href="/«asVar()»/{{vm.«asVar()».id}}/edit">
+          <i class="glyphicon glyphicon-edit"></i> Edit
+        </a>
+        <a class="btn btn-danger" title="Remove" ng-really-message="Are you sure ?" ng-really-click="vm.remove()" item="vm.«asVar()»">
+          <i class="glyphicon glyphicon-remove-circle"></i> Delete
+        </a>
+        <a class="btn btn-primary" href="/«asVar()»">
+          <i class="glyphicon glyphicon-list"></i> List «name»s
+        </a>
+        
+      </div>
+    </div>
+  </div>
+
+</section>
 «ENDFILE»
 «ENDDEFINE»
 
 
-«DEFINE genAttribAsOutput FOR uml::Class-»
+«DEFINE genAttribAsOutput FOR wcprofile::Entity-»
 	«FOREACH allParents() AS e-»
 	 «EXPAND genPropertyRec FOREACH e.getAllAttributes().select(a|!a.isMultivalued() && a.isAttributeEditable()  ) -»
 	«ENDFOREACH»
@@ -42,7 +63,7 @@
 «ENDDEFINE»
 
 
-«DEFINE genTable FOR uml::Class»
+«DEFINE genTable FOR wcprofile::Entity»
 	«FOREACH allParents() AS e-»
 		«EXPAND genViewTable FOREACH e.getComposed() -»
 	«ENDFOREACH»
@@ -55,21 +76,21 @@
 		«EXPAND genPropertyRec FOREACH type.getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()  ) -»
 		«clearCurrentEmbeddable()-»
 	«ELSE-»
-		«EXPAND genAttribute -»
+		«EXPAND genProperty FOR this-»
 	«ENDIF»
 «ENDDEFINE»
 
-«DEFINE genAttribute FOR uml::Property -»
-	«EXPAND genProperty FOR this-»
-«ENDDEFINE»
 
 
 «DEFINE genViewTable FOR uml::Property-»
 	«setCurrentMultiMode(true)-»
-	<div ng-repeat="«type.asVar()» in «class.asVar()».«name» ">
+	<table>
+	<tr ng-repeat="«type.asVar()» in vm.«class.asVar()».«name» ">
+	«type.name»
 		«setAsCurrentEntity(type)»
 		«EXPAND genAttribAsOutput FOR type-»
-     </div>
+     </tr>
+     </table>
 	«setCurrentMultiMode(false)-»
 «ENDDEFINE»
 
@@ -82,20 +103,25 @@
 	 <label for="«getId()»">«name.getVariableNameForDisplay()»</label>
 	 «EXPAND ListUI::genPropertyValue FOR this»
 	</div>
+«ELSE»
+	«IF name != opposite.class.asVar()» «REM»TODO: Will not work if association name is different from class name «ENDREM»
+	<td>  
+		«EXPAND ListUI::genPropertyValue FOR this»
+	</td>
+	«ENDIF»
 «ENDIF»
 «ENDDEFINE»
 
 
 
-«DEFINE genInputBegin FOR uml::Property»
+«DEFINE genBegin FOR uml::Property»
 	«IF isCurrentMultiMode()»
 		<td>
-			<name="header"> «getOutputMessage()» </name>
 	«ENDIF»
 «ENDDEFINE»
 
 
-«DEFINE genInputEnd FOR uml::Property»
+«DEFINE genEnd FOR uml::Property»
 	 «IF isCurrentMultiMode()»
 		</td>
 	«ENDIF»
