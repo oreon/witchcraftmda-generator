@@ -121,19 +121,35 @@ class «name»(«name»Base):
 
 
 «DEFINE genSerializer FOR wcprofile::Entity»
-class «name»Serializer(serializers.HyperlinkedModelSerializer):
+
+
+class «name»LookupSerializer(serializers.ModelSerializer):
+    
+    displayName = serializers.ReadOnlyField()
 
     class Meta:
         model = «name»
+        fields = ('displayName', 'id', )
+
+class Full«name»Serializer(serializers.ModelSerializer):
+
+	displayName = serializers.ReadOnlyField()
+    
+    «FOREACH elements AS e»
+    	employees = EmployeeSerializer(many=True, read_only=True)
+    «ENDFOREACH»
+    
+    class Meta(«name»Serializer.Meta):
+        model = «name»
         
-        
-class «name»LookupSerializer(serializers.HyperlinkedModelSerializer):
+
+class «name»WritableSerializer(serializers.ModelSerializer):
     
     displayName = serializers.ReadOnlyField()
-    
+
     class Meta:
         model = «name»
-        fields = ('displayName', 'url', )   
+
 «ENDDEFINE»
 
 
@@ -147,6 +163,23 @@ class «name»LookupViewSet(viewsets.ModelViewSet):
     serializer_class = «name»LookupSerializer
 «ENDDEFINE»
 
+
+«DEFINE orgSrlizr FOR Type»
+class «name»Serializer(serializers.HyperlinkedModelSerializer):
+	displayName = serializers.ReadOnlyField()
+
+    class Meta:
+        model = «name»
+        depth = 1
+        
+class «name»LookupSerializer(serializers.HyperlinkedModelSerializer):
+    
+    displayName = serializers.ReadOnlyField()
+    
+    class Meta:
+        model = «name»
+        fields = ('displayName', 'url', )  
+«ENDDEFINE»
 
 
 

@@ -6,15 +6,68 @@
 «EXTENSION template::associationExtensions»
 
 «DEFINE Root FOR uml::Model»
+	«EXPAND genApi FOR this»
+
 	«EXPAND ListUI::Root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
-	
 	«EXPAND routes::Root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
 	«EXPAND controller::root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND directives::root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
 	«EXPAND service::root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
 	
-	«FILE "/appStates.js"»
-		«EXPAND genStates FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»s
-	«ENDFILE»
+	
+«ENDDEFINE»
+
+
+«DEFINE genApi FOR uml::Model»
+
+«FILE "/api.service.js"»
+
+(function () {
+   'use strict';
+    
+   angular.module('app.core').factory('Api', Api);
+
+   Api.$inject = ['dbService', «FOREACH allOwnedElements().typeSelect(wcprofile::Entity) AS e SEPARATOR ','» '«e.asVar()»Service'   «ENDFOREACH»];
+
+   function Api( dbService, «FOREACH allOwnedElements().typeSelect(wcprofile::Entity) AS e SEPARATOR ','» «e.asVar()»Service   «ENDFOREACH») {
+   
+    	return this;
+   
+		«EXPAND genApiCalls FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	
+    }
+})();
+	
+«ENDFILE»
+	
+
+«ENDDEFINE»
+
+«DEFINE genApiCalls FOR  wcprofile::Entity»
+
+ 	this.get«name» =  function (id) {
+        return dbService.getEntity(id, «asVar()»Service);
+    }
+    
+    this.get«name»Complete = function(id) {
+        return get«name»(id);
+    }
+
+    this.get«name»s =  function () {
+        return dbService.getEntityList(«asVar()»Service);
+    }
+    
+    this.save«name» =  function («asVar()»){
+        return dbService.saveEntity(«asVar()», «asVar()»Service);
+    }
+    
+    this.remove«name» =  function  («asVar()»){
+        return dbService.removeEntity(«asVar()», «asVar()»Service);
+    }
+    
+    this.get«name»ForEdit =  function (id) {
+        return dbService.getEntity(id, «asVar()»Service, true);
+    }
 «ENDDEFINE»
 
 

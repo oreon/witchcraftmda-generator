@@ -1,0 +1,20 @@
+«IMPORT wcprofile»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE root FOR wcprofile::Entity»
+«FILE getWebPath() +"/" +name+ "Directive.js"»
+angular.module('app.«asVar()»').directive('«asVar()»sDirective', function () {
+    return {
+        restrict: 'E',
+        scope: {
+            «asVar()»s: '=',
+            tableParams: '='
+        },
+        templateUrl: 'app/«asVar()»/views/«asVar()»Table.html'
+    };
+});
+«ENDFILE»
+
+«ENDDEFINE»

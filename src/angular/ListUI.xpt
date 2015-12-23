@@ -12,10 +12,20 @@
 
 «DEFINE genListContainer FOR wcprofile::Entity»
 «FILE getWebPath() +"/list" +name+ "." + "html"»
+<section class="mainbar"  data-ng-init="vm.get«asVar()»s()">
 
-<div>
-   <ng-include src="list«name»Component.tpl" />
-</div>
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+     «name» List
+    </div>
+    <div class="panel-body">
+     
+      <«asVar()»s-directive «asVar()»s="vm.«asVar()»s" ></«asVar()»s-directive>
+
+    </div>
+  </div>
+
+</section>
 «ENDFILE»
 «ENDDEFINE»
 
@@ -75,8 +85,8 @@
 «ENDDEFINE»
 
 «DEFINE genAssocValue FOR uml::Property»
-	 <a class="btn btn-default" title="View" href="/«type.asVar()»/{{vm.«genPropertyLabel()».id}}">
-        {{vm.«genPropertyLabel()».displayName}}
+	 <a class="btn btn-default" title="View" href="/«type.asVar()»/{{«genPropertyLabel()».id}}">
+        {{«genPropertyLabel()».displayName}}
      </a>
 «ENDDEFINE»
 
@@ -109,9 +119,9 @@
 	         «ENDIF»
 	    «ENDREM»				
 		«ELSE»
-			{{vm.«genPropertyLabel()»}}	
+			{{«genPropertyLabel()»}}	
 		«ENDIF»
-«ENDDEFINE»?
+«ENDDEFINE»
 
 
 

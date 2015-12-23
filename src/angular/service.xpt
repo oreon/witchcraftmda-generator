@@ -14,9 +14,8 @@
 var «asVar()»Service = angular.module('app.core').factory('«asVar()»Service', function ($resource, $cacheFactory, API_BASE_URL) {
     baseUrl = API_BASE_URL;
     
-    var employeeCache = $cacheFactory('Employees');
+    var «asVar()»Cache = $cacheFactory('«name»Cache');
         
-    
     var res =   $resource(baseUrl + '/«asVar()»s/:id', {id: '@id'}, {
         query: {
             method: 'GET',

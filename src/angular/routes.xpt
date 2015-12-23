@@ -4,6 +4,17 @@
 «EXTENSION template::associationExtensions»
 
 «DEFINE Root FOR wcprofile::Entity»
+
+«FILE getWebPath() +"/" + asVar() + ".routes.js"»
+(function () {
+    'use strict';
+
+    angular.module('app.«asVar()»', []);
+    angular.module('app').requires.push('app.«asVar()»');
+
+})();
+«ENDFILE»
+
 «FILE getWebPath() +"/" + asVar() + ".client.routes.js"»
 (function() {
     'use strict';
