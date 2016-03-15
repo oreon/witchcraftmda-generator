@@ -5,7 +5,7 @@
 
 <bean class="org.eclipse.xtend.typesystem.uml2.Setup" standardUML2Setup="true" />
 
-<bean class="org.eclipse.emf.mwe.utils.StandaloneSetup" platformUri="." />
+<bean class="org.eclipse.emf.mwe.utils.StandaloneSetup" platformUri=".." />
 
 
 <!-- load model and store it in slot 'model' -->
@@ -93,24 +93,26 @@ skipOnErrors="false">
 	</outlet>
 </component>
 
-
-
-
-<component id="SeamGenerator" class="org.eclipse.xpand2.Generator" skipOnErrors="true">
-	<metaModel idRef="mm_profile"/>
+<component id="SpringDataRestGenerator" class="org.eclipse.xpand2.Generator" skipOnErrors="false">
 	
-	<expand value="javagen::seam::SeamActionRoot::Root FOR model"/>
-	<outlet name="man_path" path="${manGenPath}/" overwrite="false">
-		<postprocessor class="org.eclipse.xpand2.output.JavaBeautifier"/>
-		<postprocessor class="org.fornax.utilities.formatter.xml.XmlFormatter"  />
-	</outlet>
+	<metaModel idRef="mm_profile"/>
+
+	<expand value="springdatarest::springroot::Root FOR model"/>
+
 	<outlet path="${srcGenPath}">
 		<postprocessor class="org.eclipse.xpand2.output.JavaBeautifier"/>
-		<postprocessor class="org.fornax.utilities.formatter.xml.XmlFormatter"  />
+	</outlet>
+	<outlet name="man_path_editable" path="${manGenPath}/" overwrite="true" />
+	
+	<outlet name="man_path" path="${manGenPath}/" overwrite="false">
+		<postprocessor class="org.eclipse.xpand2.output.JavaBeautifier"/>	
+		
 	</outlet>
 </component>
 
 
+
+<!--
 <component id="WebGenerator" class="org.eclipse.xpand2.Generator" skipOnErrors="true">
 	
 	<metaModel idRef="mm_profile"/>
@@ -138,22 +140,6 @@ skipOnErrors="true">
 		<postprocessor class="org.eclipse.xpand2.output.JavaBeautifier"/>
 	</outlet>
 </component>
-
-  
-<!--
-  <component id="generator" class="org.eclipse.xpand2.Generator" skipOnErrors="true">
-	  <metaModel class="org.eclipse.xtend.typesystem.uml2.UML2MetaModel"/>
-	 
-	  <metaModel class="org.eclipse.xtend.typesystem.uml2.profile.ProfileMetaModel">
-			<profile value="mymdl/model-export/wcprofile.profile.uml" />
-	   </metaModel>
-	  
-	  <expand value="templates::Root::Root FOR model"/>
-	  <fileEncoding value="ISO-8859-1"/>
-	  <outlet path="src-gen">
-	   <postprocessor class="org.eclipse.xpand2.output.JavaBeautifier"/>
-	  </outlet>
-	</component>
-	
 -->
+
 </workflow>

@@ -42,7 +42,7 @@ public class ClassUtil {
 	static XtendFacade xtendFacade;
 	static Properties properties = new Properties();
 
-	static int count = 0;
+	static int count = 0;  
 
 	private static final Logger logger = Logger.getLogger(ClassUtil.class);
 

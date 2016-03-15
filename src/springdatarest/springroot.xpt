@@ -1,0 +1,104 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::associationExtensions»
+
+«EXTENSION template::WebExtensions»
+
+
+«DEFINE Root FOR uml::Model»
+	«EXPAND PackageRoot FOREACH allOwnedElements().typeSelect(uml::Package)»
+«ENDDEFINE»
+
+«DEFINE PackageRoot FOR uml::Package»
+	«EXPAND BaseGen FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«REM»
+	«EXPAND BaseGen FOREACH allOwnedElements().typeSelect(wcprofile::MappedSuperClass)»
+	«ENDREM»
+	«EXPAND ManualGen FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+«ENDDEFINE»
+
+
+«DEFINE ManualGen FOR wcprofile::Entity»
+
+«FILE getWebPackagePath("Repository")  man_path »
+	
+	package « getWebPackageName() »;
+			
+	public interface «name»Repository extends «name»RepositoryBase {
+	
+		//«name» findByNameAndCountryAllIgnoringCase(@Param("name") String name,
+		//		@Param("country") String country);
+		
+	}
+«ENDFILE»
+
+«ENDDEFINE»
+
+
+«DEFINE BaseGen FOR wcprofile::Entity»
+	«IF isAbstract»
+		«EXPAND AbstractGen FOR this»
+	«ENDIF»
+	«EXPAND BaseGenImpl FOR this»
+«ENDDEFINE»
+
+
+
+
+«DEFINE AbstractGen FOR wcprofile::Entity»
+«FILE getWebPackagePath("RepositoryBase")   »
+package « getWebPackageName() »;
+
+import « packageName() ».«name»;
+
+«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE BaseGenImpl FOR wcprofile::Entity»
+«FILE getWebPackagePath("RepositoryBase")   »
+package « getWebPackageName() »;
+
+import « packageName() ».«name»;
+
+«EXPAND genImports FOR this»
+
+
+«FOREACH getMultiValued() AS a-»
+import «a.type.fqn()»;
+«ENDFOREACH»
+
+public abstract interface «name»RepositoryBase extends PagingAndSortingRepository<«name», Long> {
+	
+	«IF getAppliedStereotype("wcprofile::SystemUser") != null && defaultRole != null»
+		public static final String DEFAULT_ROLE_NAME = "«defaultRole»"; 
+	«ENDIF»
+	
+	«EXPAND genPropertySearch(this) FOREACH getMineAndParentsAttributes().select(a|!a.isMultivalued() ) -»
+	
+}
+«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE genPropertySearch(wcprofile::Entity  entity) FOR uml::Property»
+	«IF !isString()»
+		Page<«entity.name»> findBy«name.toFirstUpper()»(@Param("«name»")  «type.fqn()» «name», Pageable pageable);
+	«ELSE»
+		Page<«entity.name»> findBy«name.toFirstUpper()»ContainingAllIgnoringCase(@Param("«name»")  «type.fqn()» «name», 
+		Pageable pageable);
+	
+		«entity.name» findBy«name.toFirstUpper()»IgnoringCase(@Param("«name»") «type.fqn()» «name»);
+	«ENDIF»
+
+«ENDDEFINE»
+
+
+«DEFINE genImports FOR wcprofile::Entity»
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.repository.query.Param;
+import org.springframework.data.rest.core.annotation.RepositoryRestResource;
+«ENDDEFINE»
