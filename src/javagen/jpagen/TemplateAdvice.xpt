@@ -227,8 +227,10 @@
 	
 	import java.math.BigDecimal;
 	
+	«REM»to be used with hibernate search only 
 	import org.hibernate.search.annotations.Analyzer;
 	import org.hibernate.search.annotations.Indexed;
+	«ENDREM»
 «ENDDEFINE»
 
 
