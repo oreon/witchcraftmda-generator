@@ -100,9 +100,11 @@
 «DEFINE genClassAnnotations FOR wcprofile::Entity»
 	@Entity
 	@Table(name="«getTableName()»")
+	«REM»TODO: do selective filtering 
 	@Filters( {  @Filter(name = "archiveFilterDef") , 
 	«IF isMultiTenanted()»  @Filter(name = "tenantFilterDef")  «ENDIF»
 	})
+	«ENDREM»
 	«IF auditable»@Audited«ENDIF»
 	«EXPAND genSearchAnnotations FOR this»
 «ENDDEFINE»
@@ -117,7 +119,6 @@
 
 «DEFINE genClassAnnotations FOR wcprofile::MappedSuperClass»
 	@MappedSuperclass
-	//KKKKKKK
 	«REM»comment
 	«EXPAND genSearchAnnotations FOR this»
 	«ENDREM»
@@ -161,6 +162,7 @@
 	«IF validator != null »«getValidatorAnnotations()»«ENDIF»
 	«getLengthAnnotations()»
 	«getUniqueAnnotations()»
+	«getSecretAnnotations()»
 	«REM»«getUniqueAnnotationsProp()»«ENDREM»
 	«getTransient()»
 	«type.name.getTypeAnnotation()»

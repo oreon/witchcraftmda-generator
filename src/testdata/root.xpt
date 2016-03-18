@@ -70,7 +70,7 @@ public class TestDataGenerator{
 		
 		private static final Logger logger = Logger.getLogger(«name»TestDataFactory.class);
 		
-		private static int RECORDS_TO_CREATE = 30;
+		private static int RECORDS_TO_CREATE = 3;
 	
 		private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss z");
 		

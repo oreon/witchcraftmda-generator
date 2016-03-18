@@ -85,14 +85,14 @@ package «packageNamePck()»;
 
 «DEFINE GenPackageInfo FOR wcprofile::EntitiesPackage»
 «FILE packagePathPck() +"/package-info.java"  »«EXPAND genFileHeader FOR this»
-«IF isSeam2()»
+
 @FilterDefs({
 @FilterDef(name = "archiveFilterDef", defaultCondition = "archived = :aArchived", parameters = @ParamDef(name = "aArchived", type = "string")),
 «IF isMultiTenanted()»
 	@FilterDef(name="tenantFilterDef", defaultCondition="(tenant is null or tenant = 0 or tenant = :tenantId  )", parameters=@ParamDef(name="tenantId", type="long"))
 «ENDIF»
 }) 
-«ENDIF»
+
 package «packageNamePck()»; 
 import org.hibernate.annotations.FilterDef;
 import org.hibernate.annotations.ParamDef;

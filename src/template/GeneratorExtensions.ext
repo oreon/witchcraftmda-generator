@@ -289,7 +289,7 @@ String getTopLevelPackage(Element elem):
 readPropertyDef("topLevelPackage", elem.package.name);
 	
 String getTopLevelPackagePath(Element elem):
-elem.getTopLevelPackage().packagePath();
+readPropertyDef("topLevelPackage", "").packagePath();
 	
 
 ModelObject getContainer(Operation op):
@@ -409,6 +409,10 @@ col.minLength > 0 ?"@Size(min=" + col.minLength + ")"  :"";
 
 String getUniqueAnnotations(Column col):
 col.uniqueProperty == true  ||  col.type.name == "uniqueNameType" ?"//@Unique(entityName = " + "\"" + fqn(col.class) + "\"" + ", fieldName = " + "\"" + col.name + "\"" + ")":"";
+
+String getSecretAnnotations(Property col):
+col.isSecret() ?"@com.fasterxml.jackson.annotation.JsonIgnore":"";
+
 
 String getUniqueAnnotationsProp(Property  col):
 " @Column(unique= " + (col.isUnq() &&  !isMultiTenanted()  ? "true" : "false") + ")";
