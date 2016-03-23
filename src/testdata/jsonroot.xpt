@@ -1,0 +1,55 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::associationExtensions»
+«EXTENSION template::WebExtensions»
+
+«DEFINE Root FOR uml::Model»
+«FILE "../../test/java/" + getTopLevelPackagePath() + "/testdata/" +  "TestData.json"»    
+	«EXPAND GenerateJsonEntity FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE GenerateJsonEntity FOR wcprofile::Entity»
+{
+ "model":"«fqn()»"
+ "pk": 1,
+ "fields": {
+  «EXPAND GenerateFields FOR this»
+ }
+}
+«ENDDEFINE»
+
+«DEFINE GenerateFields FOR wcprofile::AbstractEntity»
+
+	«EXPAND propRandValue FOREACH getMineAndParentsAttributes().select(a|!a.isMultivalued() && !a.type.isEmbeddable())  -»
+	«EXPAND genEmbeddable FOREACH getMineAndParentsAttributes().select(a|!a.isMultivalued() && a.type.isEmbeddable())-»
+	«REM»comment
+	«EXPAND genEditManyToManyShuttle FOREACH getMineAndParentsAttributes().select(a|a.isLeadingManyToMany() ) -»
+	«ENDREM»	
+«ENDDEFINE»
+
+«DEFINE genEmbeddable FOR wcprofile::Column»
+  «name»:{
+	«EXPAND GenerateFields FOR this.type»
+  }		
+«ENDDEFINE»
+
+«DEFINE propRandValue FOR uml::Property»
+	«EXPAND randValue(type) FOR this»
+«ENDDEFINE»
+
+«DEFINE randValue(uml::Enumeration e) FOR uml::Property»
+	"«name»": 1 «REM»TODO get 1st enum literal «getRandValue()-»«ENDREM»,
+«ENDDEFINE»
+
+«DEFINE randValue(uml::PrimitiveType e ) FOR uml::Property»
+	"«name»":«getRandValue()-»,
+«ENDDEFINE»
+
+«DEFINE randValue(uml::Class e) FOR uml::Property»
+	"«name»":1,
+«ENDDEFINE»
+
+

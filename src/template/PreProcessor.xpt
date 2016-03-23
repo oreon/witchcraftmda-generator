@@ -1,5 +1,6 @@
 «IMPORT wcprofile»
 
+«EXTENSION template::associationExtensions»
 
 «EXTENSION template::GeneratorExtensions»
 
@@ -29,6 +30,9 @@
 «REM» For associations we need to
  set name to type name if the name is null ;«ENDREM»
 «DEFINE setDefaultMultiplicityForAssocs FOR uml::Property»
+	«IF association != null && !isAggregate() && opposite.lowerValue==null »
+		«opposite.setUpper(-1)»
+	«ENDIF»
 «ENDDEFINE»
 
 
@@ -69,8 +73,22 @@
 			«LET type.name.toFirstLower() AS defaultName»
 				«IF isMultivalued()» «REM» For collections we need to create a plural default type name«ENDREM»
 					«setName(defaultName.getPlural())»
+					«REM»comment
+					«IF getLower() == null &&  getUpper() == null »
+					«setLower(0)»
+					«setUpper('*')»
+					«ENDIF»
+					«ENDREM»
 				«ELSE»
 					«setName(defaultName)»
+					«REM»comment
+					«IF opposite.getLower() == null || opposite.getLower() == ""  »
+					«setName("NMV22" + defaultName)»
+					«opposite.setLower(0)»
+					«opposite.setUpper('*')»
+					
+					«ENDIF»
+					«ENDREM»
 				«ENDIF»		
 			«ENDLET»
 		«ENDIF»
@@ -78,7 +96,7 @@
 		«IF !(opposite.name != null && opposite.name.length > 0 )»
 			«LET class.name.toFirstLower() AS defaultName»
 				«IF opposite!= null && opposite.isMultivalued()» 
-					«opposite.setName(defaultName.getPlural())»
+					«opposite.setName(defaultName.getPlural())» 
 				«ELSE»
 					«opposite.setName(defaultName)»
 				«ENDIF»	 

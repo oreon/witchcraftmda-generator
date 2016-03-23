@@ -5,7 +5,7 @@
 
 <bean class="org.eclipse.xtend.typesystem.uml2.Setup" standardUML2Setup="true" />
 
-<bean class="org.eclipse.emf.mwe.utils.StandaloneSetup" platformUri=".." />
+<bean class="org.eclipse.emf.mwe.utils.StandaloneSetup"  />
 
 
 <!-- load model and store it in slot 'model' -->
@@ -110,6 +110,7 @@ skipOnErrors="false">
 	</outlet>
 </component>
 
+<!--
 <component id="TestDataGenerator" class="org.eclipse.xpand2.Generator" skipOnErrors="false">
 	
 	<metaModel idRef="mm_profile"/>
@@ -126,6 +127,7 @@ skipOnErrors="false">
 		
 	</outlet>
 </component>
+-->
 
 <component id="WebGenerator" class="org.eclipse.xpand2.Generator" skipOnErrors="true">
 	

@@ -110,11 +110,11 @@
 		«IF !isManyToMany() && opposite != null»
 		  «pnamesingular».set«opposite.name.toFirstUpper()»((«typeName»)this);
 		«ENDIF»
-		if(«pname» == null) {
-			«pname» = new ArrayList<«ptype»>();
-		}
-		
-		this.«pname».add(«pnamesingular»);
+			if(this.«pname» == null) {
+				this.«pname» = new ArrayList<«ptype»>();
+			}
+			
+			this.«pname».add(«pnamesingular»);
 		}
 		«ENDLET»
 		«ENDLET»

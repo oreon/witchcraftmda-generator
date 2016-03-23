@@ -93,9 +93,8 @@ prop.lowerBound() > 0?false:true;
 
 
 isOneOnOne(Property prop):
-(prop.getUpper() != null && prop.getUpper() == 1 && prop.opposite.getUpper() != null && prop.opposite.getUpper() == 1 )
-||(!prop.isMultivalued()) && prop.association != null && prop.isContainedAssoc(); //prop.opposite!= null &&  (!prop.opposite.isMultivalued() ) ;
-
+(prop.getUpper() != null && prop.getUpper() == 1 && prop.opposite.getUpper() != null && prop.opposite.getUpper() == 1);
+//||(!prop.isMultivalued()) && prop.association != null && prop.isContainedAssoc(); //prop.opposite!= null &&  (!prop.opposite.isMultivalued() ) ;
 
 
 isContainedAssoc(Property prop):

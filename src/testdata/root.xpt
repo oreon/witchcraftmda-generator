@@ -6,6 +6,7 @@
 «EXTENSION template::WebExtensions»
 
 «DEFINE Root FOR uml::Model»
+	«EXPAND jsonroot::Root FOR this»
 	«EXPAND GenerateTestDataFactoryManager FOR this»
 	«EXPAND GenerateTestDataFactory FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
 «ENDDEFINE»

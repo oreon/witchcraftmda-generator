@@ -86,7 +86,7 @@ import « packageName() ».«name»;
 import «a.type.fqn()»;
 «ENDFOREACH»
 
-@RepositoryRestResource(export=false)
+@RepositoryRestResource(exported=false)
 public interface «name»RepositoryBase extends PagingAndSortingRepository<«name», Long> {
 	
 	«IF getAppliedStereotype("wcprofile::SystemUser") != null && defaultRole != null»

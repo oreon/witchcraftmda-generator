@@ -106,6 +106,9 @@
 	})
 	«ENDREM»
 	«IF auditable»@Audited«ENDIF»
+	«IF inheritanceType.name != null»
+	@Inheritance(strategy=InheritanceType.«inheritanceType.name»)
+	«ENDIF»
 	«EXPAND genSearchAnnotations FOR this»
 «ENDDEFINE»
 
@@ -184,7 +187,9 @@
 		 	«EXPAND EmbeddedAttributes FOR this»  
 		 «ENDIF»	
 		«ELSE»
-		 @« isOneOnOne()?"One":"Many"»ToOne(«IF isOneOnOne() && isAggregate()»mappedBy = "« class.asVar()»", «ENDIF»optional=«getAssocOptional()», fetch=FetchType.LAZY «IF isOneOnOne()», cascade = CascadeType.ALL «ENDIF» )
+		«REM»TODO - reversing one on one as it is behaving strangely «ENDREM»
+		//«getUpper()»  «opposite.getUpper()» «isAggregate()» «opposite.isAggregate()»
+		 @«isOneOnOne()?"One":"Many"»ToOne(«IF isOneOnOne() && isAggregate()»mappedBy = "« class.asVar()»", «ENDIF»optional=«getAssocOptional()», fetch=FetchType.LAZY «IF isOneOnOne()», cascade = CascadeType.ALL «ENDIF» )
 		 «IF !(isOneOnOne() && isAggregate())»@JoinColumn(name="«name»_id", nullable=«getAssocOptional()», updatable = true , insertable = true «REM»«getAssocUpdatable()»  comment«ENDREM») «ENDIF»
 		«ENDIF»
 	«ENDIF»	

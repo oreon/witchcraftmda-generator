@@ -9,6 +9,10 @@ extension template::GeneratorExtensions;
 context uml::Class ERROR 'a class must have a name! found anonymous class in ' + this.package.name:
 this.name != null && this.name.length > 0;
 
+//context uml::Property ERROR 'a property must have a valid name! found anonymous property in ' + this.class.name:
+//this.name != null && this.name.length > 0 && this.association == null && this.class.isAbstractEntity();
+
+
 //context uml::Property ERROR 'a field must have a name!, found anonymous field in ' + this.class.name:
 //this.association != null || this.name != null && this.name.length > 0;
 
@@ -33,8 +37,8 @@ context wcprofile::Entity WARNING 'an entity class should not be abstract ' + th
 //this.class.isEntity() && this.association == null &&  !this.type.isEntity() ;
 
 
-//context uml::Property ERROR 'a field must have a type!, found untyped field ' + name + ' in ' + this.class.name:
-//this.type != null;
+context uml::Property ERROR 'a field must have a type!, found untyped field ' + name + ' in ' + this.class.name:
+this.type != null;
 
 
 
