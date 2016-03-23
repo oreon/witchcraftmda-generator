@@ -58,7 +58,8 @@ cls.getMineAndParentsAttributes().select(a|a.isMVComposite());
 getOppositeName(Property p):
 p.opposite.name != null ? p.opposite.name : p.class.asVar();
 
-
+isAggregateOrComposed(Property p):
+p.isAggregate() || p.isComposite();
 
 isAggregate(Property prop):
 JAVA org.witchcraft.generatorutil.ClassUtil.isAggregate(org.eclipse.uml2.uml.Property);

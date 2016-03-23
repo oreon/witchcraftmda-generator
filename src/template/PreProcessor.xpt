@@ -30,7 +30,7 @@
 «REM» For associations we need to
  set name to type name if the name is null ;«ENDREM»
 «DEFINE setDefaultMultiplicityForAssocs FOR uml::Property»
-	«IF association != null && !isAggregate() && opposite.lowerValue==null »
+	«IF association != null && !isAggregateOrComposed() && opposite.lowerValue==null »
 		«opposite.setUpper(-1)»
 	«ENDIF»
 «ENDDEFINE»
