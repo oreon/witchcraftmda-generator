@@ -106,9 +106,7 @@
 	})
 	«ENDREM»
 	«IF auditable»@Audited«ENDIF»
-	«IF inheritanceType.name != null»
-	@Inheritance(strategy=InheritanceType.«inheritanceType.name»)
-	«ENDIF»
+	«IF this.inheritanceType.name != 'NONE'»@Inheritance(strategy=InheritanceType.«inheritanceType.name»)//inherit«ENDIF»
 	«EXPAND genSearchAnnotations FOR this»
 «ENDDEFINE»
 
@@ -178,19 +176,18 @@
 		«IF isManyToMany()»
 			«EXPAND genManyToMany FOR this»
 		«ELSE»
-			@OneToMany(«IF isBidirectional()»mappedBy = "«getOppositeName() »", «ENDIF» fetch = FetchType.LAZY, cascade = CascadeType.ALL «IF isComposite()»,orphanRemoval=true«ENDIF»)
+			@OneToMany(«IF isBidirectional()»mappedBy = "«getOppositeName() »", «ENDIF» «getFetchType()», cascade = CascadeType.ALL «IF isComposite()»,orphanRemoval=true«ENDIF»)
 			@OrderBy(«IF isColumn() && orderBy != null» "«orderBy»" «ELSE»"id DESC"«ENDIF»)			
 		«ENDIF»
 	«ELSE»
 		«IF type.isEmbeddable()»
 		 «IF type.name != class.name && type.isEmbeddable() »  
 		 	«EXPAND EmbeddedAttributes FOR this»  
-		 «ENDIF»	
+		 «ENDIF»
 		«ELSE»
-		«REM»TODO - reversing one on one as it is behaving strangely «ENDREM»
-		//«getUpper()»  «opposite.getUpper()» «isAggregate()» «opposite.isAggregate()»
-		 @«isOneOnOne()?"One":"Many"»ToOne(«IF isOneOnOne() && isAggregate()»mappedBy = "« class.asVar()»", «ENDIF»optional=«getAssocOptional()», fetch=FetchType.LAZY «IF isOneOnOne()», cascade = CascadeType.ALL «ENDIF» )
-		 «IF !(isOneOnOne() && isAggregate())»@JoinColumn(name="«name»_id", nullable=«getAssocOptional()», updatable = true , insertable = true «REM»«getAssocUpdatable()»  comment«ENDREM») «ENDIF»
+		«REM»«getUpper()»  «opposite.getUpper()» «isAggregate()» «opposite.isAggregate()» «ENDREM»
+		 @«isOneOnOne()?"One":"Many"»ToOne(«IF isOneOnOne() && isAggregate()»mappedBy = "«class.asVar()»", «ENDIF»optional=«getAssocOptional()», «getFetchType()» «IF isOneOnOne()», cascade = CascadeType.ALL «ENDIF» )
+		 «IF !(isOneOnOne() && isAggregate())»@JoinColumn(name="«name.getColumnNameUC()»_ID", nullable=«getAssocOptional()», updatable = true , insertable = true «REM»«getAssocUpdatable()»  comment«ENDREM») «ENDIF»
 		«ENDIF»
 	«ENDIF»	
 «ENDDEFINE»
@@ -198,11 +195,11 @@
 
 «DEFINE genManyToMany FOR uml::Property»
 	«IF isLeadingManyToMany()»
-		@ManyToMany(cascade={CascadeType.PERSIST, CascadeType.MERGE})
+		@ManyToMany(cascade={CascadeType.PERSIST, CascadeType.MERGE}, «getFetchType()»)
 	    @JoinTable(
 	        name="«opposite.name»_«name»",
-	        joinColumns=@JoinColumn(name="«opposite.name»_ID"),
-	        inverseJoinColumns=@JoinColumn(name="«name»_ID")
+	        joinColumns=@JoinColumn(name="«opposite.name.getColumnNameUC()»_ID"),
+	        inverseJoinColumns=@JoinColumn(name="«name.getColumnNameUC()»_ID")
 	    )
 	«ELSE»
 	   @ManyToMany(mappedBy="«opposite.name»")
@@ -213,7 +210,7 @@
 	@Embedded
 	@AttributeOverrides( {
 	«FOREACH type.getAllAttributes() AS e ITERATOR iter»
-		@AttributeOverride(name="«e.name»", column = @Column(name="«name»_«e.name»") ) «IF iter.counter1 < type.getAllAttributes().size » , «ENDIF»
+		@AttributeOverride(name="«e.name»", column = @Column(name="«name.getColumnNameUC()»_«e.name.getColumnNameUC()»") ) «IF iter.counter1 < type.getAllAttributes().size » , «ENDIF»
 	«ENDFOREACH»
     } )
 «ENDDEFINE»

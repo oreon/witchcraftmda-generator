@@ -38,8 +38,15 @@
 
 «DEFINE applyColumnStereoType FOR wcprofile::EntitiesPackage»
 	«EXPAND applyColumnStereoType FOREACH allOwnedElements().typeSelect(uml::Class)» 
+	«EXPAND epStereoType FOREACH allOwnedElements().typeSelect(uml::Package)» 
+	
 «ENDDEFINE»
-
+«DEFINE epStereoType FOR uml::Package»
+	«IF getStereotypeApplications().isEmpty»
+		«this.applyGivenStereoType("EntitiesPackage")»
+		«this.setValue(getAppliedStereotype("wcprofile::EntitiesPackage"), "defaultTablePrefix" , this.allOwningPackages().get(0).defaultTablePrefix) »
+	«ENDIF»
+«ENDDEFINE»
 
 
 «DEFINE applyColumnStereoType FOR uml::Class»

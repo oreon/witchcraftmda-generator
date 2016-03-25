@@ -23,8 +23,11 @@
 «DEFINE ManualGen FOR wcprofile::Entity»
 
 «FILE getWebPackagePath("Repository")  man_path »
-	
 	package « getWebPackageName() »;
+	
+	«EXPAND genImports FOR this»
+	
+	@RepositoryRestResource
 	public interface «name»Repository extends «name»RepositoryBase {
 	}
 	
@@ -86,7 +89,7 @@ import « packageName() ».«name»;
 import «a.type.fqn()»;
 «ENDFOREACH»
 
-@RepositoryRestResource(exported=false)
+//@RepositoryRestResource(exported=false)
 public interface «name»RepositoryBase extends PagingAndSortingRepository<«name», Long> {
 	
 	«IF getAppliedStereotype("wcprofile::SystemUser") != null && defaultRole != null»

@@ -440,7 +440,7 @@ public class ClassUtil {
 	 * @return input firstName - output First Name
 	 */
 	public static String getViewLabelFromVariable(String varName) {
-		return getViewLabelFromVariable(varName, " ");
+		return getSplitName(varName, " ");
 	}
 
 	/**
@@ -449,23 +449,25 @@ public class ClassUtil {
 	 * 
 	 * @return input firstName - output First Name
 	 */
-	public static String getViewLabelFromVariable(String varName,
+	public static String getSplitName(String varName,
 			String concatChar) {
 
 		if (varName == null) {
 			// system.out.println("Warn: null variable in getViewLabel ");
 			return "";
-		}
-		char[] characters = varName.toCharArray();
-		for (char ch : characters) {
-			if (Character.isUpperCase(ch))
-				varName = varName.replace(new String(ch + ""), concatChar + ch);
-		}
-		return WordUtils.capitalizeFully(varName);
+		}else 
+			varName = varName.trim();
+		
+		String result =  varName.replaceAll(String.format("%s|%s|%s",
+				"(?<=[A-Z])(?=[A-Z][a-z])", "(?<=[^A-Z])(?=[A-Z])",
+				"(?<=[A-Za-z])(?=[^A-Za-z])"), " ");
+		result = result.replaceAll(" ", concatChar);
+		
+		return WordUtils.capitalizeFully(result);
 	}
 
 	public static String getColumnNameUC(String varName) {
-		return getViewLabelFromVariable(varName, "_").toUpperCase();
+		return getSplitName(varName, "_").toUpperCase();
 	}
 
 	public static String readProperty(String key) {
@@ -511,6 +513,7 @@ public class ClassUtil {
 
 		// couldnt find any suitable display name
 		return attribs.get(0).getName() + "+ \"\"";
+		
 	}
 
 	public static List<Property> attribsOfThisClass(Class cls) {
@@ -814,6 +817,7 @@ public class ClassUtil {
 	 */
 	public static EList<Property> getMineAndParentsAttributes(Class cls) {
 		EList<Classifier> elems = cls.allParents();
+		//cls.
 		BasicEList<Property> list = new BasicEList();
 
 		for (Classifier classifier : elems) {
