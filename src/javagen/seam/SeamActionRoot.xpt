@@ -118,7 +118,7 @@ public abstract class «name»ActionBase extends «getParentForAction()» implements
 	
 	
 	@Override
-	@Restrict("#{s:hasPermission('«asVar()»', 'edit')}")
+	//@Restrict("#{s:hasPermission('«asVar()»', 'edit')}")
 	public String save(boolean endconv) {
 		return super.save(endconv);
 	}
@@ -147,7 +147,7 @@ public abstract class «name»ActionBase extends «getParentForAction()» implements
 	/**
 	 * Adds the contained associations that should be available for a newly created object e.g. 
 	 * An order should always have at least one order item . Marked in uml with 1..* multiplicity
-	 */
+	 
 	private void addDefaultAssociations() {
 		if(isNew()){
 			instance = getInstance();
@@ -163,7 +163,7 @@ public abstract class «name»ActionBase extends «getParentForAction()» implements
 				«ENDIF»
 			«ENDFOREACH»
 		}
-	}
+	}*/
 
 	public void wire() {
 		/*

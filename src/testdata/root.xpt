@@ -13,14 +13,14 @@
 
 
 «DEFINE GenerateTestDataFactoryManager FOR uml::Model»
-«FILE "../../test/java/" + getTopLevelPackagePath() + "/testdata/" +  "TestDataGenerator.java"»  
-
+«FILE getTestDirectory("testdata") +   "TestDataFactoryManager.java"»  
+package «getTopLevelPackageProperty()».testdata;
 
 import java.util.List;
 import java.util.ArrayList;
-import org.witchcraft.action.test.AbstractTestDataFactory;
+import org.witchcraft.base.test.AbstractTestDataFactory;
 
-public class TestDataGenerator{
+public class TestDataFactoryManager{
 
 	public static List<AbstractTestDataFactory> listDataFactory = new ArrayList<AbstractTestDataFactory>();
 
@@ -40,7 +40,7 @@ public class TestDataGenerator{
 	 * @param args
 	 */
 	public static void main(String args[]) {
-		new TestDataGenerator().persist();
+		//new TestDataGenerator().persist();
 	}
 	
 
@@ -49,7 +49,7 @@ public class TestDataGenerator{
 «ENDDEFINE»
 
 «DEFINE GenerateTestDataFactory FOR wcprofile::Entity»
-	«FILE "../../test/java/" + packagePath()+ "/testdata/" + name + "TestDataFactory.java"»  
+	«FILE getTestDirectory("testdata") +   name + "TestDataFactory.java"»  
 
 	package «packageName()».testdata;
 	
@@ -57,8 +57,7 @@ public class TestDataGenerator{
 	import java.util.List;
 	import java.util.Random;
 	import java.util.ArrayList;
-	import org.jboss.seam.Component;
-	import org.witchcraft.action.test.AbstractTestDataFactory;
+	import org.witchcraft.base.test.AbstractTestDataFactory;
 	
 	//import org.witchcraft.model.support.errorhandling.BusinessException;
 	//import org.witchcraft.model.randomgen.RandomValueGeneratorFactory;
@@ -75,7 +74,7 @@ public class TestDataGenerator{
 	
 		private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss z");
 		
-		«this.getActionFqn()» «getAction()»;
+		«REM»comment«ENDREM»
 		
 		«FOREACH getOutgoingAssociations() AS e»
 		«IF !e.isOneOnOne() ||( e.isOneOnOne() && e.isAggregate() )»
@@ -101,8 +100,8 @@ public class TestDataGenerator{
 			
 			try{
 			
-			«EXPAND genData(this) FOREACH allParents() -»
-	 		«EXPAND genData(this) FOR this»
+			«EXPAND genData(this, counter) FOREACH allParents() -»
+	 		«EXPAND genData(this, counter) FOR this»
 			
 			register(«asVar()»);
 			
@@ -116,25 +115,25 @@ public class TestDataGenerator{
 	«ENDFOREACH»
 	
 		
-		public List<«fqn()»> createAll(){
+		public void createAll(){
 			«FOREACH getCounters() AS counter-»
 				create«name»«counter»();
 			«ENDFOREACH»
+		}
 		
+		//@Override
+		public List<«fqn()»> getListOfRecords() {
+			if(«asVar()»s.isEmpty())
+				createAll();
 			return «asVar()»s;
 		}
 		
-		@Override
-		public List<«fqn()»> getListOfRecords() {
-			return  «asVar()»s;
-		}
-		
-		@Override
+		//@Override
 		public String getQuery() {
 			return "Select e from «fqn()» e ";
 		}
 		
-		
+		/*
 		public  void persistAll(){
 			init();
 			createAll();
@@ -142,13 +141,13 @@ public class TestDataGenerator{
 			for («fqn()» «asVar()» : «asVar()»s) {
 				persist(«asVar()»);
 			}
-		}
+		}*/
 		
 		/** Execute this method to manually generate objects
 		 * @param args
 		 */
 		public static void main(String args[]){
-			new «name»TestDataFactory().persistAll(); 
+			//new «name»TestDataFactory().persistAll(); 
 		}
 	
     }
@@ -156,7 +155,7 @@ public class TestDataGenerator{
 «ENDDEFINE»
 
 
-«DEFINE genData(uml::Class target) FOR uml::Class»
+«DEFINE genData(uml::Class target, String counter) FOR uml::Class»
 	«FOREACH getAllAttributes().select(a| a.association == null && !a.isFile()) AS attrib-»
 			«EXPAND randValue(attrib.type, target) FOR attrib»
 	«ENDFOREACH»
@@ -171,7 +170,7 @@ public class TestDataGenerator{
 	
 	«FOREACH getOutgoingAssociations().select(a| !( a.type.isEmbeddable() || a.isContainedAssoc()) ) AS a»
 		«IF !a.isOneOnOne() ||( a.isOneOnOne() && a.isAggregate() )»«REM» need to have only one side in one to one bidrecitonals«ENDREM»
-		 «target.asVar()».set«a.name.toFirstUpper()»(«a.name»TestDataFactory.getRandomRecord());
+		 «target.asVar()».set«a.name.toFirstUpper()»(«a.name»TestDataFactory.create«a.name.toFirstUpper()»«counter»());
 		«ENDIF»
 	«ENDFOREACH»
 

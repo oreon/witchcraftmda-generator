@@ -18,6 +18,13 @@ cls.asVar() + "List";
 String getActionFqn(Class type):
 type.getWebPackageName() + "." + type.name + "Action" ;
 
+String getRepositoryFqn(Class type):
+type.getWebPackageName() + "." + type.name + "Repository" ;
+
+String getTestDataFactoryFqn(Class type):
+type.packageName() + ".testdata." + type.name + "TestDataFactory" ;
+
+
 String getActionFqn(Class type, String prefix, String postFix):
 type.getWebPackageName() + "." + prefix + type.name + "Action" + postFix;
 
@@ -246,7 +253,7 @@ getTextForImgFile(Property prop):
 
 
 String getWebPath(Class cls):
- getEntitiesRoot() + cls.package.name +  "/" + cls.asVar()  + (isCurrentTemplateMode()?"Template":"");
+getEntitiesRoot() + cls.package.name +  "/" + cls.asVar()  + (isCurrentTemplateMode()?"Template":"");
 
 String getEntitiesRoot():
 getAdminRoot() +  "entities/";

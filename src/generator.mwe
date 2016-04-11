@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="ISO-8859-1"?>
 <workflow>
 
-<property file="workflow.properties" />
+<property file="workflow-seam.properties" />
 
 <bean class="org.eclipse.xtend.typesystem.uml2.Setup" standardUML2Setup="true" />
 
@@ -129,7 +129,8 @@ skipOnErrors="false">
 	</outlet>
 </component>			
 
-
+  
+<!--
 <component id="RestEasyGenerator" class="org.eclipse.xpand2.Generator"
 skipOnErrors="true">
 	<metaModel idRef="mm_profile"/>
@@ -139,8 +140,7 @@ skipOnErrors="true">
 	</outlet>
 </component>
 
-  
-<!--
+
   <component id="generator" class="org.eclipse.xpand2.Generator" skipOnErrors="true">
 	  <metaModel class="org.eclipse.xtend.typesystem.uml2.UML2MetaModel"/>
 	 

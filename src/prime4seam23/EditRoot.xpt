@@ -337,8 +337,9 @@
 				<p:column>#{record.displayName}</p:column>
 			</p:autoComplete>
 		«ELSE»
+		
 		<p:panel toggleable="true" header="«msgBundleKey()»" switchType="client"  id="«name»">     
-		     <p:pickList value="#{«class.getAction()».fetchListAvailable«name.toFirstUpper()»()}" var="member"
+		     <p:pickList value="#{«class.getAction()».listAvailable«name.toFirstUpper()»}" var="member"
 	    	 	itemLabel="#{member.displayName}" itemValue="#{member}" converter="#{«type.name.toFirstLower()»List.converter}"/>
 	    </p:panel>
 	    «ENDIF»

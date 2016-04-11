@@ -198,6 +198,7 @@
 	        joinColumns=@JoinColumn(name="«opposite.name.getColumnNameUC()»_ID"),
 	        inverseJoinColumns=@JoinColumn(name="«name.getColumnNameUC()»_ID")
 	    )
+	    @IndexColumn(name = "«opposite.name»_order")
 	«ELSE»
 	   @ManyToMany(mappedBy="«opposite.name»")
 	«ENDIF»
@@ -223,10 +224,15 @@
 	import org.witchcraft.base.entity.BaseEntity;
 	import org.hibernate.annotations.Filter;
 	import org.hibernate.annotations.Filters;
+	import org.hibernate.annotations.Formula;
+	import org.hibernate.annotations.IndexColumn;
+	
 	
 	import javax.validation.constraints.*;
 	
 	import java.math.BigDecimal;
+	
+	
 	
 	«REM»to be used with hibernate search only 
 	import org.hibernate.search.annotations.Analyzer;

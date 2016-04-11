@@ -67,6 +67,9 @@ packageNameWithoutRoot(pck).replaceAll("::", ".");
 String packageName (Element cls) :
 packageNameWithoutRoot(cls.package).replaceAll("::", ".");
 
+isRecursive(Class cls):
+!cls.getMineAndParentsAttributes().select ( a | a.type.name == cls.name).isEmpty;
+
 //in case of magicdraw we need to remove the root "Data" package
 String packageNameWithoutRoot(Package package):
 if ( package !=null && package.getQualifiedName() != null && package.getQualifiedName().startsWith("Data") ) then 
@@ -85,6 +88,10 @@ str.replaceAll("::|\\.", "/");
 
 String packagePathStr(String str):
 str.replaceAll("::|\\.", "/");
+
+//given a package path like "/src/main/java/com/td/aam" will return com.td.aam
+pathToPackageDeclaration(String str):
+str.replaceAll("/", "\\.");
 
 
 //fully qualified name of a class
@@ -285,7 +292,7 @@ else
 
 
 String getTopLevelPackageProperty():
-readProperty("topLevelPackage");
+readPropertyDef("topLevelPackage" ,"UNKNOWN");
 
 
 String getTopLevelPackage(Element elem):
@@ -293,6 +300,17 @@ readPropertyDef("topLevelPackage", elem.package.name);
 	
 String getTopLevelPackagePath(Element elem):
 readPropertyDef("topLevelPackage", "").packagePath();
+
+//Class for Data access
+String getRepositoryClass(wcprofile::AbstractEntity entity):
+entity.name + readPropertyDef("actionClassSuffix", "Repository").toFirstUpper();
+
+getTestDirectory(wcprofile::AbstractEntity entity, String leafPackageName):
+"../../test/java/" + entity.packagePath() + "/" + leafPackageName + "/";
+
+getTestDirectory(uml::Model model, String leafPackageName):
+"../../test/java/" + model.getTopLevelPackagePath() + "/" + leafPackageName + "/";
+
 	
 
 ModelObject getContainer(Operation op):
@@ -414,7 +432,7 @@ String getUniqueAnnotations(Column col):
 col.uniqueProperty == true  ||  col.type.name == "uniqueNameType" ?"//@Unique(entityName = " + "\"" + fqn(col.class) + "\"" + ", fieldName = " + "\"" + col.getColumnName() + "\"" + ")":"";
 
 String getSecretAnnotations(Property col):
-col.isSecret() ?"@com.fasterxml.jackson.annotation.JsonIgnore":"";
+col.isSecret() ?"/*@com.fasterxml.jackson.annotation.JsonIgnore*/":"";
 
 
 String getUniqueAnnotationsProp(Property  col):

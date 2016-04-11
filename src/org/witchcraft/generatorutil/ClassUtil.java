@@ -36,6 +36,7 @@ import org.eclipse.xtend.typesystem.uml2.profile.ProfileMetaModel;
 
 public class ClassUtil {
 
+	private static final String WORKFLOW_PROPERTIES = "workflow.properties";
 	public static final Logger log = Logger.getLogger(ClassUtil.class);
 	Operation operation;
 
@@ -575,7 +576,7 @@ public class ClassUtil {
 		try {
 			// InputStream stream = ClassUtil.class
 			// .getResourceAsStream("workflow.properties");
-			properties.load(new FileInputStream("workflow.properties"));
+			properties.load(new FileInputStream(WORKFLOW_PROPERTIES));
 			if (properties == null) {
 				logger.error("workflow properties file is not in the classpath");
 				return false;

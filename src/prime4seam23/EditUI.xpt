@@ -256,34 +256,22 @@
 
 
 
-
-
-
-
-
 «DEFINE genEditManyToManyShuttle FOR uml::Property»
 	<br/>
-	«IF isCurrentEditMode()»
-		«IF isAutoComplete()»
-			<p:autoComplete minQueryLength="2" 
-				completeMethod="#{«type.name.toFirstLower()»List.autocompletedb}"
-				value="#{«class.getAction()».list«name.toFirstUpper()»}" converter="#{«type.name.toFirstLower()»List.converter}"
-				var="record" itemLabel="#{record.displayName}" itemValue="#{record}"   multiple="true">
-				<p:column>#{record.displayName}</p:column>
-			</p:autoComplete>
-		«ELSE»
-		<p:panel toggleable="true" header="«msgBundleKey()»" switchType="client"  id="«name»">     
-		     <p:pickList value="#{«class.getAction()».fetchListAvailable«name.toFirstUpper()»()}" var="member"
-	    	 	itemLabel="#{member.displayName}" itemValue="#{member}" converter="#{«type.name.toFirstLower()»List.converter}"/>
-	    </p:panel>
-	    «ENDIF»
+	«IF isAutoComplete()»
+		<p:autoComplete minQueryLength="2" 
+			completeMethod="#{«type.name.toFirstLower()»List.autocompletedb}"
+			value="#{«class.getAction()».list«name.toFirstUpper()»}" converter="#{«type.name.toFirstLower()»List.converter}"
+			var="record" itemLabel="#{record.displayName}" itemValue="#{record}"   multiple="true">
+			<p:column>#{record.displayName}</p:column>
+		</p:autoComplete>
 	«ELSE»
-	<p:panel toggleable="true" header="«msgBundleKey()»" switchType="client"  >
-        <p:dataTable value="#{«class.getAction()».list«name.toFirstUpper()»}" var="item" >
-        	<p:column> #{item.displayName} </p:column>
-     	</p:dataTable>
-     </p:panel>
+	<p:panel toggleable="true" header="«msgBundleKey()»" switchType="client"  id="«name»">     
+	     <p:pickList value="#{«class.getAction()».fetchListAvailable«name.toFirstUpper()»()}" var="member"
+    	 	itemLabel="#{member.displayName}" itemValue="#{member}" converter="#{«type.name.toFirstLower()»List.converter}"/>
+    </p:panel>
 	«ENDIF»
+
 «ENDDEFINE»
 
 

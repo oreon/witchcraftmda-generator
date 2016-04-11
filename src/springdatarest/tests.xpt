@@ -1,0 +1,152 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::associationExtensions»
+«EXTENSION template::WebExtensions»
+
+«DEFINE Root FOR uml::Model»
+	«EXPAND EntityTestRoot FOREACH  allOwnedElements().typeSelect(wcprofile::Entity)»
+	«REM»comment
+	«EXPAND WebActionTestRoot::Root FOR this»
+	«ENDREM»
+«ENDDEFINE»
+
+«DEFINE EntityTestRoot FOR wcprofile::Entity»
+	«EXPAND BaseGen FOR this»
+	«EXPAND ManualGen FOR this»
+«ENDDEFINE»
+
+«DEFINE BaseGen FOR wcprofile::Entity»
+	«FILE getTestDirectory("repositorytests") +  name + "RepositoryIntegrationTestBase.java" »
+		package «packageName()».repositorytests;
+		«EXPAND genImports FOR this»
+		«EXPAND genClassBody FOR this» 
+	«ENDFILE»
+«ENDDEFINE»
+
+
+
+«DEFINE genClassBody FOR wcprofile::Entity»
+
+/**
+ * DB tests for {@link CustomerRepository}.
+ *
+ */
+@RunWith(SpringJUnit4ClassRunner.class)
+//@SpringApplicationConfiguration(classes = { UmgtApplication.class,SecurityConfiguration.class })
+@Transactional
+public class «name»RepositoryIntegrationTestBase {
+
+	@Autowired
+	protected «getRepositoryFqn()» «getRepositoryClass().toFirstLower()»;
+	
+	protected «this.getTestDataFactoryFqn()» «asVar()»TestDataFactory = new «this.getTestDataFactoryFqn()»();
+
+	«name» «asVar()» ;
+	
+	@Before
+	public void setup() throws Exception {
+
+		try {
+			«asVar()»Repository.deleteAll();
+			«asVar()» = «asVar()»TestDataFactory.create«name»One();
+			«asVar()»Repository.save(«asVar()»);
+
+		} catch (AccessDeniedException ade) {
+			System.out.println(ade.getMessage());
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+
+	}
+	
+	@Test
+	@WithMockUser(username = "admin", roles = { "ADMIN" })
+	public void findOne(){
+		assertCount(1L);
+	}
+	
+	@Test
+	@WithMockUser(username = "admin", roles = { "ADMIN" })
+	public void findById(){
+		«name» temp = «asVar()»Repository.findOne(«asVar()».getId());
+		assertThat(temp).isNotNull();
+	}
+	
+	
+	@Test
+	@WithMockUser(username = "admin", roles = { "ADMIN" })
+	public void testEdit() throws IllegalAccessException, InvocationTargetException{
+		Long currentId = «asVar()».getId();
+		BeanUtils.copyProperties(«asVar()», «asVar()»TestDataFactory.create«name»Two());
+		«asVar()».setId(currentId);
+		«asVar()»Repository.save(«asVar()»);
+		assertCount(1L);
+	}
+	
+	@Test
+	@WithMockUser(username = "admin", roles = { "ADMIN" })
+	public void testDelete(){
+		«asVar()»Repository.delete(«asVar()»);
+		assertCount(0L);
+	}
+	
+	@Test(expected = AccessDeniedException.class)
+	@WithMockUser(username = "mrmanager", roles = { "MANAGER" })
+	public void testDeleteWithoutPreviliges(){
+		«asVar()»Repository.delete(«asVar()»);
+		assertCount(0L);
+	}
+	
+	
+	public void assertCount(long assertCount){
+		Long count = «asVar()»Repository.count();
+		assertThat(count).isEqualTo(assertCount);
+	}
+	
+
+	
+}
+
+«ENDDEFINE»
+
+«DEFINE ManualGen FOR wcprofile::Entity»
+«FILE  getTestDirectory("repositorytests") + name + "RepositoryIntegrationTest.java" man_path »
+package «packageName()».repositorytests;
+«EXPAND genImports FOR this»
+
+
+/**
+ * DB tests for {@link CustomerRepository}.
+ *
+ */
+@RunWith(SpringJUnit4ClassRunner.class)
+//@SpringApplicationConfiguration(classes = { MainApplication.class,SecurityConfiguration.class })
+@Transactional
+public class «name»RepositoryIntegrationTest extends «name»RepositoryIntegrationTestBase{
+	
+}
+«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE genImports FOR wcprofile::Entity»
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.lang.reflect.InvocationTargetException;
+
+import org.apache.commons.beanutils.BeanUtils;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.transaction.annotation.Transactional;
+
+import «fqn()»;
+
+«ENDDEFINE»
