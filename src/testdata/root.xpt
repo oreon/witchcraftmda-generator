@@ -20,13 +20,28 @@ import java.util.List;
 import java.util.ArrayList;
 import org.witchcraft.base.test.AbstractTestDataFactory;
 
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+
+@Configuration
 public class TestDataFactoryManager{
 
 	public static List<AbstractTestDataFactory> listDataFactory = new ArrayList<AbstractTestDataFactory>();
+	
+	
+	«FOREACH allOwnedElements().typeSelect(wcprofile::Entity)  AS a»
+	@Bean
+	public «a.getTestDataFactoryFqn()» create«a.name»TestDataFactory(){
+		return new «a.getTestDataFactoryFqn()»();
+	}
+	«ENDFOREACH»
+	
+	
 
 	static {
 	«FOREACH allOwnedElements().typeSelect(wcprofile::Entity)  AS a»
-		listDataFactory.add(new «a.packageName()».testdata.«a.name»TestDataFactory());
+		listDataFactory.add(new «a.getTestDataFactoryFqn()»());
 	«ENDFOREACH»
 	}
 	
@@ -66,7 +81,7 @@ public class TestDataFactoryManager{
 	
 	public class «name»TestDataFactory extends AbstractTestDataFactory<«fqn()»> {
 	
-		private List<«fqn()»>  «asVar()»s = new ArrayList<«fqn()»>();
+		private static List<«fqn()»>  records = new ArrayList<«fqn()»>();
 		
 		private static final Logger logger = Logger.getLogger(«name»TestDataFactory.class);
 		
@@ -89,7 +104,7 @@ public class TestDataFactoryManager{
 	
 	
 		public void register(«fqn()» «asVar()»){
-			«asVar()»s.add(«asVar()»);
+			records.add(«asVar()»);
 		}
 		
 
@@ -100,13 +115,15 @@ public class TestDataFactoryManager{
 			
 			try{
 			
+			register(«asVar()»);
+			
+			
 			«EXPAND genData(this, counter) FOREACH allParents() -»
 	 		«EXPAND genData(this, counter) FOR this»
 			
-			register(«asVar()»);
 			
 			}catch(Exception ex){
-				ex.printStackTrace();
+				handleCreationException(ex);
 			}
 			
 			return «asVar()»;
@@ -123,9 +140,9 @@ public class TestDataFactoryManager{
 		
 		//@Override
 		public List<«fqn()»> getListOfRecords() {
-			if(«asVar()»s.isEmpty())
+			if(records.isEmpty())
 				createAll();
-			return «asVar()»s;
+			return records;
 		}
 		
 		//@Override
@@ -138,7 +155,7 @@ public class TestDataFactoryManager{
 			init();
 			createAll();
 		
-			for («fqn()» «asVar()» : «asVar()»s) {
+			for («fqn()» «asVar()» : records) {
 				persist(«asVar()»);
 			}
 		}*/

@@ -34,14 +34,24 @@
  *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-//@SpringApplicationConfiguration(classes = { UmgtApplication.class,SecurityConfiguration.class })
+@SpringApplicationConfiguration(classes = { MainApp.class,SecurityConfiguration.class })
 @Transactional
 public class «name»RepositoryIntegrationTestBase {
 
 	@Autowired
 	protected «getRepositoryFqn()» «getRepositoryClass().toFirstLower()»;
 	
-	protected «this.getTestDataFactoryFqn()» «asVar()»TestDataFactory = new «this.getTestDataFactoryFqn()»();
+	@Autowired
+	protected «this.getTestDataFactoryFqn()» «asVar()»TestDataFactory;
+	
+	«FOREACH getMineAndParentsAttributes().select(a|a.isMVComposite()) AS a»
+	@Autowired
+	protected «a.type.getRepositoryFqn()» «a.type.getRepositoryClass().toFirstLower()»;
+	
+	@Autowired
+	protected «a.type.getTestDataFactoryFqn()» «a.type.asVar()»TestDataFactory;
+	
+	«ENDFOREACH»
 
 	«name» «asVar()» ;
 	
@@ -51,8 +61,14 @@ public class «name»RepositoryIntegrationTestBase {
 		try {
 			«asVar()»Repository.deleteAll();
 			«asVar()» = «asVar()»TestDataFactory.create«name»One();
+			
+			«FOREACH getMineAndParentsAttributes().select(a|a.isMVComposite()) AS a»
+				«asVar()».add«a.name.getSingular()»( «a.type.asVar()»TestDataFactory.create«a.type.name»One());
+			«ENDFOREACH»
+			
 			«asVar()»Repository.save(«asVar()»);
-
+			
+			
 		} catch (AccessDeniedException ade) {
 			System.out.println(ade.getMessage());
 		}catch(Exception e){
@@ -66,6 +82,16 @@ public class «name»RepositoryIntegrationTestBase {
 	public void findOne(){
 		assertCount(1L);
 	}
+	
+	«FOREACH getMineAndParentsAttributes().select(a|a.isMVComposite()) AS a»
+	@Test
+	@WithMockUser(username = "admin", roles = { "ADMIN" })
+	public void testDeleteComposed«a.name»(){
+		«a.type.asVar()»Repository.delete(«asVar()».get«a.name.toFirstUpper()»().get(0));	
+		assertCount(1L);
+	}
+	«ENDFOREACH»
+	
 	
 	@Test
 	@WithMockUser(username = "admin", roles = { "ADMIN" })
@@ -90,6 +116,10 @@ public class «name»RepositoryIntegrationTestBase {
 	public void testDelete(){
 		«asVar()»Repository.delete(«asVar()»);
 		assertCount(0L);
+		
+		«FOREACH getMineAndParentsAttributes().select(a|a.isMVComposite()) AS a»
+		assertThat( «a.type.asVar()»Repository.count() == 0 );
+		«ENDFOREACH»
 	}
 	
 	@Test(expected = AccessDeniedException.class)
@@ -146,6 +176,10 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.transaction.annotation.Transactional;
+
+import «getTopLevelPackage()».SecurityConfiguration;
+import «getTopLevelPackage()».MainApp;
+
 
 import «fqn()»;
 

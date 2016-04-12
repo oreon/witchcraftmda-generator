@@ -132,6 +132,10 @@
 		this.«name».add(«name.getSingular()»);
 	}
 	
+	public void add«name.toFirstUpper()»(List<«type.fqnForPackage(this.class)»> «name»ToAdd) {
+		«name»ToAdd.forEach(record->add«name.toFirstUpper().getSingular()»(record));
+	}
+	
 	@Transient
 	public String createList«name.toFirstUpper()»AsString() {
 		return listAsString(«name»);
