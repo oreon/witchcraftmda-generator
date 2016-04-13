@@ -63,7 +63,7 @@ public class «name»RepositoryIntegrationTestBase {
 			«asVar()» = «asVar()»TestDataFactory.create«name»One();
 			
 			«FOREACH getMineAndParentsAttributes().select(a|a.isMVComposite()) AS a»
-				«asVar()».add«a.name.getSingular()»( «a.type.asVar()»TestDataFactory.create«a.type.name»One());
+				«asVar()».add«a.name.getSingular().toFirstUpper()»( «a.type.asVar()»TestDataFactory.create«a.type.name»One());
 			«ENDFOREACH»
 			
 			«asVar()»Repository.save(«asVar()»);
