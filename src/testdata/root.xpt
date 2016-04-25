@@ -92,10 +92,10 @@ public class TestDataFactoryManager{
 		private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss z");
 		
 		
-		«FOREACH getOutgoingAssociations() AS e»
-		«IF !e.isOneOnOne() ||( e.isOneOnOne() && e.isAggregate() )»
+		«FOREACH getNonRecursiveOutgoingAssociations() AS e»
+		«IF !e.isMVComposite()»
 		 «e.type.fqnPackage("testdata")»TestDataFactory «e.name»TestDataFactory = new «e.type.fqnPackage("testdata")»TestDataFactory();
-		 «ENDIF»
+		«ENDIF»
 		«ENDFOREACH»
 		
 		«REM»comment
@@ -188,10 +188,8 @@ public class TestDataFactoryManager{
 			«clearCurrentEmbeddable()-»		
 	«ENDFOREACH»
 	
-	«FOREACH getOutgoingAssociations().select(a| !( a.type.isEmbeddable() || a.isContainedAssoc()) ) AS a»
-		«IF !a.isOneOnOne() ||( a.isOneOnOne() && a.isAggregate() )»«REM» need to have only one side in one to one bidrecitonals«ENDREM»
-		 «target.asVar()».set«a.name.toFirstUpper()»(«a.name»TestDataFactory.create«a.type.name.toFirstUpper()»«counter»());
-		«ENDIF»
+	«FOREACH getNonRecursiveOutgoingAssociations().select(a| !( a.type.isEmbeddable() || a.isContainedAssoc()) ) AS a»
+		«target.asVar()».set«a.name.toFirstUpper()»(«a.name»TestDataFactory.create«a.type.name.toFirstUpper()»«counter»());
 	«ENDFOREACH»
 
 «REM»comment

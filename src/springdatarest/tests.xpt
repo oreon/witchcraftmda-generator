@@ -39,17 +39,17 @@
 public class «name»RepositoryIntegrationTestBase {
 
 	@Autowired
-	protected «getRepositoryFqn()» «getRepositoryClass().toFirstLower()»;
+	protected «getRepositoryFqn()» «getRepositoryClass().toFirstLower()» ;
 	
-	@Autowired
-	protected «this.getTestDataFactoryFqn()» «asVar()»TestDataFactory;
+	//@Autowired 
+	protected «this.getTestDataFactoryFqn()» «asVar()»TestDataFactory = new «this.getTestDataFactoryFqn()»();
 	
-	«FOREACH getMineAndParentsAttributes().select(a|a.isMVComposite()) AS a»
+	«FOREACH nonRecursiveMVComposites() AS a»
 	@Autowired
 	protected «a.type.getRepositoryFqn()» «a.type.getRepositoryClass().toFirstLower()»;
 	
-	@Autowired
-	protected «a.type.getTestDataFactoryFqn()» «a.type.asVar()»TestDataFactory;
+	//@Autowired
+	protected «a.type.getTestDataFactoryFqn()» «a.type.asVar()»TestDataFactory = new «a.type.getTestDataFactoryFqn()»();
 	
 	«ENDFOREACH»
 
@@ -62,7 +62,7 @@ public class «name»RepositoryIntegrationTestBase {
 			«asVar()»Repository.deleteAll();
 			«asVar()» = «asVar()»TestDataFactory.create«name»One();
 			
-			«FOREACH getMineAndParentsAttributes().select(a|a.isMVComposite()) AS a»
+			«FOREACH nonRecursiveMVComposites() AS a»
 				«asVar()».add«a.name.getSingular().toFirstUpper()»( «a.type.asVar()»TestDataFactory.create«a.type.name»One());
 			«ENDFOREACH»
 			
@@ -83,7 +83,7 @@ public class «name»RepositoryIntegrationTestBase {
 		assertCount(1L);
 	}
 	
-	«FOREACH getMineAndParentsAttributes().select(a|a.isMVComposite()) AS a»
+	«FOREACH nonRecursiveMVComposites() AS a»
 	@Test
 	@WithMockUser(username = "admin", roles = { "ADMIN" })
 	public void testDeleteComposed«a.name»(){
