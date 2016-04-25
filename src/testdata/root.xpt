@@ -24,14 +24,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 
-@Configuration
+//@Configuration
 public class TestDataFactoryManager{
 
 	public static List<AbstractTestDataFactory> listDataFactory = new ArrayList<AbstractTestDataFactory>();
 	
 	
 	«FOREACH allOwnedElements().typeSelect(wcprofile::Entity)  AS a»
-	@Bean
+	//@Bean
 	public «a.getTestDataFactoryFqn()» create«a.name»TestDataFactory(){
 		return new «a.getTestDataFactoryFqn()»();
 	}
@@ -74,6 +74,8 @@ public class TestDataFactoryManager{
 	import java.util.ArrayList;
 	import org.witchcraft.base.test.AbstractTestDataFactory;
 	
+	import org.springframework.beans.factory.annotation.Autowired;
+	
 	//import org.witchcraft.model.support.errorhandling.BusinessException;
 	//import org.witchcraft.model.randomgen.RandomValueGeneratorFactory;
 	
@@ -89,7 +91,6 @@ public class TestDataFactoryManager{
 	
 		private static SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss z");
 		
-		«REM»comment«ENDREM»
 		
 		«FOREACH getOutgoingAssociations() AS e»
 		«IF !e.isOneOnOne() ||( e.isOneOnOne() && e.isAggregate() )»
@@ -97,10 +98,12 @@ public class TestDataFactoryManager{
 		 «ENDIF»
 		«ENDFOREACH»
 		
+		«REM»comment
 		«FOREACH getNonComposedManyAssociations() AS e»
 		// @In(create = true,  value="«e.type.name.toFirstLower()»List")
 	 	//«e.type.getListFqn()» «e.name.getSingular()»List;
 		«ENDFOREACH»
+		«ENDREM»
 	
 	
 		public void register(«fqn()» «asVar()»){
@@ -187,7 +190,7 @@ public class TestDataFactoryManager{
 	
 	«FOREACH getOutgoingAssociations().select(a| !( a.type.isEmbeddable() || a.isContainedAssoc()) ) AS a»
 		«IF !a.isOneOnOne() ||( a.isOneOnOne() && a.isAggregate() )»«REM» need to have only one side in one to one bidrecitonals«ENDREM»
-		 «target.asVar()».set«a.name.toFirstUpper()»(«a.name»TestDataFactory.create«a.name.toFirstUpper()»«counter»());
+		 «target.asVar()».set«a.name.toFirstUpper()»(«a.name»TestDataFactory.create«a.type.name.toFirstUpper()»«counter»());
 		«ENDIF»
 	«ENDFOREACH»
 

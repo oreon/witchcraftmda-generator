@@ -79,7 +79,7 @@ cls.getAllAttributes().select(a|a.isMultivalued() && a.association != null && (a
 
 //e.g customer would be needed of the given order
 getOutgoingAssociations(Class cls):
-cls.getAllAttributes().select(a| a.isOutgoingAssociation() );
+cls.getMineAndParentsAttributes().select(a| a.isOutgoingAssociation() );
 
 isOutgoingAssociation(Property a):
 a.isMultivalued() == false && a.association != null && !a.type.isEmbeddable();
