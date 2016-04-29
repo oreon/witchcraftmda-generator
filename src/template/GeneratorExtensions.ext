@@ -3,6 +3,7 @@ import uml;
 import java;
 import wcprofile;
 
+extension template::associationExtensions;
 
 
 String implClassSuffix() : GLOBALVAR ImplClassSuffix;
@@ -727,4 +728,17 @@ JAVA org.witchcraft.generatorutil.ClassUtil.getSubString(java.lang.String, java.
 getMineAndParentsAttributes(Class cls):
 JAVA org.witchcraft.generatorutil.ClassUtil.getMineAndParentsAttributes(org.eclipse.uml2.uml.Class);
 
+
+
+
+
+
+
+
+
+
+
+//----------------------------------------------------------SDR
+getReturns(wcprofile::Entity e, wcprofile::Column p ): 
+p.isUnq() || p.isOneOnOne()? "Optional<" +  e.name + ">" : "Page<" + e.name + ">";
 

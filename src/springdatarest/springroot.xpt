@@ -45,7 +45,7 @@
 
 «DEFINE genPropertyProjection(wcprofile::Entity  entity) FOR uml::Property»
 	«IF !isMultivalued()»
-		«type.fqn()» get«name.toFirstUpper()»();
+		Optional<«type.fqn()»> get«name.toFirstUpper()»();
 	«ELSE»
 		List<«type.fqn()»>  get«name.toFirstUpper()»();
 	«ENDIF»
@@ -64,11 +64,11 @@
 	
 		@Override
 	//	@PreAuthorize("@«asVar()»Repository.findOne(#id)?.createdByUser.userName == authentication?.name  ||  hasRole('admin')")         
-		public «name» findOne(@Param("id") Long id);
+		public Optional<«name»> findOne(@Param("id") Long id);
 		
 		@Override
 	//	@PreAuthorize("#«asVar()»?.createdByUser.userName == authentication?.name  ||  hasRole('admin')")         
-		public «name»  save(@Param("«asVar()»")«name» «asVar()»);
+		public Optional<«name»>  save(@Param("«asVar()»")«name» «asVar()»);
 		
 		
 		@Override
@@ -156,14 +156,13 @@ public interface «name»RepositoryBase extends PagingAndSortingRepository<«name»,
 
 «DEFINE genPropertySearch(wcprofile::Entity  entity) FOR uml::Property»
 	«IF !isString()»
-		Page<«entity.name»> findBy«name.toFirstUpper()»(@Param("«name»")  «type.fqn()» «name», Pageable pageable);
+		«entity.getReturns(this)» findBy«name.toFirstUpper()»(@Param("«name»")  «type.fqn()» «name», Pageable pageable);
 	«ELSE»
-		Page<«entity.name»> findBy«name.toFirstUpper()»ContainingAllIgnoringCase(@Param("«name»")  «type.fqn()» «name», 
+		«entity.getReturns(this)» findBy«name.toFirstUpper()»ContainingAllIgnoringCase(@Param("«name»")  «type.fqn()» «name», 
 		Pageable pageable);
-		
-		«entity.name» findBy«name.toFirstUpper()»(@Param("«name»") «type.fqn()» «name»);
-		
-		«entity.name» findBy«name.toFirstUpper()»IgnoringCase(@Param("«name»") «type.fqn()» «name»);
+
+		«entity.getReturns(this)» findBy«name.toFirstUpper()»(@Param("«name»") «type.fqn()» «name»);
+		«entity.getReturns(this)» findBy«name.toFirstUpper()»IgnoringCase(@Param("«name»") «type.fqn()» «name»);
 	«ENDIF»
 
 «ENDDEFINE»
@@ -177,6 +176,8 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import java.math.BigDecimal;
 import java.util.Date;
+
+import java.util.Optional;
 
 import org.springframework.data.repository.query.Param;
 import org.springframework.security.access.prepost.PreAuthorize;
