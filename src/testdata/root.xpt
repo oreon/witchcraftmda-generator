@@ -17,7 +17,7 @@
 package «getTopLevelPackageProperty()».testdata;
 
 import java.util.List;
-import java.util.ArrayList;
+import java.util.ArrayList; 
 import org.witchcraft.base.test.AbstractTestDataFactory;
 
 import org.springframework.context.annotation.Bean;
@@ -94,7 +94,7 @@ public class TestDataFactoryManager{
 		
 		«FOREACH getNonRecursiveOutgoingAssociations() AS e»
 		«IF !e.isMVComposite()»
-		 «e.type.fqnPackage("testdata")»TestDataFactory «e.name»TestDataFactory = new «e.type.fqnPackage("testdata")»TestDataFactory();
+		 static «e.type.fqnPackage("testdata")»TestDataFactory «e.name»TestDataFactory; //= new «e.type.fqnPackage("testdata")»TestDataFactory();
 		«ENDIF»
 		«ENDFOREACH»
 		
@@ -106,14 +106,14 @@ public class TestDataFactoryManager{
 		«ENDREM»
 	
 	
-		public void register(«fqn()» «asVar()»){
+		public static void register(«fqn()» «asVar()»){
 			records.add(«asVar()»);
 		}
 		
 
-	«FOREACH getCounters() AS counter-»
+	«FOREACH  getCounters() AS counter-»
 
-		public  «fqn()» create«name»«counter»(){
+		public  static  «fqn()» create«name»«counter»(){
 			«fqn()» «asVar()» = new «fqn()»();
 			
 			try{
@@ -135,14 +135,14 @@ public class TestDataFactoryManager{
 	«ENDFOREACH»
 	
 		
-		public void createAll(){
+		public static void createAll(){
 			«FOREACH getCounters() AS counter-»
 				create«name»«counter»();
 			«ENDFOREACH»
 		}
 		
 		//@Override
-		public List<«fqn()»> getListOfRecords() {
+		public static List<«fqn()»> getListOfRecords() {
 			if(records.isEmpty())
 				createAll();
 			return records;
@@ -168,6 +168,13 @@ public class TestDataFactoryManager{
 		 */
 		public static void main(String args[]){
 			//new «name»TestDataFactory().persistAll(); 
+		}
+		
+		protected static void handleCreationException(Exception ex) {
+			ex.printStackTrace();
+			//in case of failure remove the last element
+			//List<T> records = getListOfRecords();
+			records.remove(records.size() - 1);
 		}
 	
     }

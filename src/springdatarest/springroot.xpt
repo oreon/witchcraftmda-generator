@@ -62,13 +62,13 @@
 	@RepositoryRestResource
 	public interface «name»Repository extends «name»RepositoryBase {
 	
-		@Override
+	//	@Override
 	//	@PreAuthorize("@«asVar()»Repository.findOne(#id)?.createdByUser.userName == authentication?.name  ||  hasRole('admin')")         
-		public Optional<«name»> findOne(@Param("id") Long id);
+		public /*Optional<«name»>*/ «name» findOne(@Param("id") Long id);
 		
-		@Override
+	//	@Override
 	//	@PreAuthorize("#«asVar()»?.createdByUser.userName == authentication?.name  ||  hasRole('admin')")         
-		public Optional<«name»>  save(@Param("«asVar()»")«name» «asVar()»);
+		public /*Optional<«name»>*/ «name»  save(@Param("«asVar()»")«name» «asVar()»);
 		
 		
 		@Override
@@ -156,13 +156,12 @@ public interface «name»RepositoryBase extends PagingAndSortingRepository<«name»,
 
 «DEFINE genPropertySearch(wcprofile::Entity  entity) FOR uml::Property»
 	«IF !isString()»
-		«entity.getReturns(this)» findBy«name.toFirstUpper()»(@Param("«name»")  «type.fqn()» «name», Pageable pageable);
+		«entity.getNeedsPaginationReturn(this)» findBy«name.toFirstUpper()»(@Param("«name»")  «type.fqn()» «name» «entity.getNeedsPagination(this)»);
 	«ELSE»
-		«entity.getReturns(this)» findBy«name.toFirstUpper()»ContainingAllIgnoringCase(@Param("«name»")  «type.fqn()» «name», 
-		Pageable pageable);
+		«entity.getNeedsPaginationReturn(this)» findBy«name.toFirstUpper()»ContainingAllIgnoringCase(@Param("«name»")  «type.fqn()» «name» «entity.getNeedsPagination(this)»);
 
-		«entity.getReturns(this)» findBy«name.toFirstUpper()»(@Param("«name»") «type.fqn()» «name»);
-		«entity.getReturns(this)» findBy«name.toFirstUpper()»IgnoringCase(@Param("«name»") «type.fqn()» «name»);
+		«entity.getNeedsPaginationReturn(this)» findBy«name.toFirstUpper()»(@Param("«name»") «type.fqn()» «name»  «entity.getNeedsPagination(this)»);
+		«entity.getNeedsPaginationReturn(this)» findBy«name.toFirstUpper()»IgnoringCase(@Param("«name»") «type.fqn()» «name» «entity.getNeedsPagination(this)») ;
 	«ENDIF»
 
 «ENDDEFINE»

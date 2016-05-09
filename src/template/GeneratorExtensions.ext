@@ -739,6 +739,14 @@ JAVA org.witchcraft.generatorutil.ClassUtil.getMineAndParentsAttributes(org.ecli
 
 
 //----------------------------------------------------------SDR
-getReturns(wcprofile::Entity e, wcprofile::Column p ): 
-p.isUnq() || p.isOneOnOne()? "Optional<" +  e.name + ">" : "Page<" + e.name + ">";
+isPageable(wcprofile::Entity e, wcprofile::Column p):
+p.isUnq() || p.isOneOnOne();
+
+
+getNeedsPagination(wcprofile::Entity e, wcprofile::Column p ): 
+!isPageable(e,p) ? ",Pageable pageable":"";
+
+
+getNeedsPaginationReturn(wcprofile::Entity e, wcprofile::Column p ): 
+isPageable(e,p) ? /*"Optional<" +*/  e.name /* + ">"*/ : "Page<" + e.name + ">";
 
