@@ -88,6 +88,10 @@ cls.getOutgoingAssociations().select(a| a.type.name != cls.name );
 nonRecursiveMVComposites(Class cls):
 cls.getMineAndParentsAttributes().select(a|a.isMVComposite()  && a.type.name != cls.name );
 
+isCircular( Class cls, Property prop):
+!cls.getMineAndParentsAttributes().select(a|a != prop  && a.type.name == prop.type.name ).isEmpty;
+
+
 isOutgoingAssociation(Property a):
 a.isMultivalued() == false && a.association != null && !a.type.isEmbeddable();
 

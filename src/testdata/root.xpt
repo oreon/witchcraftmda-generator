@@ -195,7 +195,7 @@ public class TestDataFactoryManager{
 			«clearCurrentEmbeddable()-»		
 	«ENDFOREACH»
 	
-	«FOREACH getNonRecursiveOutgoingAssociations().select(a| !( a.type.isEmbeddable() || a.isContainedAssoc()) ) AS a»
+	«FOREACH getNonRecursiveOutgoingAssociations().select(a| !( a.type.isEmbeddable() || a.isContainedAssoc() || isCircular(a) ) ) AS a»
 		«target.asVar()».set«a.name.toFirstUpper()»(«a.name»TestDataFactory.create«a.type.name.toFirstUpper()»«counter»());
 	«ENDFOREACH»
 

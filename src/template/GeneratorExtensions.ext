@@ -744,7 +744,7 @@ p.isUnq() || p.isOneOnOne();
 
 
 getNeedsPagination(wcprofile::Entity e, wcprofile::Column p ): 
-!isPageable(e,p) ? ",Pageable pageable":"";
+isPageable(e,p) ?"": ",Pageable pageable";
 
 
 getNeedsPaginationReturn(wcprofile::Entity e, wcprofile::Column p ): 
