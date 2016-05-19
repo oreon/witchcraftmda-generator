@@ -26,7 +26,7 @@ class «name»LookupSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = «name»
-    	fields = ('displayName', 'id', )
+        fields = ('displayName', 'id',)
 «ENDDEFINE»
 
 
