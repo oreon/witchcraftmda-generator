@@ -1,0 +1,216 @@
+«IMPORT wcprofile»
+
+
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE Root FOR wcprofile::Entity»
+	 «setAsCurrentEntity(this)-»
+	 «EXPAND genEditContainer FOR this»
+	 «EXPAND genEditComponent FOR this»
+«ENDDEFINE»
+
+«DEFINE genEditContainer FOR wcprofile::Entity»
+«FILE getWebPath() +"/edit" +name+ "." + "html"»
+
+<div>
+   <ng-include src="edit«name»Component.html" />
+</div>
+«ENDFILE»
+«ENDDEFINE»
+
+
+
+«DEFINE genEditComponent FOR wcprofile::Entity»
+«FILE getWebPath() +"/edit" +name+ "Component." + "html"»
+<section class="mainbar" data-ng-init="vm.toEdit«name»()">
+
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+       Edit 
+    </div>
+    <div class="panel-body">
+
+      <form data-ng-submit="vm.update()"  name="«name»Form" >
+      	«EXPAND genAttribAsOutput FOR this»
+     
+      	«EXPAND genTable FOR this»
+      	
+      	«EXPAND genButtons FOR this»
+	
+      </form>
+    </div>
+  </div>
+
+</section>
+«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE genAttribAsOutput FOR uml::Class-»
+	«FOREACH allParents() AS e-»
+	 «EXPAND genPropertyRec FOREACH e.getAllAttributes().select(a|!a.isMultivalued() && a.isAttributeEditable()  ) -»
+	«ENDFOREACH»
+	«EXPAND genPropertyRec FOREACH getAllAttributes().select(a|!a.isMultivalued() && a.isAttributeEditable()   ) -»
+«ENDDEFINE»
+
+
+«DEFINE genTable FOR uml::Class»
+	«FOREACH allParents() AS e-»
+		«EXPAND genEditableTable FOREACH e.getComposed() -»
+	«ENDFOREACH»
+	«EXPAND genEditableTable FOREACH getComposed() -»
+«ENDDEFINE»
+
+«DEFINE genPropertyRec FOR uml::Property-»
+	«IF isExpandableAssoc() -» 
+		«setCurrentEmbeddable()-» 
+		«EXPAND genPropertyRec FOREACH type.getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()  ) -»
+		«clearCurrentEmbeddable()-»
+	«ELSE-»
+		«EXPAND genProperty-»
+	«ENDIF»
+«ENDDEFINE»
+
+
+«DEFINE genProperty FOR uml::Property-»
+
+ «EXPAND genInputBegin FOR this»
+
+ «EXPAND genLabel FOR this»
+
+ «IF association != null -»
+	«EXPAND genAssocValue FOR this»
+ «ELSE»
+ 	«EXPAND genPropertyInput(type) FOR this»
+ «ENDIF»
+ 
+ «EXPAND genMessage FOR this»
+ 
+ «EXPAND genInputEnd FOR this»
+
+«ENDDEFINE»
+
+
+«DEFINE genPropertyInput(uml::PrimitiveType type) FOR uml::Property»
+		
+		«IF isFile()»
+			<h2>TODO </h2>
+		«ELSEIF isDate()»
+          <input type="text" class="form-control"  uib-datepicker-popup="dd/MM/yyyy" ng-model="vm.«genPropertyLabel()»"
+      		ng-required="true" close-text="Close" /> 
+		«ELSEIF isBoolean()»
+            <input radio id="«getId()»" name="«getId()»" type="text" class="form-control" maxlength="50" ng-model="vm.«genPropertyLabel()»"
+                        ng-minlength="2" ng-maxlength="50"/>		
+		«ELSEIF isCurrency()»
+			 <input id="«getId()»" name="«getId()»" type="text" class="form-control" maxlength="50" ng-model="vm.«genPropertyLabel()»"
+                        ng-minlength="2" ng-maxlength="50"/>
+		«ELSEIF isDouble()»
+			<input id="«getId()»" name="«getId()»" type="text" class="form-control" maxlength="50" ng-model="vm.«genPropertyLabel()»"
+                        ng-minlength="2" ng-maxlength="50"/>
+		«ELSEIF isLargeText()»
+			<textarea  id="«getId()»" name="«getId()»" ng-model="vm.«genPropertyLabel()»" />
+	 	«ELSE»
+	 		 <input id="«getId()»" name="«getId()»" type="text" class="form-control" maxlength="50" ng-model="vm.«genPropertyLabel()»"
+                        ng-minlength="2" ng-maxlength="50"/>
+		«ENDIF»
+«ENDDEFINE»
+
+«DEFINE genPropertyInput(uml::Enumeration enm) FOR uml::Property-»
+ <select class="form-control" name="«getId()»" ng-model="vm.«genPropertyLabel()»"  ng-required="«getRequired()»">
+     <option value="">--Select--</option>
+     «FOREACH  enm.ownedLiteral AS e-»
+     <option value="«e.name»" ng-selected="{{'«e.name»' == vm.«genPropertyLabel()»}}">«e.name»</option>
+     «ENDFOREACH»
+ </select>
+«ENDDEFINE»
+
+
+«DEFINE genAssocValue FOR uml::Property»
+	<select class="form-control" name="«getId()»" ng-model="vm.«genPropertyLabel()»"  
+		ng-options='option.id as option.displayName for option in vm.«name»s' ng-required="true">
+    </select>
+«ENDDEFINE»
+
+
+
+«DEFINE genLabel FOR uml::Property»
+«IF !isCurrentMultiMode()»
+	 <label for="«getId()»">«name.getVariableNameForDisplay()»</label>
+«ENDIF»
+«ENDDEFINE»
+
+«DEFINE genMessage FOR uml::Property»
+   <div class="alert alert-danger form-group" ng-messages="«name»Form.name.$error" ng-if="«name»Form.name.$touched">
+        <p ng-message="minlength">Input is too short.</p>
+        <p ng-message="maxlength">Input is too long.</p>
+        <p ng-message="required">Input is required.</p>
+    </div>
+«ENDDEFINE»
+
+
+«DEFINE genInputBegin FOR uml::Property»
+	«IF isCurrentMultiMode()»
+		<td> «getOutputMessage()» 
+	«ELSE»
+		 <div class="form-group">
+	«ENDIF»
+«ENDDEFINE»
+
+
+«DEFINE genInputEnd FOR uml::Property»
+	 «IF isCurrentMultiMode()»
+		</td>
+	«ELSE»
+		</div>
+	«ENDIF»
+«ENDDEFINE»
+
+
+
+«DEFINE genEditableTable FOR uml::Property-»
+	«setCurrentMultiMode(true)-»
+	«IF !isPreloadedComposition() -» «EXPAND genNewButton FOR this» «ENDIF»
+	<div ng-repeat="«type.asVar()» in «class.asVar()».«name» ">
+		«setAsCurrentEntity(type)»
+		«EXPAND genAttribAsOutput FOR type-»
+		«IF !isPreloadedComposition()»
+		  «EXPAND genNew -»
+		  «EXPAND genDelete FOR this -»
+		«ENDIF»
+     </div>
+	«setCurrentMultiMode(false)-»
+«ENDDEFINE»
+
+
+«DEFINE genNew FOR uml::Property»
+	<td>
+		«EXPAND genNewButton FOR this»
+	</td>
+«ENDDEFINE»
+
+«DEFINE genNewButton FOR uml::Property»
+	<button type="button" ng-click="add«name»()">ADD</button>
+«ENDDEFINE»
+
+«DEFINE genDelete FOR uml::Property»
+	<button type="button" ng-click="remove«name»($index)">DELETE</button>
+«ENDDEFINE»
+
+
+«DEFINE genButtons FOR wcprofile::Entity»
+	<hr/>
+        <div class="form-group">
+            <button type="submit" class="btn btn-success" ng-disabled="«name»Form.$invalid">
+              <i class="glyphicon glyphicon-ok"></i> Save
+            </button>
+            <a class="btn btn-danger" href="/«asVar()»">
+              <i class="glyphicon glyphicon-remove"></i> Cancel
+            </a>
+        </div>
+
+        <div data-ng-show="vm.error" class="alert alert-danger form-group">
+          <strong data-ng-bind="vm.error"></strong>
+        </div>
+«ENDDEFINE»

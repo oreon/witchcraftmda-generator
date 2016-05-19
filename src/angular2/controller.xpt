@@ -1,0 +1,138 @@
+«IMPORT wcprofile»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE root FOR wcprofile::Entity»
+	«EXPAND genDetail FOR this»
+	«EXPAND genListController FOR this»
+«ENDDEFINE»
+
+«DEFINE genDetail FOR wcprofile::Entity»
+«FILE getWebPath() +"/" + asVar() + "/" + name + "Detail.ts"»
+
+import { «name» } from './«asVar()»';
+
+
+«FOREACH getOutgoingAssociations() AS e»
+  import { «e.type.name» } from './«e.asVar()»';
+ «ENDFOREACH»
+
+
+
+import { «name»Service } from './«asVar()»-service';
+import { DBService } from './db-service';
+
+
+@Component({
+  selector: 'my-«asVar()»-detail',
+  templateUrl: 'app/«asVar()»-detail.component.html',
+})
+export class «name»DetailComponent implements OnInit {
+  @Input() «asVar()»: «name»;
+  errorMessage:String
+
+ «FOREACH getOutgoingAssociations() AS e»
+  «e.name.getPlural()»: «e.type.name»[];
+ «ENDFOREACH»
+		
+  constructor(
+    private _«asVar()»Service: «name»Service,
+    private _dbService:DBService,
+    private _routeParams: RouteParams) {
+  }
+
+  ngOnInit() {
+    let id = +this._routeParams.get('id');
+    this._«asVar()»Service.get«name»(id)
+                  .subscribe(
+                    «asVar()» =>{ this.«asVar()» = «asVar()»;},
+                    error =>  this.errorMessage = <any>error);
+                    
+                    
+	«FOREACH getOutgoingAssociations() AS e»
+		this._dbService.get«e.type.name.getPlural()»().subscribe(
+         records =>{ this.«e.name.getPlural()» = records["results"]; },
+         error =>  this.errorMessage = <any>error);
+	«ENDFOREACH»
+     
+  }
+
+  goBack() {
+    window.history.back();
+  }
+
+  save() {
+    this._«asVar()»Service.save«name»(this.«asVar()»)
+                  .subscribe(
+                    «asVar()» => this.«asVar()» = «asVar()»,
+                    error =>  this.errorMessage = <any>error);
+  }
+
+
+«FOREACH getMineAndParentsAttributes().select(e|e.isMVComposite() ) AS e»
+  add«e.name.toFirstUpper()»(){
+  this.«asVar()».«e.name».push(new «e.type.name»());
+  }
+
+  remove«e.name.toFirstUpper()»(index:number){
+    this.«asVar()».«e.name».splice(index, 1);
+  }
+
+  on«e.name.toFirstUpper()»Changed(newValu«e.name»e, index) {
+    console.log(newValue);
+  }
+ «ENDFOREACH»
+
+}
+«ENDFILE»
+«ENDDEFINE»
+
+
+
+«DEFINE genListController FOR wcprofile::Entity»
+«FILE getWebPath() +"/" + asVar() + "/" + name + "List.ts"»
+
+import { Component, OnInit } from 'angular2/core';
+import { Router } from 'angular2/router';
+import { RouteConfig, ROUTER_DIRECTIVES, ROUTER_PROVIDERS } from 'angular2/router';
+
+import { «name» } from './«asVar()»';
+import { «name»DetailComponent } from './«asVar()»-detail.component';
+import { «name»Service } from './«asVar()»-service';
+
+
+@Component({
+  selector: 'my-heroes',
+  templateUrl: 'app/«asVar()»/«asVar()»-list.component.html',
+  directives: [«name»DetailComponent, ROUTER_DIRECTIVES]
+})
+export class «name»sComponent implements OnInit {
+  «asVar()»s:«name»[];
+  selected«name»: «name»;
+
+  constructor(
+    private _router: Router,
+  private _«asVar()»Service:«name»Service) { }
+
+
+  get«name»s() {
+  //  body["results"]
+    this._«asVar()»Service.getRecords().subscribe(records =>{
+      console.log(records);
+       this.«asVar()»s = records["results"];
+     }
+     );
+  }
+
+  ngOnInit() {
+    this.get«name»s();
+  }
+
+
+  gotoDetail() {
+    this._router.navigate(['«name»Detail', { id: this.selected«name».id }]);
+  }
+}
+
+«ENDDEFINE»

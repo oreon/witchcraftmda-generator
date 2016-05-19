@@ -1,0 +1,127 @@
+«IMPORT wcprofile»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE Root FOR wcprofile::Entity»
+	 «EXPAND EditUI::Root FOR this»
+	 «EXPAND ViewUI::Root FOR this»
+	 «EXPAND genListContainer FOR this»
+	 «EXPAND genListComponent FOR this»
+«ENDDEFINE»
+
+«DEFINE genListContainer FOR wcprofile::Entity»
+«FILE getWebPath() +"/list" +name+ "." + "html"»
+<section class="mainbar"  data-ng-init="vm.get«asVar()»s()">
+
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+     «name» List
+    </div>
+    <div class="panel-body">
+     
+      <«asVar()»s-directive «asVar()»s="vm.«asVar()»s" ></«asVar()»s-directive>
+
+    </div>
+  </div>
+
+</section>
+«ENDFILE»
+«ENDDEFINE»
+
+
+
+«DEFINE genListComponent FOR wcprofile::Entity»
+«FILE getWebPath() +"/" +name+ "Table.html"»
+
+<div class="pull-right">
+    <a type="button" class="btn btn-success" href="/«asVar()»//edit">
+      <i class="glyphicon glyphicon-open"></i> New «name»
+    </a>
+ </div>
+
+<table ng-table="tableParams" show-filter="true" class="table table-condensed table-striped">
+      <tr ng-repeat="«asVar()» in «asVar()»s">
+         «FOREACH allParents() AS e-»
+			«EXPAND genAttribute FOREACH e.getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()  ) -»
+		  «ENDFOREACH»
+		  «EXPAND genAttribute FOREACH getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()   ) -»
+          
+    
+          <td>
+              <div class="table-actions">
+                  <a class="btn btn-default" title="View" href="/«asVar()»/{{«asVar()».id}}">
+                    <span class="glyphicon glyphicon-eye-open"></span>
+                  </a>
+                  <a class="btn btn-default" title="Edit" href="/«asVar()»/{{«asVar()».id}}/edit">
+                    <span class="glyphicon glyphicon-edit"></span>
+                  </a>
+                  <a class="btn btn-danger" title="Remove" ng-really-message="Are you sure you want to remove {{«asVar()».displayName}} ?" ng-really-click="vm.remove(«asVar()»)" item="«asVar()»">
+                    <span class="glyphicon glyphicon-remove-circle"></span>
+                  </a>
+              </div>
+          </td>
+      </tr>
+ </table>
+
+«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE genColHeader FOR uml::Property»
+	<th> «name.toFirstUpper()» </th>
+«ENDDEFINE»
+
+
+«DEFINE genAttribute FOR uml::Property -»
+	«EXPAND genProperty FOR this-»
+«ENDDEFINE»
+
+
+
+«DEFINE genProperty FOR uml::Property-»
+   <td data-title="'«name.getVariableNameForDisplay()»'" sortable="'«name»'" filter="{ '«name»': 'text' }">
+	«EXPAND genPropertyValue FOR this»
+   </td>
+«ENDDEFINE»
+
+«DEFINE genAssocValue FOR uml::Property»
+	 <a class="btn btn-default" title="View" href="/«type.asVar()»/{{«genPropertyLabel()».id}}">
+        {{«genPropertyLabel()».displayName}}
+     </a>
+«ENDDEFINE»
+
+«DEFINE genPropertyValue FOR uml::Property»
+	«IF association != null -»
+		«EXPAND genAssocValue FOR this»	
+			
+	«REM»comment
+		«ELSEIF isFile()»
+			<h4>TODO </h4>
+		«ELSEIF isDate()»
+			<h:outputText value="#{«prefix»«genPropertyLabel()»}">
+				<s:convertDateTime type="date" dateStyle="medium" />
+			</h:outputText>
+		«ELSEIF isBoolean()»
+			<h:outputText value="#{«prefix»«genPropertyLabel()»? msg.yes : msg.no }" />	
+		«ELSEIF isCurrency()»
+			<h:outputText value="#{«prefix»«genPropertyLabel()»}">
+				<f:convertNumber pattern="$#,##0.00"/>
+			</h:outputText>
+		«ELSEIF isDouble()»	
+			<h:outputText value="#{«prefix»«genPropertyLabel()»}">
+				<f:convertNumber pattern="000.00"/>
+			</h:outputText>
+		«ELSEIF isLargeText()»
+			«IF isColumn() && !abbreviateInListing»
+				<h:outputText value="#{«prefix»«genPropertyLabel()»}"  escape="false" />	
+			«ELSE»
+			    <h:outputText id="«name»Abbr" value="#{«prefix»«genPropertyLabel()»Abbreviated}" escape="false"/> 
+	         «ENDIF»
+	    «ENDREM»				
+		«ELSE»
+			{{«genPropertyLabel()»}}	
+		«ENDIF»
+«ENDDEFINE»
+
+
+

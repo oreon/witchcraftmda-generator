@@ -183,14 +183,14 @@ public class TestDataFactoryManager{
 
 
 «DEFINE genData(uml::Class target, String counter) FOR uml::Class»
-	«FOREACH getAllAttributes().select(a| a.association == null && !a.isFile()) AS attrib-»
-			«EXPAND randValue(attrib.type, target) FOR attrib»
+	«FOREACH getAllAttributes().select(a| a.association == null && !a.isFile()) AS a-»
+		«EXPAND randValue(a.type, target, counter) FOR a»
 	«ENDFOREACH»
 	
-	«FOREACH getAllAttributes().select(a| a.type.isEmbeddable() || a.isContainedAssoc()) AS attrib-»
-			«attrib.setCurrentEmbeddable()»
-			 «FOREACH attrib.type.getAllAttributes().select(a| a.association == null && !a.isFile()) AS a»
-			 «EXPAND randValue(a.type, target) FOR a »
+	«FOREACH getAllAttributes().select(a| a.type.isEmbeddable() || a.isContainedAssoc()) AS a-»
+			«a.setCurrentEmbeddable()»
+			 «FOREACH a.type.getAllAttributes().select(a| a.association == null && !a.isFile()) AS a»
+			 «EXPAND randValue(a.type, target, counter) FOR a »
 			 «ENDFOREACH»
 			«clearCurrentEmbeddable()-»		
 	«ENDFOREACH»
@@ -207,16 +207,16 @@ public class TestDataFactoryManager{
 
 «ENDDEFINE»
 
-«DEFINE randValue(uml::Enumeration e, uml::Class target ) FOR uml::Property»
+«DEFINE randValue(uml::Enumeration e, uml::Class target, String counter ) FOR uml::Property»
 	
 «ENDDEFINE»
 
-«DEFINE randValue(uml::PrimitiveType e , uml::Class target) FOR uml::Property»
-	«target.asVar()»«getCurrentEmbeddable() != null? ".get" + getCurrentEmbeddable().name.toFirstUpper() + "()" :"" ».set«name.toFirstUpper()»(«getRandValue()»);
+«DEFINE randValue(uml::PrimitiveType e , uml::Class target, String counter) FOR uml::Property»
+	«target.asVar()»«getCurrentEmbeddable() != null? ".get" + getCurrentEmbeddable().name.toFirstUpper() + "()" :"" ».set«name.toFirstUpper()»(«getRandValue(counter)»);
 «ENDDEFINE»
 
-«DEFINE randValue(uml::Class e, uml::Class target ) FOR uml::Property»
-	«target.asVar()»«getCurrentEmbeddable() != null? ".get" + getCurrentEmbeddable().name.toFirstUpper() + "()" :"" ».set«name.toFirstUpper()»(«getRandValue()»);
+«DEFINE randValue(uml::Class e, uml::Class target , String counter) FOR uml::Property»
+	«target.asVar()»«getCurrentEmbeddable() != null? ".get" + getCurrentEmbeddable().name.toFirstUpper() + "()" :"" ».set«name.toFirstUpper()»(«getRandValue(counter)»);
 «ENDDEFINE»
 
 

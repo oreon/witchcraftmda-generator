@@ -671,8 +671,8 @@ JAVA org.witchcraft.generatorutil.ClassUtil.getAttrib(org.eclipse.uml2.uml.Class
 getCounters():
 JAVA org.witchcraft.generatorutil.ClassUtil.getCounters();
 
-String getRandValue (Property attribute) :
-JAVA org.witchcraft.generatorutil.RandomValueGenerator.getRandomValue(org.eclipse.uml2.uml.Property);
+String getRandValue (Property attribute, String counter) :
+JAVA org.witchcraft.generatorutil.RandomValueGenerator.getRandomValue(org.eclipse.uml2.uml.Property, java.lang.String);
 
 
 boolean isPrimitive(Type type):

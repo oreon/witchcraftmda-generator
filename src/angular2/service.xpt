@@ -1,0 +1,57 @@
+
+«IMPORT wcprofile»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE root FOR wcprofile::Entity»
+«FILE getWebPath() +"/" + asVar() + ".service.js"»
+
+(function () {
+'use strict';
+
+
+var «asVar()»Service = angular.module('app.core').factory('«asVar()»Service', function ($resource, $cacheFactory, API_BASE_URL) {
+    baseUrl = API_BASE_URL;
+    
+    var «asVar()»Cache = $cacheFactory('«name»Cache');
+        
+    var res =   $resource(baseUrl + '/«asVar()»s/:id', {id: '@id'}, {
+        query: {
+            method: 'GET',
+            isArray: false,
+           // cache: «asVar()»Cache
+        },
+        'update': { method:'PUT' , url: baseUrl + '/«asVar()»sWritable/:id' },
+        'create': { method:'POST' , url: baseUrl + '/«asVar()»sWritable/:id'},
+        get: { method:'GET', 
+         //cache: «asVar()»Cache
+        },
+         'getComplete':{
+            method:'GET',
+            url: baseUrl + '/«asVar()»sComplete/:id'
+        },
+        'getWritable': { 
+            method:'GET',
+            url: baseUrl + '/«asVar()»sWritable/:id'
+         //cache: «asVar()»Cache
+        },
+    } );           
+       
+    res.prototype.$save = function() {
+        if (this.id) {
+            return this.$update();
+        } else {
+            return this.$create();
+        }
+    }
+    
+    return res;
+});
+
+
+
+})();
+
+«ENDFILE»
+«ENDDEFINE»

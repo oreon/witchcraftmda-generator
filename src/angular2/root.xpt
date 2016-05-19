@@ -1,0 +1,96 @@
+«IMPORT wcprofile»
+
+
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::djangoExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE Root FOR uml::Model»
+	«EXPAND genApi FOR this»
+
+	«EXPAND ListUI::Root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND routes::Root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND controller::root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND directives::root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND service::root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	
+	
+«ENDDEFINE»
+
+
+«DEFINE genApi FOR uml::Model»
+
+«FILE "/api.service.js"»
+
+(function () {
+   'use strict';
+    
+   angular.module('app.core').factory('Api', Api);
+
+   Api.$inject = ['dbService', «FOREACH allOwnedElements().typeSelect(wcprofile::Entity) AS e SEPARATOR ','» '«e.asVar()»Service'   «ENDFOREACH»];
+
+   function Api( dbService, «FOREACH allOwnedElements().typeSelect(wcprofile::Entity) AS e SEPARATOR ','» «e.asVar()»Service   «ENDFOREACH») {
+   
+    	return this;
+   
+		«EXPAND genApiCalls FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	
+    }
+})();
+	
+«ENDFILE»
+	
+
+«ENDDEFINE»
+
+«DEFINE genApiCalls FOR  wcprofile::Entity»
+
+ 	this.get«name» =  function (id) {
+        return dbService.getEntity(id, «asVar()»Service);
+    }
+    
+    this.get«name»Complete = function(id) {
+        return get«name»(id);
+    }
+
+    this.get«name»s =  function () {
+        return dbService.getEntityList(«asVar()»Service);
+    }
+    
+    this.save«name» =  function («asVar()»){
+        return dbService.saveEntity(«asVar()», «asVar()»Service);
+    }
+    
+    this.remove«name» =  function  («asVar()»){
+        return dbService.removeEntity(«asVar()», «asVar()»Service);
+    }
+    
+    this.get«name»ForEdit =  function (id) {
+        return dbService.getEntity(id, «asVar()»Service, true);
+    }
+«ENDDEFINE»
+
+
+«DEFINE genStates FOR wcprofile::Entity»
+	
+		.when('/«asVar()»s', {
+                templateUrl: 'app/«asVar()»/«asVar()»List.html',
+                controller: '«name»ListCtrl',
+                controllerAs: 'vm',
+                resolve: {
+                    initialData: ['eliteApi', function (eliteApi) {
+                        return eliteApi.get«name»s();
+                    }]
+                }
+            })
+        .when('/«asVar()»s/:id', {
+            templateUrl: 'app/«asVar()»s/view«name».html',
+            controller: '«name»ViewCtrl',
+            controllerAs: 'vm',
+            resolve: {
+                initialData: ['$route', 'eliteApi', function ($route, eliteApi) {
+                    return eliteApi.get«name»($route.current.params.id);
+                }]
+            }
+        })
+«ENDDEFINE»

@@ -7,8 +7,6 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.Random;
 
-import org.eclipse.uml2.uml.Element;
-import org.eclipse.uml2.uml.Enumeration;
 import org.eclipse.uml2.uml.Property;
 
 public class RandomValueGenerator {
@@ -22,7 +20,7 @@ public class RandomValueGenerator {
 	
 	static String[] stringTypes = {"String","nameType", "uniqueNameType", "largeText"};
 
-	public static Object getRandomValue(Property attribute) {
+	public static Object getRandomValue(Property attribute, String counter) {
 
 		String typeName = attribute.getType().getName();
 		Random generator = new Random(19580427);
@@ -36,8 +34,14 @@ public class RandomValueGenerator {
 			 * ((Column)attribute).isUnique() ) uniqueNum = new Long(new
 			 * Random().nextInt(100000)).toString(); }
 			 */
-			return "\"" + randStrings[new Random().nextInt(randStrings.length)]
-					+ uniqueNum + "\"";
+			//return "\"" + randStrings[new Random().nextInt(randStrings.length)]
+			//		+ uniqueNum + "\"";
+			if(counter.equals(""))
+				counter = new Long(new Random().nextInt(100000)).toString(); 
+			
+			return "\""  + attribute.getName() + "-" + System.currentTimeMillis() + "-" +  counter + "\"";
+			
+			
 		} else if (typeName.contains("Date")) {
 			GregorianCalendar cal = new GregorianCalendar();
 			cal.setTimeInMillis(new Date().getTime()
@@ -48,7 +52,7 @@ public class RandomValueGenerator {
 		} else if (typeName.equalsIgnoreCase("int")
 				|| typeName.equalsIgnoreCase("Integer")) {
 			return (attribute.getDefault() == null) ? new Random()
-					.nextInt(10000) : attribute.getDefault();
+					.nextInt(100000) : attribute.getDefault();
 		} else if (typeName.equalsIgnoreCase("double")
 				|| typeName.equalsIgnoreCase("BigDecimal")) {
 			DecimalFormat decimalFormat = new DecimalFormat();

@@ -1,0 +1,135 @@
+«IMPORT wcprofile»
+
+
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE Root FOR wcprofile::Entity»
+	 «setAsCurrentEntity(this)-»
+	 «EXPAND genEditContainer FOR this»
+	 «EXPAND genEditComponent FOR this»
+«ENDDEFINE»
+
+«DEFINE genEditContainer FOR wcprofile::Entity»
+«FILE getWebPath() +"/view" +name+ "." + "html"»
+
+<div>
+   <ng-include src="view«name»Component.html" />
+</div>
+«ENDFILE»
+«ENDDEFINE»
+
+
+
+«DEFINE genEditComponent FOR wcprofile::Entity»
+«FILE getWebPath() +"/view" +name+ "Component." + "html"»
+<section class="mainbar" data-ng-init="vm.toView«name»()">
+
+  <div class="panel panel-primary">
+    <div class="panel-heading">
+	 	View «name» -  {vm.«asVar()».displayName} 
+    </div>
+    <div class="panel-body">
+   «EXPAND genAttribAsOutput FOR this»
+     
+   «EXPAND genTable FOR this»
+       <hr/>
+        <div>
+        <a class="btn btn-success" href="/«asVar()»/{{vm.«asVar()».id}}/edit">
+          <i class="glyphicon glyphicon-edit"></i> Edit
+        </a>
+        <a class="btn btn-danger" title="Remove" ng-really-message="Are you sure ?" ng-really-click="vm.remove()" item="vm.«asVar()»">
+          <i class="glyphicon glyphicon-remove-circle"></i> Delete
+        </a>
+        <a class="btn btn-primary" href="/«asVar()»">
+          <i class="glyphicon glyphicon-list"></i> List «name»s
+        </a>
+        
+      </div>
+    </div>
+  </div>
+
+</section>
+«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE genAttribAsOutput FOR wcprofile::Entity-»
+	«FOREACH allParents() AS e-»
+	 «EXPAND genPropertyRec FOREACH e.getAllAttributes().select(a|!a.isMultivalued() && a.isAttributeEditable()  ) -»
+	«ENDFOREACH»
+	«EXPAND genPropertyRec FOREACH getAllAttributes().select(a|!a.isMultivalued() && a.isAttributeEditable()   ) -»
+«ENDDEFINE»
+
+
+«DEFINE genTable FOR wcprofile::Entity»
+	«FOREACH allParents() AS e-»
+		«EXPAND genViewTable FOREACH e.getComposed() -»
+	«ENDFOREACH»
+	«EXPAND genViewTable FOREACH getComposed() -»
+«ENDDEFINE»
+
+«DEFINE genPropertyRec FOR uml::Property-»
+	«IF isExpandableAssoc() -» 
+		«setCurrentEmbeddable()-» 
+		«EXPAND genPropertyRec FOREACH type.getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()  ) -»
+		«clearCurrentEmbeddable()-»
+	«ELSE-»
+		«EXPAND genProperty FOR this-»
+	«ENDIF»
+«ENDDEFINE»
+
+
+
+«DEFINE genViewTable FOR uml::Property-»
+	«setCurrentMultiMode(true)-»
+	<table>
+	<tr ng-repeat="«type.asVar()» in vm.«class.asVar()».«name» ">
+	«type.name»
+		«setAsCurrentEntity(type)»
+		«EXPAND genAttribAsOutput FOR type-»
+     </tr>
+     </table>
+	«setCurrentMultiMode(false)-»
+«ENDDEFINE»
+
+
+
+
+«DEFINE genProperty FOR uml::Property-»
+«IF !isCurrentMultiMode()»
+	<div>
+	 <label for="«getId()»">«name.getVariableNameForDisplay()»</label>
+	 «EXPAND ListUI::genPropertyValue FOR this»
+	</div>
+«ELSE»
+	«IF name != opposite.class.asVar()» «REM»TODO: Will not work if association name is different from class name «ENDREM»
+	<td>  
+		«EXPAND ListUI::genPropertyValue FOR this»
+	</td>
+	«ENDIF»
+«ENDIF»
+«ENDDEFINE»
+
+
+
+«DEFINE genBegin FOR uml::Property»
+	«IF isCurrentMultiMode()»
+		<td>
+	«ENDIF»
+«ENDDEFINE»
+
+
+«DEFINE genEnd FOR uml::Property»
+	 «IF isCurrentMultiMode()»
+		</td>
+	«ENDIF»
+«ENDDEFINE»
+
+
+
+
+
+
+

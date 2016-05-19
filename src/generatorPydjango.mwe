@@ -61,6 +61,7 @@ skipOnErrors="false">
 </component>
 
 
+<!--
 <component id="WebGenerator" class="org.eclipse.xpand2.Generator" skipOnErrors="true">
 	
 	<metaModel idRef="mm_profile"/>
@@ -77,7 +78,8 @@ skipOnErrors="false">
 		<postprocessor class="org.eclipse.xpand2.output.JavaBeautifier"/>
 		<postprocessor class="org.fornax.utilities.formatter.xml.XmlFormatter" fileExtensions=".html, .xml" />
 	</outlet>
-</component>		
+</component>	
+-->	
 
 
 

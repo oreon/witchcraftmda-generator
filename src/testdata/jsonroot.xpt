@@ -40,15 +40,15 @@
 	«EXPAND randValue(type) FOR this»
 «ENDDEFINE»
 
-«DEFINE randValue(uml::Enumeration e) FOR uml::Property»
+«DEFINE randValue(uml::Enumeration e ) FOR uml::Property»
 	"«name»": 1 «REM»TODO get 1st enum literal «getRandValue()-»«ENDREM»,
 «ENDDEFINE»
 
 «DEFINE randValue(uml::PrimitiveType e ) FOR uml::Property»
-	"«name»":«getRandValue()-»,
+	"«name»":«getRandValue("")-»,
 «ENDDEFINE»
 
-«DEFINE randValue(uml::Class e) FOR uml::Property»
+«DEFINE randValue(uml::Class e  ) FOR uml::Property»
 	"«name»":1,
 «ENDDEFINE»
 

@@ -30,41 +30,36 @@
 
 «DEFINE PackageGen FOR wcprofile::EntitiesPackage»
 	
-  «FILE name + "/" +   "modelsBase.py"»
+  «EXPAND genModels FOR this»
+  «EXPAND genViewSets FOR this»
+  «EXPAND serializers::genSerializers FOR this»
+  «EXPAND genRoutes FOR this»
+  
+«ENDDEFINE»  
+ 
+ 
+«DEFINE genModels FOR wcprofile::EntitiesPackage»
+ 	 «FILE name + "/" +   "modelsBase.py"»
 from django.db import models
 	«EXPAND EntityGen FOREACH allOwnedElements().typeSelect(wcprofile::AbstractEntity)»
   «ENDFILE»
 
   «FILE  name + "/" +   "models.py"»
-    from django.db import models
-    from .modelsBase import *
+from django.db import models
+from .modelsBase import *
 	«EXPAND genClassManual FOREACH allOwnedElements().typeSelect(wcprofile::AbstractEntity)»
   «ENDFILE»
-  
-  
-  «FILE  name + "/" +  "serializers.py"»
-    from rest_framework import serializers
-    from .models import *
-    
-    «EXPAND genLookupSerializer FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
-    
-	«EXPAND genSerializer FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
-	
-	«EXPAND genWriteSerializer FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
-	
-	«EXPAND genFullSerializer FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
-	
-  «ENDFILE»
-  
+ «ENDDEFINE»
+
+
+
+«DEFINE genViewSets FOR wcprofile::EntitiesPackage»
   «FILE  name + "/" +  "views.py"»
-    from rest_framework import serializers
-    from .serializers import *
+from rest_framework import viewsets
+from .serializers import *
 	«EXPAND genViewSet FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
   «ENDFILE»
-       
 «ENDDEFINE»
-
-
 
 «DEFINE EnumGen FOR uml::Enumeration»
 	
@@ -90,16 +85,16 @@ from django.db import models
 
 «DEFINE genClass FOR wcprofile::AbstractEntity»
 
-class «name»(«getParentDj()-»): 
+class «name»Base(«getParentDj()-»): 
 
  «FOREACH getAllAttributes() AS e-»
 	«IF e.association != null && e.isNavigable()-»
 		«IF e.isMultivalued()-»
 			«IF e.opposite != null && e.opposite.isMultivalued()-»
-    «e.name» =	ManyToManyField(targetEntity="«e.type.name»") «e.type.name-»
+    «e.name» =	models.ManyToManyField("«e.type.name»",  blank=True,  related_name="«e.name»")
 			«ENDIF»
 		«ELSE-»
-    «e.name» = models.ForeignKey(«e.type.name», related_name='«e.opposite.name-»')
+    «e.name» = models.ForeignKey('«e.type.name»', related_name='«e.opposite.name-»')
 		«ENDIF»
 	«ELSE-»
     «e.name» = models.«getModelFieldType(e)-»(null = False, blank = True, «IF getModelFieldType(e) == "CharField"» max_length=30«ENDIF»)
@@ -119,89 +114,14 @@ class «name»(«getParentDj()-»):
 class «name»(«name»Base): 
 	
 	«IF isAbstract»
-		class Meta:
-			abstract = True
+    class Meta:
+        abstract = True
 	«ELSE»
-		pass
+        pass
 	«ENDIF»
 
 «ENDDEFINE»
 
-«DEFINE genLookupSerializer FOR wcprofile::Entity»
-class «name»LookupSerializer(serializers.ModelSerializer):
-    
-    displayName = serializers.ReadOnlyField()
-
-    class Meta:
-        model = «name»
-    	fields = ('displayName', 'id', )
-«ENDDEFINE»
-
-«DEFINE genFullSerializer FOR wcprofile::Entity»
-class Full«name»Serializer(«name»Serializer):
-
- «FOREACH getNonComposedManyAssociations() AS a»
-    «a.name» = «a.type.name»Serializer(many=True, read_only=True)
- «ENDFOREACH»
-    
-    class Meta(«name»Serializer.Meta):
-        model = «name»
-«ENDDEFINE»
-
-
-«DEFINE genWriteSerializer FOR Type»
-	
-class «name»WritableSerializer(serializers.ModelSerializer):
-    
-    displayName = serializers.ReadOnlyField()
-    
-    «IF !getAllComposed().isEmpty»
-    
-    def create(self, validated_data):
-    	«REM»will work only on one composed association«ENDREM»
-    	«asVar()» = validated_data.pop('«asVar()»')
-    	«FOREACH getAllComposed() AS e»
-        
-        «e.opposite.name» = «name».objects.create(**validated_data)
-        for oi in «e.name»:
-            «e.type.name».objects.create(«e.opposite.name»=«asVar()», **oi)
-        «ENDFOREACH»
-        return «asVar()»
-
-    
-    def update(self, instance, validated_data):
-    	«FOREACH getAllComposed() AS e»
-    	«e.type.name».objects.filter(«e.opposite.name»=instance).delete()
-        «e.name» = validated_data.pop('«e.name»')
-        for item in «e.name»:
-            «e.type.name».objects.create(«e.opposite.name»=instance, **item)
-        «ENDFOREACH»
-       
-        return super(«name»WritableSerializer, self).update( instance, validated_data)
-        
-     «ENDIF»
-
-    class Meta:
-        model = «name»
-	
-«ENDDEFINE»
-
-«DEFINE genSerializer FOR wcprofile::Entity»
-
-class «name»Serializer(serializers.ModelSerializer):
- «FOREACH getOutgoingAssociations() AS e»
-	«e.name» = «e.type.name»LookupSerializer
- «ENDFOREACH»
-
-	displayName = serializers.ReadOnlyField()
-    
- «FOREACH getAllComposed() AS a»
-    «a.name» = «a.type.name»Serializer(many=True)
- «ENDFOREACH»
-    
-    class Meta:
-        model = «name»
-«ENDDEFINE»
 
 
 «DEFINE genViewSet FOR wcprofile::Entity»
@@ -221,23 +141,24 @@ class «name»WritableViewSet(«name»ViewSet):
 «ENDDEFINE»
 
 
-«DEFINE orgSrlizr FOR Type»
-class «name»Serializer(serializers.HyperlinkedModelSerializer):
-	displayName = serializers.ReadOnlyField()
 
-    class Meta:
-        model = «name»
-        depth = 1
-        
-class «name»LookupSerializer(serializers.HyperlinkedModelSerializer):
-    
-    displayName = serializers.ReadOnlyField()
-    
-    class Meta:
-        model = «name»
-        fields = ('displayName', 'url', )  
+
+
+«DEFINE genRoutes FOR wcprofile::EntitiesPackage»
+«FILE  name + "/" +  "urls.py"»
+from rest_framework import routers
+from .views import *
+
+
+router = routers.SimpleRouter(trailing_slash=False)
+
+«FOREACH  allOwnedElements().typeSelect(wcprofile::Entity) AS e»  
+router.register(r'«e.asVar().getPlural()»', «e.name»ViewSet)
+router.register(r'«e.asVar().getPlural()»Writable', «e.name»WritableViewSet)
+router.register(r'«e.asVar().getPlural()»Complete', «e.name»CompleteViewSet)
+router.register(r'«e.asVar().getPlural()»Lookup', «e.name»LookupViewSet)
+«ENDFOREACH»
+	
+«ENDFILE»
 «ENDDEFINE»
-
-
-
 
