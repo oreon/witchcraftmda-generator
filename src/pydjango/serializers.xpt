@@ -11,10 +11,10 @@ from rest_framework import serializers
 from .models import *
     
     «EXPAND genLookupSerializer FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
-	«EXPAND genSerializer FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
-	«EXPAND genWriteSerializer FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
-	«EXPAND genFullSerializer FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
-	
+    «EXPAND genSerializer FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+    «EXPAND genWriteSerializer FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+    «EXPAND genFullSerializer FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+    
   «ENDFILE»
        
 «ENDDEFINE»
@@ -43,7 +43,7 @@ class Full«name»Serializer(«name»Serializer):
 
 
 «DEFINE genWriteSerializer FOR wcprofile::Entity»
-	
+    
 class «name»WritableSerializer(serializers.ModelSerializer):
     
     displayName = serializers.ReadOnlyField()
@@ -51,10 +51,10 @@ class «name»WritableSerializer(serializers.ModelSerializer):
     «IF !getAllComposed().isEmpty»
     
     def create(self, validated_data):
-    	«REM»TODO : will work only on one composed association«ENDREM»
-    	«asVar()» = «name».objects.create(**validated_data)
-    	
-    	«FOREACH getAllComposed() AS e»
+        «REM»TODO : will work only on one composed association«ENDREM»
+        «asVar()» = «name».objects.create(**validated_data)
+        
+        «FOREACH getAllComposed() AS e»
         «e.name» = validated_data.pop('«asVar()»')
         for item in «e.name»:
             «e.type.name».objects.create(«e.opposite.name»=«asVar()», **item)
@@ -62,8 +62,8 @@ class «name»WritableSerializer(serializers.ModelSerializer):
         return «asVar()»
 
     def update(self, instance, validated_data):
-    	«FOREACH getAllComposed() AS e»
-    	«e.type.name».objects.filter(«e.opposite.name»=instance).delete()
+        «FOREACH getAllComposed() AS e»
+        «e.type.name».objects.filter(«e.opposite.name»=instance).delete()
         «e.name» = validated_data.pop('«e.name»')
         for item in «e.name»:
             «e.type.name».objects.create(«e.opposite.name»=instance, **item)
@@ -73,7 +73,7 @@ class «name»WritableSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = «name»
-	
+    
 «ENDDEFINE»
 
 «DEFINE genSerializer FOR wcprofile::Entity»

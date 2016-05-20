@@ -9,6 +9,16 @@ extension template::GeneratorExtensions;
 extension template::associationExtensions;
 
 
+getDisplayName(Class entity):
+//JAVA org.witchcraft.generatorutil.ClassUtil.readProperty(java.lang.String);
+if( entity.displayName != null ) then
+	 entity.displayName
+else if ( ! ( entity.parents().isEmpty)  && entity.parents().get(0).displayName != null) then
+	"super.getDisplayName(self)"
+else 
+ 	entity.getDisplayNameFromAttribs();
+
+
 String getModelFieldType(Property prop):
 	if(prop.type.name == "largeText")  
 		then "TextField"
@@ -18,20 +28,29 @@ String getModelFieldType(Property prop):
 		then "DateField" 
 	else if (prop.isType("DateTime")) 
 		then "DateTimeField" 
-	else if (prop.isType("ImageFile")) 
+	else if (prop.isType("imageFile")) 
 		then "ImageField" 
 	else if(prop.isCurrency()) then
 		"DecimalField"
 	//else if (prop.isColumn() && prop.secret ) then
 	//	prop.getJSFPrefix() + ":inputSecret"
 	else if ( prop.isType("Integer") )
-		then  " IntegerField"
+		then  "PositiveIntegerField"
 	else	
 		"CharField";
 		
+String getFieldExtension(Property prop):
+	if(prop.isCurrency())  
+		then "decimal_places=2, max_digits=9 "
+	else if (prop.isNonLargeTextString()) then  //charField
+	 	"max_length=30"
+	else	
+	 	"";
+		
+		
 		
 String getParentDj(Class cls):
-	cls.parents().size > 0 ?  cls.getQaulName()  :"models.Model";
+	cls.parents().size > 0 ? cls.parents().get(0).name /*cls.getQaulName()*/ + "Base"  :"models.Model";
 	
 getQaulName(Class cls):
 	cls.parents().get(0).package.name + "."  + cls.parents().get(0).name;

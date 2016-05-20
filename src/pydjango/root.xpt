@@ -2,24 +2,24 @@
 
 
 «EXTENSION template::GeneratorExtensions»
-«EXTENSION template::djangoExtensions»
 «EXTENSION template::associationExtensions»
+«EXTENSION template::djangoExtensions»
 
 «DEFINE Root FOR uml::Model»
-	«EXPAND PackageRoot FOREACH allOwnedElements().typeSelect(uml::Package)»
+    «EXPAND PackageRoot FOREACH allOwnedElements().typeSelect(uml::Package)»
 «ENDDEFINE»
 
 «DEFINE PackageRoot FOR uml::Package»
-	«IF !excludeFromGeneration()»
-		«EXPAND PackageGen FOREACH  allOwnedElements().typeSelect(uml::Package)»
-		«REM»comment
-		«EXPAND GenPackageInfo FOR this»
-		«EXPAND ClassRoot FOREACH allOwnedElements().typeSelect(uml::Class)»
-		«EXPAND ClassRoot FOREACH allOwnedElements().typeSelect(uml::Interface)»
-		«ENDREM»
-		«EXPAND EnumGen FOREACH allOwnedElements().typeSelect(uml::Enumeration)»
-		
-	«ENDIF»
+    «IF !excludeFromGeneration()»
+        «EXPAND PackageGen FOREACH  allOwnedElements().typeSelect(uml::Package)»
+        «REM»comment
+        «EXPAND GenPackageInfo FOR this»
+        «EXPAND ClassRoot FOREACH allOwnedElements().typeSelect(uml::Class)»
+        «EXPAND ClassRoot FOREACH allOwnedElements().typeSelect(uml::Interface)»
+        «ENDREM»
+        «EXPAND EnumGen FOREACH allOwnedElements().typeSelect(uml::Enumeration)»
+        
+    «ENDIF»
 «ENDDEFINE»
 
 
@@ -29,7 +29,7 @@
 
 
 «DEFINE PackageGen FOR wcprofile::EntitiesPackage»
-	
+    
   «EXPAND genModels FOR this»
   «EXPAND genViewSets FOR this»
   «EXPAND serializers::genSerializers FOR this»
@@ -39,15 +39,17 @@
  
  
 «DEFINE genModels FOR wcprofile::EntitiesPackage»
- 	 «FILE name + "/" +   "modelsBase.py"»
+      «FILE name + "/" +   "modelsBase.py"»
 from django.db import models
-	«EXPAND EntityGen FOREACH allOwnedElements().typeSelect(wcprofile::AbstractEntity)»
+    «EXPAND EntityGen FOREACH allOwnedElements().typeSelect(wcprofile::AbstractEntity).select(a|a.isAbstract)-»
+    
+    «EXPAND EntityGen FOREACH allOwnedElements().typeSelect(wcprofile::AbstractEntity).select(a|!a.isAbstract)-»
   «ENDFILE»
 
   «FILE  name + "/" +   "models.py"»
 from django.db import models
 from .modelsBase import *
-	«EXPAND genClassManual FOREACH allOwnedElements().typeSelect(wcprofile::AbstractEntity)»
+    «EXPAND genClassManual FOREACH allOwnedElements().typeSelect(wcprofile::AbstractEntity)»
   «ENDFILE»
  «ENDDEFINE»
 
@@ -57,12 +59,12 @@ from .modelsBase import *
   «FILE  name + "/" +  "views.py"»
 from rest_framework import viewsets
 from .serializers import *
-	«EXPAND genViewSet FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+    «EXPAND genViewSet FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
   «ENDFILE»
 «ENDDEFINE»
 
 «DEFINE EnumGen FOR uml::Enumeration»
-	
+    
 «ENDDEFINE»
 
 «DEFINE EntityGen FOR wcprofile::MappedSuperClass»
@@ -79,7 +81,7 @@ from .serializers import *
 «ENDDEFINE»
 
 «DEFINE EntityGen FOR uml::Class»
- 	 «EXPAND genClass FOR this»
+      «EXPAND genClass FOR this»
 «ENDDEFINE»
 
 
@@ -88,38 +90,38 @@ from .serializers import *
 class «name»Base(«getParentDj()-»): 
 
  «FOREACH getAllAttributes() AS e-»
-	«IF e.association != null && e.isNavigable()-»
-		«IF e.isMultivalued()-»
-			«IF e.opposite != null && e.opposite.isMultivalued()-»
-    «e.name» =	models.ManyToManyField("«e.type.name»",  blank=True,  related_name="«e.name»")
-			«ENDIF»
-		«ELSE-»
+    «IF e.association != null && e.isNavigable()-»
+        «IF e.isMultivalued()-»
+            «IF e.opposite != null && e.opposite.isMultivalued()-»
+    «e.name» =    models.ManyToManyField("«e.type.name»",  blank=True,  related_name="«e.name»")
+            «ENDIF»
+        «ELSE-»
     «e.name» = models.ForeignKey('«e.type.name»', related_name='«e.opposite.name-»')
-		«ENDIF»
-	«ELSE-»
-    «e.name» = models.«getModelFieldType(e)-»(null = False, blank = True, «IF getModelFieldType(e) == "CharField"» max_length=30«ENDIF»)
-	«ENDIF»
+        «ENDIF»
+    «ELSE-»
+    «e.name» = models.«getModelFieldType(e)-»(null = False, blank = True, «getFieldExtension(e)»)
+    «ENDIF»
  «ENDFOREACH»
- 
- 	«IF isAbstract || isEmbeddable() »
+    @property   
+    def displayName(self):
+        return self.__str__()
+    
+    def __str__(self):
+        return «IF displayName == null»self.«ENDIF»«getDisplayName()» 
+        
     class Meta:
         abstract = True
-	«ENDIF»
-     
 «ENDDEFINE»
 
 
 «DEFINE genClassManual FOR wcprofile::AbstractEntity»
-
 class «name»(«name»Base): 
-	
-	«IF isAbstract»
+    «IF isAbstract-»
     class Meta:
         abstract = True
-	«ELSE»
+    «ELSE-»
         pass
-	«ENDIF»
-
+    «ENDIF»
 «ENDDEFINE»
 
 
@@ -158,7 +160,7 @@ router.register(r'«e.asVar().getPlural()»Writable', «e.name»WritableViewSet)
 router.register(r'«e.asVar().getPlural()»Complete', «e.name»CompleteViewSet)
 router.register(r'«e.asVar().getPlural()»Lookup', «e.name»LookupViewSet)
 «ENDFOREACH»
-	
+    
 «ENDFILE»
 «ENDDEFINE»
 

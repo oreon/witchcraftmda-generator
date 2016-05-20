@@ -491,7 +491,7 @@ public class ClassUtil {
 	}
 
 	public static String getDisplayNameFromAttribs(Class cls) {
-		EList<Property> attribs = cls.getAllAttributes();
+		EList<Property> attribs = getMineAndParentsAttributes(cls);
 
 		// String firstProp = if( attribs.get(0).getName();
 

@@ -1,0 +1,65 @@
+
+
+angular.module('jhipsterApp')
+.controller('MyController', function ($scope,  «name»Service) {
+	
+	//$scope.data = Student;
+	$scope.books = [];
+	$scope.page = 1;
+	
+	
+	//$scope.authors = authorSvc.authors;
+	
+	$scope.create = function (book) {
+       
+        toastr.success("Success" + book.title);
+        «name»Service.update(book,
+                function () {
+                   	$scope.loadAll();
+                   // $('#saveBookModal').modal('hide');
+                   $scope.clear();
+                });
+        
+    };
+    
+    
+    $scope.gridOptions = { 
+    	 data: 'books' ,
+    	 showGroupPanel: true,
+    	 showFilter: true,
+    	 columnDefs: [{field:'title', displayName:'Title'}, 
+    	              {field:'price', displayName:'Price'},
+    	              {field:'author.name', displayName:'Author'},
+    	 			]
+    	 
+    };
+    
+    $scope.clear = function () {
+        $scope.book = {title: null, price: null, id: null};
+        $scope.editBookForm.$setPristine();
+        $scope.editBookForm.$setUntouched();
+    };
+       
+    $scope.loadAll = function() {
+        «name»Service.query({page: $scope.page, per_page: 20}, function(result, headers) {
+            //$scope.links = ParseLinks.parse(headers('link'));
+            $scope.books = result;
+        });
+    };
+    
+    $scope.addTag = function(postin) {
+		$scope.post = postin;
+		$scope.post.tags.push({});
+	};
+
+	$scope.removeTag = function(item) {
+		// var index = $scope.post.tags.indexOf(item);
+		console.log('removing ' + item);
+		$scope.post.tags.splice(item, 1);
+	}
+
+  //TODO put in activate function
+    $scope.loadAll();
+    
+ 
+});

@@ -1,0 +1,185 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+
+«DEFINE Root FOR wcprofile::Entity»
+	 «EXPAND genListContainer FOR this»
+	 «EXPAND genListComponent FOR this»
+«ENDDEFINE»
+
+«DEFINE genListContainer FOR wcprofile::Entity»
+«FILE getWebPath() +"/list" +name+ "." + "tpl"»
+
+<ui:composition «EXPAND genImports FOR this»
+                template="/layout/stub/clientXpress.seam">
+
+    <!--selected script/css includes file-->
+    <ui:param name="layout_jsIncludes" value="/layout/scripts/cxpImports.seam"/>
+    <!--selected tab template file-->
+    <ui:param name="layout_tabTemplate" value="/layout/menu/tabSelectionOperations.seam"/>
+    <!--selected left nav template file-->
+    <ui:param name="layout_navTemplate" value="/layout/menu/nav/operationsClientXpressProfile.seam"/>
+
+    <ui:param name="layout_pageTitle" value="#{uvs:label('PROFILES')}"/>
+    <ui:param name="step" value="library"/>
+
+    <ui:define name="page-header">
+        <ui:include src="/cxp/operations/controls/clientProfileTabs.seam"/>
+    </ui:define>
+
+    <ui:define name="page-content">
+    	
+    	<ui:include src="list«name»Component.tpl" />
+    	
+ 
+    </ui:define>
+</ui:composition>
+«ENDFILE»
+«ENDDEFINE»
+
+
+
+«DEFINE genListComponent FOR wcprofile::Entity»
+«FILE getWebPath() +"/list" +name+ "Component." + "tpl"»
+
+
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+«EXPAND genImports FOR this»
+ >
+ 	 «setAsCurrentEntity(this)-»
+   <uvs:secured fsaid="20000" access-type="8">
+            <h:panelGroup id="panelProfiles" layout="block">
+                 <rich:datascroller for="recordsTable" maxpages="10" id="dsTop" fastcontrols="hide"
+                    renderifsinglepage="false" rerender="dsBtm" />
+
+                <rich:dataTable id="recordsTable"      rows="10"
+                                value="#{«getAction()».all}"
+                                var="«asVar()»"
+                                style="border-right:solid 1px #c4c0c9;"
+                                headerClass="lj"
+                                columnClasses="autoWrapText bottomBorderOnly, autoWrapText bottomBorderOnly, autoWrapText bottomBorderOnly, autoWrapText bottomBorderOnly"
+                        >
+                        
+                        
+                  «EXPAND genAttribAsOutput FOR this»
+                  
+                   <rich:column>
+                        <f:facet name="header">
+                        </f:facet>
+                        <uvs:secured fsaid="20000" access-type="2">
+                            <h:commandLink action="#{«getAction()».delete(profile.code)}"
+                                       title="#{uvs:label('DELETE')}"
+                                       onmouseout="elem('img_#{profile.code}').src='#{uvs:nonJsfServletPath()}/files/cob/del_inactive.png'"
+                                       onmouseover="elem('img_#{profile.code}').src='#{uvs:nonJsfServletPath()}/files/cob/del_active.png'"
+                                       onclick='if(confirm("#{uvs:label("CONFIRM_DELETE_CLIENT_PROFILE_FROM_LIST")}")) return true; else return false;'>
+                            <img id="img_#{profile.code}" src="#{uvs:nonJsfServletPath()}/files/cob/del_inactive.png"/>
+                            </h:commandLink>
+                        </uvs:secured>
+                    </rich:column>
+                </rich:dataTable>
+
+			</h:panelGroup>
+            </uvs:secured>
+   
+</ui:composition>
+«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE genAttribAsOutput FOR uml::Class-»
+	«FOREACH allParents() AS e-»
+	 «EXPAND genPropertyRec FOREACH e.getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()  ) -»
+	«ENDFOREACH»
+	«EXPAND genPropertyRec FOREACH getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()   ) -»
+«ENDDEFINE»
+
+«DEFINE genPropertyRec FOR uml::Property-»
+	«IF isExpandableAssoc() -» 
+		«setCurrentEmbeddable()-» 
+		«EXPAND genPropertyRec FOREACH type.getAllAttributes().select(a|!a.isMultivalued() && !a.isSecret()  ) -»
+		«clearCurrentEmbeddable()-»
+	«ELSE-»
+		«EXPAND genAttribute -»
+	«ENDIF»
+«ENDDEFINE»
+
+«DEFINE genAttribute FOR uml::Property -»
+	«EXPAND genProperty FOR this-»
+«ENDDEFINE»
+
+
+
+
+
+«DEFINE genAssocValue(String prefix) FOR uml::Property»
+	«REM»TODO  link should not be hard coded to path and should be of type action=view«type.name» «ENDREM»
+	<s:link «getEscape()»  value="#{«prefix»«genPropertyLabel()».displayName}"  view="«type.getViewFile("view")»" propagation="none">
+			<f:param name="«type.name.toFirstLower()»Id" value="#{«prefix»«genPropertyLabel()».id}" />
+			<f:param name="from" value="#{request.servletPath}" />
+			«IF type.popupInfo != null»
+			 <rich:toolTip>
+	            <span>
+	              #{«prefix»«genPropertyLabel()».popupInfo} 
+	            </span>
+	        </rich:toolTip>
+	        «ENDIF»
+	</s:link>
+«ENDDEFINE»
+
+
+
+«DEFINE genProperty FOR uml::Property-»
+	 <rich:column sortBy="#{record.«name»}">
+        <f:facet name="header">
+            #{uvs:label('«name.toUpperCase()»')}
+        </f:facet>
+		«EXPAND genPropertyValue("") FOR this»
+	</rich:column>
+«ENDDEFINE»
+
+«DEFINE genPropertyValue(String prefix) FOR uml::Property»
+		«IF association != null -»
+			«EXPAND genAssocValue(prefix) FOR this»
+		«ELSEIF isFile()»
+		«ELSEIF isDate()»
+			<h:outputText value="#{«prefix»«genPropertyLabel()»}">
+				<s:convertDateTime type="date" dateStyle="medium" />
+			</h:outputText>
+		«ELSEIF isBoolean()»
+			<h:outputText value="#{«prefix»«genPropertyLabel()»? msg.yes : msg.no }" />	
+		«ELSEIF isCurrency()»
+			<h:outputText value="#{«prefix»«genPropertyLabel()»}">
+				<f:convertNumber pattern="$#,##0.00"/>
+			</h:outputText>
+		«ELSEIF isDouble()»
+			<h:outputText value="#{«prefix»«genPropertyLabel()»}">
+				<f:convertNumber pattern="000.00"/>
+			</h:outputText>
+		«ELSEIF isLargeText()»
+			«IF isColumn() && !abbreviateInListing»
+				<h:outputText value="#{«prefix»«genPropertyLabel()»}"  escape="false" />	
+			«ELSE»
+			    <h:outputText id="«name»Abbr" value="#{«prefix»«genPropertyLabel()»Abbreviated}" escape="false"/> 
+	         «ENDIF»				
+		«ELSE»
+			<h:outputText value="#{«prefix»«genPropertyLabel()»}"  escape="false" />	
+		«ENDIF»
+«ENDDEFINE»
+
+
+
+«DEFINE genImports FOR uml::Class»
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:c="http://java.sun.com/jstl/core"
+                xmlns:uvs="http://www.univeris.com/jsf/ewms/8.x"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:s="http://jboss.com/products/seam/taglib"
+                xmlns:a="http://richfaces.org/a4j"
+                xmlns:p="http://primefaces.prime.com.tr/ui"
+                xmlns:rich="http://richfaces.org/rich"
+«ENDDEFINE»
+

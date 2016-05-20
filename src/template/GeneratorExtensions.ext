@@ -489,7 +489,11 @@ isType(Property prop, String typeName):
 prop.type.name == typeName;
 
 isString(Property prop):
-isType(prop, "String") || isType(prop, "uniqueNameType") || isType(prop, "nameType") || isType(prop, "largeText");
+prop.isNonLargeTextString() || isType(prop, "largeText");
+
+isNonLargeTextString(Property prop):
+isType(prop, "String") || isType(prop, "uniqueNameType") || isType(prop, "nameType") ;
+
 
 isNameType(Property prop):
 isType(prop, "nameType");
