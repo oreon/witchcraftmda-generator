@@ -1,9 +1,9 @@
 «IMPORT wcprofile»
 
-
+«EXTENSION template::djangoExtensions»
 «EXTENSION template::GeneratorExtensions»
 «EXTENSION template::associationExtensions»
-«EXTENSION template::djangoExtensions»
+
 
 «DEFINE Root FOR uml::Model»
     «EXPAND PackageRoot FOREACH allOwnedElements().typeSelect(uml::Package)»
@@ -107,7 +107,7 @@ class «name»Base(«getParentDj()-»):
         return self.__str__()
     
     def __str__(self):
-        return «IF displayName == null»self.«ENDIF»«getDisplayName()» 
+        return «getDisplayName()» 
         
     class Meta:
         abstract = True

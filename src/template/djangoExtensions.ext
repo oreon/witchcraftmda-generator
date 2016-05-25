@@ -14,9 +14,9 @@ getDisplayName(Class entity):
 if( entity.displayName != null ) then
 	 entity.displayName
 else if ( ! ( entity.parents().isEmpty)  && entity.parents().get(0).displayName != null) then
-	"super.getDisplayName(self)"
+	"super().__str__()"
 else 
- 	entity.getDisplayNameFromAttribs();
+ 	"self." + entity.getDisplayNameFromAttribs();
 
 
 String getModelFieldType(Property prop):
