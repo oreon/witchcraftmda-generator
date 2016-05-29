@@ -91,7 +91,7 @@ export class «name»DetailComponent implements OnInit {
 
 
 «DEFINE genListController FOR wcprofile::Entity»
-«FILE getWebPath() +"/" + asVar() + "/" + name + "List.ts"»
+«FILE getWebPath() +"/" + asVar() + "/" + name + "ListComponent.ts"»
 
 import { Component, OnInit } from 'angular2/core';
 import { Router } from 'angular2/router';
@@ -107,20 +107,20 @@ import { «name»Service } from './«asVar()»-service';
   templateUrl: 'app/«asVar()»/«asVar()»-list.component.html',
   directives: [«name»DetailComponent, ROUTER_DIRECTIVES]
 })
-export class «name»sComponent implements OnInit {
-  «asVar()»s:«name»[];
+export class «name»ListComponent implements OnInit {
+  records:«name»[];
   selected«name»: «name»;
 
   constructor(
     private _router: Router,
-  private _«asVar()»Service:«name»Service) { }
+    private _«asVar()»Service:«name»Service) { }
 
 
   get«name»s() {
   //  body["results"]
     this._«asVar()»Service.getRecords().subscribe(records =>{
       console.log(records);
-       this.«asVar()»s = records["results"];
+       this.records = records["results"];
      }
      );
   }

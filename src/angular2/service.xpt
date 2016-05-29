@@ -4,54 +4,121 @@
 «EXTENSION template::webExtensions»
 «EXTENSION template::associationExtensions»
 
-«DEFINE root FOR wcprofile::Entity»
-«FILE getWebPath() +"/" + asVar() + ".service.js"»
+«DEFINE svc FOR wcprofile::Entity»
+«FILE getWebPath() +"/" + name + "Service.ts"»
 
-(function () {
-'use strict';
+import {Injectable}     from '@angular/core';
+import {Http, Response, Headers, RequestOptions} from '@angular/http';
 
+import {«name»}           from './«asVar()»';
+import {BaseHttpService} from '../common/BaseHttpService';
 
-var «asVar()»Service = angular.module('app.core').factory('«asVar()»Service', function ($resource, $cacheFactory, API_BASE_URL) {
-    baseUrl = API_BASE_URL;
-    
-    var «asVar()»Cache = $cacheFactory('«name»Cache');
-        
-    var res =   $resource(baseUrl + '/«asVar()»s/:id', {id: '@id'}, {
-        query: {
-            method: 'GET',
-            isArray: false,
-           // cache: «asVar()»Cache
-        },
-        'update': { method:'PUT' , url: baseUrl + '/«asVar()»sWritable/:id' },
-        'create': { method:'POST' , url: baseUrl + '/«asVar()»sWritable/:id'},
-        get: { method:'GET', 
-         //cache: «asVar()»Cache
-        },
-         'getComplete':{
-            method:'GET',
-            url: baseUrl + '/«asVar()»sComplete/:id'
-        },
-        'getWritable': { 
-            method:'GET',
-            url: baseUrl + '/«asVar()»sWritable/:id'
-         //cache: «asVar()»Cache
-        },
-    } );           
-       
-    res.prototype.$save = function() {
-        if (this.id) {
-            return this.$update();
-        } else {
-            return this.$create();
-        }
-    }
-    
-    return res;
-});
+@Injectable()
+export class «name»Service extends BaseHttpService<«name»>{
+
+  constructor (protected http: Http) {  super(http);}
+
+  getUrl():string{
+    return "«asVar()»s";
+  }
+
+}
+«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE genList FOR wcprofile::Entity»
+«FILE getWebPath() +"/" + name + "ListComponent.ts"»
+
+import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 
 
+import { «name» } from './«asVar()»';
+import { RouteConfig, ROUTER_DIRECTIVES, ROUTER_PROVIDERS } from '@angular/router-deprecated';
 
-})();
 
+import { «name»DetailComponent } from './«asVar()»-detail.component';
+
+import { BaseListComponent} from '../common/BaseListComponent'
+import { «name»Service } from './«asVar()»-service';
+
+let template = require('./«asVar()»s.component.html');
+
+@Component({
+  selector: '«asVar()»s',
+  template: template,
+  providers:[«name»Service],
+  directives: [«name»DetailComponent, ROUTER_DIRECTIVES]
+})
+export class «name»sComponent extends BaseListComponent<«name»> implements OnInit {
+  «asVar()»s:«name»[];
+  selected«name»:«name»;
+  errorMessage:string;
+
+  constructor(
+  //  private _router: Router,
+  protected _«asVar()»Service:«name»Service) { super(_«asVar()»Service); }
+
+
+//  gotoDetail() {this._router.navigate(['«name»Detail', { id: this.selected«name».id }]);}
+}
+«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE genDetail FOR wcprofile::Entity»
+«FILE getWebPath() +"/" + name + "DetailComponent.ts"»
+
+import { Component, Input, OnInit } from '@angular/core';
+import { RouteParams, Router } from '@angular/router-deprecated';
+
+//import { SkillService} from '../skill/skill-service';
+//import { SkillType } from '../skill«asVar()»';
+
+import { «name» } from './«asVar()»';
+import { «name»Service } from './«asVar()»-service';
+
+import { DBService } from '../common/db-service';
+import { BaseDetailComponent } from '../common/BaseDetailComponent';
+
+//let template = require('./«asVar()»/«asVar()»-detail.component.html');
+
+@Component({
+  selector: '«asVar()»-detail',
+  templateUrl: './app/«asVar()»/«asVar()»-detail.component.html',
+  providers:[«name»Service, DBService, SkillService]
+  //directives: [«name»OrderDetailComponent]
+})
+export class «name»DetailComponent  extends BaseDetailComponent<«name»> implements OnInit {
+  @Input()
+  «asVar()»: «name»;
+  createInstance():«name» { return new «name»()}
+  getSuccessUrl():string { return '«name»s'}
+
+  constructor(
+    protected _«asVar()»Service: «name»Service,
+    protected _dbService:DBService,
+    protected _routeParams: RouteParams,
+    protected _router: Router
+  ) {
+    super(_«asVar()»Service, _dbService, _routeParams, _router);
+  }
+  
+  «FOREACH getMineAndParentsAttributes().select(e|e.isMVComposite() ) AS e»
+  add«e.name.toFirstUpper()»(){
+  this.«asVar()».«e.name».push(new «e.type.name»());
+  }
+
+  remove«e.name.toFirstUpper()»(index:number){
+    this.«asVar()».«e.name».splice(index, 1);
+  }
+
+  on«e.name.toFirstUpper()»Changed(newValu«e.name»e, index) {
+    console.log(newValue);
+  }
+  «ENDFOREACH»
+
+
+}
 «ENDFILE»
 «ENDDEFINE»
