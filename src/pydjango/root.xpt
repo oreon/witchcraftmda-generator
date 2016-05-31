@@ -1,12 +1,13 @@
 «IMPORT wcprofile»
 
-«EXTENSION template::djangoExtensions»
+«EXTENSION pydjango::djangoExtensions»
 «EXTENSION template::GeneratorExtensions»
 «EXTENSION template::associationExtensions»
 
 
 «DEFINE Root FOR uml::Model»
     «EXPAND PackageRoot FOREACH allOwnedElements().typeSelect(uml::Package)»
+    «EXPAND springdatarest::apicsv::Root FOR this»
 «ENDDEFINE»
 
 «DEFINE PackageRoot FOR uml::Package»
@@ -99,7 +100,7 @@ class «name»Base(«getParentDj()-»):
     «e.name» = models.ForeignKey('«e.type.name»', related_name='«e.opposite.name-»')
         «ENDIF»
     «ELSE-»
-    «e.name» = models.«getModelFieldType(e)-»(null = False, blank = True, «getFieldExtension(e)»)
+    «e.name» = models.«getModelFieldType(e)-»(null = False, blank =  «getFieldBlankable(e)», «getFieldExtension(e)»)
     «ENDIF»
  «ENDFOREACH»
     @property   
@@ -111,6 +112,10 @@ class «name»Base(«getParentDj()-»):
         
     class Meta:
         abstract = True
+        
+    «IF uniqueConstraints != null»
+        unique_together = «uniqueConstraints»
+    «ENDIF»    
 «ENDDEFINE»
 
 

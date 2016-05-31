@@ -3,10 +3,7 @@
 «EXTENSION template::webExtensions»
 «EXTENSION template::associationExtensions»
 
-«DEFINE root FOR wcprofile::Entity»
-	«EXPAND genDetail FOR this»
-	«EXPAND genListController FOR this»
-«ENDDEFINE»
+
 
 «DEFINE genDetail FOR wcprofile::Entity»
 «FILE getWebPath() +"/" + asVar() + "/" + name + "Detail.ts"»

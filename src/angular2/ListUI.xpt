@@ -5,9 +5,10 @@
 
 «DEFINE Root FOR wcprofile::Entity»
 	 «EXPAND EditUI::Root FOR this»
-	 «EXPAND ViewUI::Root FOR this»
+	 
 	 «EXPAND genListContainer FOR this»
 	 «REM»comment
+	  «EXPAND ViewUI::Root FOR this»
 	 «EXPAND genListComponent FOR this»
 	 «ENDREM»
 «ENDDEFINE»
@@ -15,18 +16,18 @@
 «DEFINE genListContainer FOR wcprofile::Entity»
 
 «FILE getWebPath() +"/list" +name+ ".component." + "html"»
-<h2>Customers</h2>
+<h2>«name»s</h2>
 
-<button md-raised-button color="primary" [routerLink]="['/CustomerDetail',{'id':0}]">Create New</button>
+<button md-raised-button color="primary" [routerLink]="['/«name»Detail',{'id':0}]">Create New</button>
 {{errorMessage}}
 
 <ul>
-  <li *ngFor="let customer of customers">
-   «EXPAND genAttribute FOREACH getMineAndParentsAttributes().select(a|!a.isMultivalued() && !a.isSecret() ) -»
-  <a [routerLink]="['/CustomerDetail',{'id':customer.id}]">
-    <span class="badge">{{customer.id}}</span> 
+  <li *ngFor="let «asVar()» of «asVar()»s">
+   «EXPAND genPropertyValue FOREACH getMineAndParentsAttributes().select(a|!a.isMultivalued() && !a.isSecret() ) -»
+  <a [routerLink]="['/«name»Detail',{'id':«asVar()».id}]">
+    <span class="badge">{{«asVar()».id}}</span> 
   </a>
-  <button (click)="delete(customer)">Delete</button>
+  <button (click)="delete(«asVar()»)">Delete</button>
   </li>
 </ul>
 «ENDFILE»

@@ -4,7 +4,36 @@
 «EXTENSION template::webExtensions»
 «EXTENSION template::associationExtensions»
 
-«DEFINE svc FOR wcprofile::Entity»
+«DEFINE root FOR wcprofile::Entity»
+	«EXPAND genEntity FOR this»
+	«EXPAND genService FOR this»
+	«EXPAND genList FOR this»
+	«EXPAND genDetail FOR this»
+«ENDDEFINE»
+
+«DEFINE genRelatedImports FOR   wcprofile::Entity»
+
+  
+  «FOREACH getNonRecursiveOutgoingAssociations() AS e-»
+    import {«e.type.name»} from '../«e.type.package.name»/«e.type.name»'
+  «ENDFOREACH»
+«ENDDEFINE»
+
+«DEFINE genEntity FOR   wcprofile::Entity»
+«FILE getWebPath() +"/" + name + ".ts"»
+
+import {BaseEntity} from '../common/BaseEntity';
+«EXPAND genRelatedImports FOR this»
+
+export class «name» extends «getParentOrDefault("BaseEntity")» {
+  «FOREACH getAllAttributes() AS e-»
+   «e.name»  «IF e.isMultivalued()»[]«ENDIF»: «IF e.isString()» string «ELSE»  «e.type.name» «ENDIF»
+  «ENDFOREACH»
+}
+«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE genService FOR wcprofile::Entity»
 «FILE getWebPath() +"/" + name + "Service.ts"»
 
 import {Injectable}     from '@angular/core';
@@ -32,25 +61,26 @@ export class «name»Service extends BaseHttpService<«name»>{
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 
+«EXPAND genRelatedImports FOR this»
 
 import { «name» } from './«asVar()»';
 import { RouteConfig, ROUTER_DIRECTIVES, ROUTER_PROVIDERS } from '@angular/router-deprecated';
 
 
-import { «name»DetailComponent } from './«asVar()»-detail.component';
+import { «name»DetailComponent } from './«asVar()»DetailComponent';
 
 import { BaseListComponent} from '../common/BaseListComponent'
-import { «name»Service } from './«asVar()»-service';
+import { «name»Service } from './«asVar()»Service';
 
-let template = require('./«asVar()»s.component.html');
+let template = require('./«asVar()»ListComponent.html');
 
 @Component({
-  selector: '«asVar()»s',
+  selector: '«asVar()»-list',
   template: template,
   providers:[«name»Service],
   directives: [«name»DetailComponent, ROUTER_DIRECTIVES]
 })
-export class «name»sComponent extends BaseListComponent<«name»> implements OnInit {
+export class «name»ListComponent extends BaseListComponent<«name»> implements OnInit {
   «asVar()»s:«name»[];
   selected«name»:«name»;
   errorMessage:string;
@@ -69,24 +99,22 @@ export class «name»sComponent extends BaseListComponent<«name»> implements OnIni
 «DEFINE genDetail FOR wcprofile::Entity»
 «FILE getWebPath() +"/" + name + "DetailComponent.ts"»
 
+«EXPAND genRelatedImports FOR this»
+
 import { Component, Input, OnInit } from '@angular/core';
 import { RouteParams, Router } from '@angular/router-deprecated';
 
-//import { SkillService} from '../skill/skill-service';
-//import { SkillType } from '../skill«asVar()»';
-
 import { «name» } from './«asVar()»';
-import { «name»Service } from './«asVar()»-service';
+import { «name»Service } from './«asVar()»Service';
 
 import { DBService } from '../common/db-service';
 import { BaseDetailComponent } from '../common/BaseDetailComponent';
 
-//let template = require('./«asVar()»/«asVar()»-detail.component.html');
 
 @Component({
   selector: '«asVar()»-detail',
-  templateUrl: './app/«asVar()»/«asVar()»-detail.component.html',
-  providers:[«name»Service, DBService, SkillService]
+  templateUrl: './app/«asVar()»/«asVar()»DetailComponent.html',
+  providers:[«name»Service, DBService]
   //directives: [«name»OrderDetailComponent]
 })
 export class «name»DetailComponent  extends BaseDetailComponent<«name»> implements OnInit {

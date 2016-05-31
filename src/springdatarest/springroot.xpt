@@ -9,6 +9,7 @@
 
 «DEFINE Root FOR uml::Model»
 	«EXPAND PackageRoot FOREACH allOwnedElements().typeSelect(uml::Package)»
+	«EXPAND apicsv::Root FOR this»
 	«EXPAND tests::Root FOR this»
 «ENDDEFINE»
 

@@ -1,0 +1,33 @@
+«IMPORT wcprofile»
+
+«EXTENSION org::openarchitectureware::uml2::profile::profiling»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::associationExtensions»
+
+«EXTENSION template::WebExtensions»`
+
+
+«DEFINE Root FOR uml::Model»
+«FILE "ApiDefinition.csv"  »
+	«EXPAND PackageRoot FOREACH allOwnedElements().typeSelect(uml::Package)»
+«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE PackageRoot FOR uml::Package»
+	«EXPAND BaseGen FOREACH getOwnedTypes().typeSelect(wcprofile::Entity).select(a| (!a.isAbstract && !a.isLeaf() ))»
+«ENDDEFINE»
+
+
+	
+«DEFINE BaseGen FOR wcprofile::Entity»
+«name»  
+
+GET «name.getPlural()»/id
+«FOREACH getMineAndParentsAttributes() AS e-»
+  «e.name» , «IF e.isString()» String «ELSE»  «e.type.name» «ENDIF»  «IF e.isMultivalued()» Array «ENDIF», «e.name.getVariableNameForDisplay()»
+«ENDFOREACH»
+
+PUT/PATCH «name.getPlural()»/<<«name»>> , Edit existing «name»
+POST  , Create new «name»
+DELETE «name.getPlural()»/id  , Delete
+«ENDDEFINE»

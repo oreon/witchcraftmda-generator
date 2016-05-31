@@ -8,46 +8,32 @@
 «DEFINE Root FOR wcprofile::Entity»
 	 «setAsCurrentEntity(this)-»
 	 «EXPAND genEditContainer FOR this»
-	 «EXPAND genEditComponent FOR this»
+	 «REM»«EXPAND genEditComponent FOR this»«ENDREM»
 «ENDDEFINE»
 
 «DEFINE genEditContainer FOR wcprofile::Entity»
 «FILE getWebPath() +"/edit" +name+ "." + "html"»
-
-<div *ngIf="customer">
-  <h2>{{customer.lastName}} details!</h2>
-  <div>
-    <label>id:={{customer.id}} </label>
-  </div>
-  <div>
+ 
+<div *ngIf="«asVar()»">
+  <h2>«name» details!</h2>
+  <md-card>
 
     <form (ngSubmit)="save()" autocomplete="off"  #theForm="ngForm">
-    
-    	«EXPAND genPropertyRec FOREACH getMineAndParentsAttributes().select(a|!a.isMultivalued() && a.isAttributeEditable() ) -»
- 
-      	«EXPAND genEditableTable FOREACH getMineAndParentsAttributes().getComposed() -»
-      	
+    	«EXPAND genAttributes FOR this»
+
+      	«EXPAND genEditableTable FOREACH getMineAndParentsAttributes().select(a|a.isMVComposite()) -»      	
       	«EXPAND genButtons FOR this»
-	
-    
-        <label>First Name: </label>
-        <input type="text"  required [(ngModel)]="customer.firstName"
-        ngControl="firstName"  #name="ngForm"  #spy >
-        
-        <label>Last Name: </label>
-        <md-input type="text"  required
-             [(ngModel)]="customer.lastName" >
-        </md-input>
-
-    
-
     </form>
-  </div>
+  </md-card>
 
 </div>
 «ENDFILE»
 «ENDDEFINE»
 
+
+«DEFINE genAttributes FOR wcprofile::AbstractEntity»
+	«EXPAND genPropertyRec FOREACH getMineAndParentsAttributes().select(a|!a.isMultivalued() && a.isAttributeEditable() ) -»
+«ENDDEFINE»
 
 
 «DEFINE genPropertyRec FOR uml::Property-»
@@ -62,45 +48,35 @@
 
 
 «DEFINE genProperty FOR uml::Property-»
-
- «EXPAND genInputBegin FOR this»
-
- «EXPAND genLabel FOR this»
-
- «IF association != null -»
-	«EXPAND genAssocValue FOR this»
- «ELSE»
- 	«EXPAND genPropertyInput(type) FOR this»
- «ENDIF»
- 
- «EXPAND genMessage FOR this»
- 
- «EXPAND genInputEnd FOR this»
-
+ «EXPAND genInputBegin FOR this-»
+ «EXPAND genLabel FOR this-»
+ «IF association != null -»«EXPAND genAssocValue FOR this»«ELSE»«EXPAND genPropertyInput(type) FOR this»«ENDIF»
+ «EXPAND genMessage FOR this-»
+ «EXPAND genInputEnd FOR this-»
 «ENDDEFINE»
 
 
 «DEFINE genPropertyInput(uml::PrimitiveType type) FOR uml::Property»
 		
-		«IF isFile()»
-			<h2>TODO </h2>
-		«ELSEIF isDate()»
-          <input type="text" class="form-control"  uib-datepicker-popup="dd/MM/yyyy" [(ngModel)]="«genPropertyLabel()»"
-      		ng-required="true" close-text="Close" /> 
-		«ELSEIF isBoolean()»
-            <input radio id="«getId()»" name="«getId()»" type="text" class="form-control" maxlength="50" [(ngModel)]="«genPropertyLabel()»"
-                        ng-minlength="2" ng-maxlength="50"/>		
-		«ELSEIF isCurrency()»
-			 <input id="«getId()»" name="«getId()»" type="text" class="form-control" maxlength="50" [(ngModel)]="«genPropertyLabel()»"
-                        ng-minlength="2" ng-maxlength="50"/>
-		«ELSEIF isDouble()»
-			<md-input id="«getId()»" name="«getId()»" type="text" class="form-control" maxlength="50" [(ngModel)]="«genPropertyLabel()»"
-                        ng-minlength="2" ng-maxlength="50" />
-		«ELSEIF isLargeText()»
-			<textarea  id="«getId()»" name="«getId()»" [(ngModel)]="«genPropertyLabel()»" />
-	 	«ELSE»
-	 		 <md-input type="text"  required [(ngModel)]="«genPropertyLabel()»" ngControl="«name»"  #name="ngForm" />
-		«ENDIF»
+	«IF isFile()»
+		<h2>TODO </h2>
+	«ELSEIF isDate()»
+      <input type="text" class="form-control"  uib-datepicker-popup="dd/MM/yyyy" [(ngModel)]="«genPropertyLabel()»"
+  		ng-required="true" close-text="Close" /> 
+	«ELSEIF isBoolean()»
+        <input radio id="«getId()»" name="«getId()»" type="text" class="form-control" maxlength="50" [(ngModel)]="«genPropertyLabel()»"
+                    ng-minlength="2" ng-maxlength="50"/>		
+	«ELSEIF isCurrency()»
+		<input id="«getId()»" name="«getId()»" type="text" class="form-control" maxlength="50" [(ngModel)]="«genPropertyLabel()»"
+                    ng-minlength="2" ng-maxlength="50"/>
+	«ELSEIF isDouble()»
+		<md-input id="«getId()»" name="«getId()»" type="text" class="form-control" maxlength="50" [(ngModel)]="«genPropertyLabel()»"
+                    ng-minlength="2" ng-maxlength="50" />
+	«ELSEIF isLargeText()»
+		<textarea  id="«getId()»" name="«getId()»" [(ngModel)]="«genPropertyLabel()»" />
+ 	«ELSE»
+ 		 <md-input type="text"  required [(ngModel)]="«genPropertyLabel()»" ngControl="«name»"  #name="ngForm" />
+	«ENDIF»
 «ENDDEFINE»
 
 «DEFINE genPropertyInput(uml::Enumeration enm) FOR uml::Property-»
@@ -113,9 +89,10 @@
 «ENDDEFINE»
 
 
-«DEFINE genAssocValue FOR uml::Property»
-	<select class="form-control" name="«getId()»" [(ngModel)]="«genPropertyLabel()»"  
-		ng-options='option.id as option.displayName for option in vm.«name»s' ng-required="true">
+«DEFINE genAssocValue FOR uml::Property»    
+    <select class="form-control" required  [ngModel]="«class.asVar()»?.«name»?.id" (ngModelChange)="on«name.toFirstUpper()»Changed($event,i)">
+       <option>Please Select </option>
+       <option *ngFor="#p of «name»Selectables" [value]="p.id" >{{p.displayName}}</option>
     </select>
 «ENDDEFINE»
 
@@ -128,52 +105,29 @@
 «ENDDEFINE»
 
 «DEFINE genMessage FOR uml::Property»
-   <div class="alert alert-danger form-group" ng-messages="«name»Form.name.$error" ng-if="«name»Form.name.$touched">
-        <p ng-message="minlength">Input is too short.</p>
-        <p ng-message="maxlength">Input is too long.</p>
-        <p ng-message="required">Input is required.</p>
-    </div>
 «ENDDEFINE»
 
 
 «DEFINE genInputBegin FOR uml::Property»
-	«IF isCurrentMultiMode()»
-		<td> «getOutputMessage()» 
-	«ELSE»
-		 <div class="form-group">
-	«ENDIF»
 «ENDDEFINE»
-
 
 «DEFINE genInputEnd FOR uml::Property»
-	 «IF isCurrentMultiMode()»
-		</td>
-	«ELSE»
-		</div>
-	«ENDIF»
 «ENDDEFINE»
-
-  <li *ngFor="#employeeSkill of employee.employeeSkills;#i = index">
-
 
 
 «DEFINE genEditableTable FOR uml::Property-»
+	<ul>
 	«setCurrentMultiMode(true)-»
 	«IF !isPreloadedComposition() -» «EXPAND genNewButton FOR this» «ENDIF»
-	<div ng-repeat="«type.asVar()» in «class.asVar()».«name» ">
-		«setAsCurrentEntity(type)»
-		«EXPAND genAttribAsOutput FOR type-»
+	<li *ngFor=" let «type.asVar()» of «class.asVar()».«name»; let i = index">
+		<«type.asVar()»-detail [«type.asVar()»]="«name»"></«type.asVar()»-detail>
 		«IF !isPreloadedComposition()»
-		  «EXPAND genNew -»
-		  «EXPAND genDelete FOR this -»
-		«ENDIF»
-     </div>
+		  «EXPAND genNewButton -»
+		  «EXPAND genDelete  -»
+		«ENDIF»  
+     </li>
 	«setCurrentMultiMode(false)-»
-«ENDDEFINE»
-
-
-«DEFINE genNew FOR uml::Property»
-	<td>«EXPAND genNewButton FOR this»</td>
+	</ul>
 «ENDDEFINE»
 
 «DEFINE genNewButton FOR uml::Property»

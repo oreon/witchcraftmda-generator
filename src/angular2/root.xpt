@@ -6,15 +6,12 @@
 «EXTENSION template::associationExtensions»
 
 «DEFINE Root FOR uml::Model»
+	«REM»comment
 	«EXPAND genApi FOR this»
-
-	«EXPAND ListUI::Root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
 	«EXPAND routes::Root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
-	«EXPAND controller::root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
-	«EXPAND directives::root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
-	«EXPAND service::root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
-	
-	
+	«ENDREM»
+	«EXPAND ListUI::Root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND service::root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»	
 «ENDDEFINE»
 
 

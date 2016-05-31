@@ -237,6 +237,10 @@ JAVA org.witchcraft.generatorutil.ClassUtil.getSingular(java.lang.String);
 String getParent(Class cls):
 cls.parents().size > 0 ? getExtensionKeyword() + cls.getFirstParent() :"";
 
+String getParentOrDefault(Class cls, String defaultString):
+cls.parents().size > 0 ? getExtensionKeyword() + cls.getFirstParent() :defaultString;
+
+
 String getFirstParent(Class cls):
 cls.parents().size > 0 ? cls.parents().get(0).fqn():"";
 
@@ -492,7 +496,10 @@ isString(Property prop):
 prop.isNonLargeTextString() || isType(prop, "largeText");
 
 isNonLargeTextString(Property prop):
-isType(prop, "String") || isType(prop, "uniqueNameType") || isType(prop, "nameType") ;
+isType(prop, "String") || prop.isUniqueOrNameType() ;
+
+isUniqueOrNameType(Property prop):
+isType(prop, "uniqueNameType") || isType(prop, "nameType") ;
 
 
 isNameType(Property prop):

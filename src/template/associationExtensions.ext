@@ -27,6 +27,9 @@ entity.getAllAttributes().select(a|a.isLeadingManyToMany());
 isLeadingManyToManyAutoComplete(Property a):
 a.isLeadingManyToMany()  && a.isAutoComplete();
 
+isLeaf(Class entity):
+entity.getAllComposed().isEmpty && entity.getCompositionParent() != null;
+
 
 
 isLeadingManyToMany(Property a):
@@ -119,7 +122,7 @@ prop.association.getAppliedStereotype("wcprofile::PreloadedComposition") != null
 
 
 getCompositionParent(Class cls):
-cls.getAllAttributes().select(a|a.association != null && a.opposite.isComposite() );
+cls.getAllAttributes().select(a|a.association != null && a.opposite.isComposite() ).first();
 
 //if an association is aggregate e.g employees in department, its updapatable ...but if its a containment updatable is false.
 getAssocUpdatable(Property prop):

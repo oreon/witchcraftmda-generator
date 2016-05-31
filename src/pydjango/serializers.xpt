@@ -1,8 +1,8 @@
 «IMPORT wcprofile»
 
-
+«EXTENSION pydjango::djangoExtensions»
 «EXTENSION template::GeneratorExtensions»
-«EXTENSION template::djangoExtensions»
+
 «EXTENSION template::associationExtensions»
 
 «DEFINE genSerializers FOR wcprofile::EntitiesPackage»
@@ -61,9 +61,7 @@ class «name»WritableSerializer(serializers.ModelSerializer):
             «asVar()» = «name».objects.create(**validated_data)
             
             «FOREACH getAllComposed() AS e»
-            «e.name» = validated_data.pop('«e.name»')
-            for item in «e.name»:
-                «e.type.name».objects.create(«e.opposite.name»=«asVar()», **item)
+            self.update«e.name.toFirstUpper()»(«asVar()», validated_data)    
             «ENDFOREACH»
             return «asVar()»
         except :
@@ -81,6 +79,8 @@ class «name»WritableSerializer(serializers.ModelSerializer):
     
     «FOREACH getAllComposed() AS e»
     def update«e.name.toFirstUpper()»(self, instance , validated_data):
+    	if not '«e.name»' in validated_data.keys() : return;
+    
         «e.name»Current = validated_data.pop('«e.name»')
             
         ids = [item['id'] for item in «e.name»Current  if 'id' in item.keys() ]

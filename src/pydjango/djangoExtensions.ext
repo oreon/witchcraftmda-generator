@@ -46,6 +46,12 @@ String getFieldExtension(Property prop):
 	 	"max_length=30"
 	else	
 	 	"";
+	 	
+getFieldBlankable(Property prop):
+	if(prop.isUniqueOrNameType())  
+		then "False"
+	else	
+	 	"True";
 		
 		
 		

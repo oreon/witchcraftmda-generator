@@ -42,6 +42,24 @@
 </component>
 
 
+<component id="SpringDataRestGenerator" class="org.eclipse.xpand2.Generator" skipOnErrors="false">
+	
+	<metaModel idRef="mm_profile"/>
+
+	<expand value="springdatarest::springroot::Root FOR model"/>
+
+	<outlet path="${srcGenPath}">
+		<postprocessor class="org.eclipse.xpand2.output.JavaBeautifier"/>
+	</outlet>
+	<outlet name="man_path_editable" path="${manGenPath}/" overwrite="true" />
+	
+	<outlet name="man_path" path="${manGenPath}/" overwrite="false">
+		<postprocessor class="org.eclipse.xpand2.output.JavaBeautifier"/>	
+		
+	</outlet>
+</component>
+
+
 
 <component id="BeansGenerator" class="org.eclipse.xpand2.Generator"
 skipOnErrors="false">
@@ -93,22 +111,6 @@ skipOnErrors="false">
 	</outlet>
 </component>
 
-<component id="SpringDataRestGenerator" class="org.eclipse.xpand2.Generator" skipOnErrors="false">
-	
-	<metaModel idRef="mm_profile"/>
-
-	<expand value="springdatarest::springroot::Root FOR model"/>
-
-	<outlet path="${srcGenPath}">
-		<postprocessor class="org.eclipse.xpand2.output.JavaBeautifier"/>
-	</outlet>
-	<outlet name="man_path_editable" path="${manGenPath}/" overwrite="true" />
-	
-	<outlet name="man_path" path="${manGenPath}/" overwrite="false">
-		<postprocessor class="org.eclipse.xpand2.output.JavaBeautifier"/>	
-		
-	</outlet>
-</component>
 
 
 <component id="TestDataGenerator" class="org.eclipse.xpand2.Generator" skipOnErrors="false">
