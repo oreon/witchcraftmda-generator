@@ -90,9 +90,9 @@
 
 
 «DEFINE genAssocValue FOR uml::Property»    
-    <select class="form-control" required  [ngModel]="«class.asVar()»?.«name»?.id" (ngModelChange)="on«name.toFirstUpper()»Changed($event,i)">
+    <select class="form-control" required  [ngModel]="«class.asVar()»?.id" (ngModelChange)="on«name.toFirstUpper()»Changed($event,i)">
        <option>Please Select </option>
-       <option *ngFor="#p of «name»Selectables" [value]="p.id" >{{p.displayName}}</option>
+       <option *ngFor="let p of «name.getPlural()»" [value]="p.id" >{{p.displayName}}</option>
     </select>
 «ENDDEFINE»
 

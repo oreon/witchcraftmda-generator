@@ -14,20 +14,34 @@
 «ENDDEFINE»
 
 «DEFINE PackageRoot FOR uml::Package»
-	«EXPAND BaseGen FOREACH getOwnedTypes().typeSelect(wcprofile::Entity).select(a| (!a.isAbstract && !a.isLeaf() ))»
+	«EXPAND BaseGen FOREACH getOwnedTypes().typeSelect(wcprofile::Entity).select(a| (!a.isAbstract && !a.isLeaf() && !a.isLookupType() ))»
 «ENDDEFINE»
 
 
 	
 «DEFINE BaseGen FOR wcprofile::Entity»
-«name»  
 
-GET «name.getPlural()»/id
+«IF !( name.contains('Extension') || name.contains('Field'))-»
+«name»  , , 
+
+GET «name.getPlural().toFirstLower()»/id,   Find a  «name» by id,   
 «FOREACH getMineAndParentsAttributes() AS e-»
-  «e.name» , «IF e.isString()» String «ELSE»  «e.type.name» «ENDIF»  «IF e.isMultivalued()» Array «ENDIF», «e.name.getVariableNameForDisplay()»
+  «e.name» , «IF e.isString()» String «ELSEIF e.association != null &&  e.type.isLookupType()» Lookup - Composite of String name and String description  «ELSE»  «e.type.name» «ENDIF»  «IF e.isMultivalued()» Array «ENDIF», «e.name.getVariableNameForDisplay()»
 «ENDFOREACH»
+dateCreated,DateTime, Timestamp of creation
+createdBy, String, acfid of the user who created the record
+dateUpdated,DateTime, Timestamp of last update
+lastUpdatedBy, String, acfid of the user who last updated the record
+		
 
-PUT/PATCH «name.getPlural()»/<<«name»>> , Edit existing «name»
-POST  , Create new «name»
-DELETE «name.getPlural()»/id  , Delete
+PUT/PATCH «name.getPlural()»/<<«name»>> , Edit existing «name»,  
+POST  , Create new «name», 
+DELETE «name.getPlural()»/id  , Delete by id, 
+
+«FOREACH getMineAndParentsAttributes() AS e-»
+«IF e.isString() || e.isUnq()  && !e.isLargeText()-»
+findBy«e.name.toFirstUpper()»,  «IF !isPageable(e)»  Find «name»s containing  «e.name» «ELSE»  Return unique «name» for  given «e.name»  «ENDIF»  , 
+«ENDIF»
+«ENDFOREACH»
+«ENDIF»
 «ENDDEFINE»

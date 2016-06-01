@@ -164,7 +164,6 @@ public interface «name»RepositoryBase extends PagingAndSortingRepository<«name»,
 		«entity.getNeedsPaginationReturn(this)» findBy«name.toFirstUpper()»(@Param("«name»") «type.fqn()» «name»  «entity.getNeedsPagination(this)»);
 		«entity.getNeedsPaginationReturn(this)» findBy«name.toFirstUpper()»IgnoringCase(@Param("«name»") «type.fqn()» «name» «entity.getNeedsPagination(this)») ;
 	«ENDIF»
-
 «ENDDEFINE»
 
 

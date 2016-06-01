@@ -111,6 +111,12 @@ String fqnPackage (Type cls, String package) :
 packageName(cls) + "." +  (package != "" ? package + "." : "") + cls.name;
 
 
+isLookupType(Class cls):
+cls.getParentName().contains("AbstractLookupType");
+
+isLookupType(Enumeration enm):
+true;
+
 
 
 //get interfaces

@@ -107,30 +107,61 @@ import { RouteParams, Router } from '@angular/router-deprecated';
 import { «name» } from './«asVar()»';
 import { «name»Service } from './«asVar()»Service';
 
-import { DBService } from '../common/db-service';
+«FOREACH getOutgoingAssociations() AS e»
+import {«e.type.name»Service} from '..//«e.type.name»Service'
+import {«e.type.name»} from '..//«e.type.name»'
+«ENDFOREACH»
+
+«FOREACH getMineAndParentsAttributes().select(e|e.isMVComposite() ) AS e»
+import {«e.type.name»DetailComponent} from '../«e.type.asVar()»/«e.type.name»Component'
+«ENDFOREACH»
+
 import { BaseDetailComponent } from '../common/BaseDetailComponent';
 
 
 @Component({
   selector: '«asVar()»-detail',
   templateUrl: './app/«asVar()»/«asVar()»DetailComponent.html',
-  providers:[«name»Service, DBService]
-  //directives: [«name»OrderDetailComponent]
+  //providers:[«name»Service]
+  directives: [  «FOREACH getMineAndParentsAttributes().select(e|e.isMVComposite() ) AS e  SEPARATOR ','»«e.type.name»DetailComponent «ENDFOREACH»]
 })
 export class «name»DetailComponent  extends BaseDetailComponent<«name»> implements OnInit {
+  
   @Input()
   «asVar()»: «name»;
-  createInstance():«name» { return new «name»()}
-  getSuccessUrl():string { return '«name»s'}
-
+  
   constructor(
     protected _«asVar()»Service: «name»Service,
     protected _dbService:DBService,
     protected _routeParams: RouteParams,
     protected _router: Router
+     «FOREACH getOutgoingAssociations() AS e SEPARATOR ',' »  «REM»TODO: should take into account uniqueness e.g mom and dad for student«ENDREM»
+    protected _«e.type.name»Service: «e.type.asVar()»Service
+    «ENDFOREACH»
   ) {
     super(_«asVar()»Service, _dbService, _routeParams, _router);
   }
+  
+  
+  createInstance():«name» { return new «name»()}
+  getSuccessUrl():string { return '«name»s'}
+  «FOREACH getOutgoingAssociations() AS e»  «REM»TODO: should take into account uniqueness e.g mom and dad for student«ENDREM»
+  this.«e.type.asVar().getPlural()» : «e.type.name»
+  «ENDFOREACH»
+  
+  
+  ngOnInit() {
+    super.ngOnInit();
+    «FOREACH getOutgoingAssociations() AS e»  «REM»TODO: should take into account uniqueness e.g mom and dad for student«ENDREM»
+    this._«e.type.asVar()»Service.getRecords().subscribe(records =>this.«e.type.asVar().getPlural()» = records);
+    «ENDFOREACH»
+  }
+  
+  «FOREACH getOutgoingAssociations() AS e»  
+   on«e.name.toFirstUpper()»Changed(newValue, index) {
+    this.record.«e.name» = newValue;
+  }
+  «ENDFOREACH»
   
   «FOREACH getMineAndParentsAttributes().select(e|e.isMVComposite() ) AS e»
   add«e.name.toFirstUpper()»(){
