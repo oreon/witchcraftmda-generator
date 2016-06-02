@@ -12,7 +12,7 @@
 «ENDDEFINE»
 
 «DEFINE genEditContainer FOR wcprofile::Entity»
-«FILE getWebPath() +"/edit" +name+ "." + "html"»
+«FILE getWebPath() +"/" +name+ "DetailComponent." + "html"»
  
 <div *ngIf="«asVar()»">
   <h2>«name» details!</h2>
@@ -73,9 +73,9 @@
 		<md-input id="«getId()»" name="«getId()»" type="text" class="form-control" maxlength="50" [(ngModel)]="«genPropertyLabel()»"
                     ng-minlength="2" ng-maxlength="50" />
 	«ELSEIF isLargeText()»
-		<textarea  id="«getId()»" name="«getId()»" [(ngModel)]="«genPropertyLabel()»" />
+		<textarea  id="«getId()»" name="«getId()»" [(ngModel)]="«genPropertyLabel()»"></textarea>
  	«ELSE»
- 		 <md-input type="text"  required [(ngModel)]="«genPropertyLabel()»" ngControl="«name»"  #name="ngForm" />
+ 		 <md-input type="text"  required [(ngModel)]="«genPropertyLabel()»" ngControl="«name»"  #name="ngForm"></md-input>
 	«ENDIF»
 «ENDDEFINE»
 

@@ -84,6 +84,9 @@ cls.getAllAttributes().select(a|a.isMultivalued() && a.association != null && (a
 getOutgoingAssociations(Class cls):
 cls.getMineAndParentsAttributes().select(a| a.isOutgoingAssociation() );
 
+getOneWayOutgoingAssociations(Class cls):
+cls.getNonRecursiveOutgoingAssociations().select(a|a);
+
 //All associations but not the recursive ones - e.g Category haveing child categories
 getNonRecursiveOutgoingAssociations(Class cls):
 cls.getOutgoingAssociations().select(a| a.type.name != cls.name );

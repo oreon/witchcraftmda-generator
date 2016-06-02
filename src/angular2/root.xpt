@@ -10,8 +10,23 @@
 	«EXPAND genApi FOR this»
 	«EXPAND routes::Root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
 	«ENDREM»
+	«FILE 'AppEntities.ts'»
+	import {BaseEntity} from './BaseEntity';
+	«EXPAND pojoGen FOREACH allOwnedElements().typeSelect(wcprofile::AbstractEntity)»
+	«ENDFILE»
 	«EXPAND ListUI::Root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
 	«EXPAND service::root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»	
+«ENDDEFINE»
+
+«DEFINE pojoGen FOR wcprofile::AbstractEntity»
+
+ interface «name»  «getParentOrDefault("BaseEntity")» {
+  «FOREACH getAllAttributes() AS e-»
+   «e.name»: «IF e.isString()» string «ELSEIF e.type.isPrimitive()»  «e.type.name.toFirstLower()»  «ELSE»  «e.type.name» «ENDIF»  «IF e.isMultivalued()»[]«ENDIF»
+  «ENDFOREACH»
+}
+
+
 «ENDDEFINE»
 
 

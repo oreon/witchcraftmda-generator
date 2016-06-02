@@ -15,7 +15,7 @@
 
 «DEFINE genListContainer FOR wcprofile::Entity»
 
-«FILE getWebPath() +"/list" +name+ ".component." + "html"»
+«FILE getWebPath() +"/" +name+ "ListComponent." + "html"»
 <h2>«name»s</h2>
 
 <button md-raised-button color="primary" [routerLink]="['/«name»Detail',{'id':0}]">Create New</button>

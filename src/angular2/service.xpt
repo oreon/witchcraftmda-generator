@@ -5,7 +5,6 @@
 «EXTENSION template::associationExtensions»
 
 «DEFINE root FOR wcprofile::Entity»
-	«EXPAND genEntity FOR this»
 	«EXPAND genService FOR this»
 	«EXPAND genList FOR this»
 	«EXPAND genDetail FOR this»
@@ -13,25 +12,19 @@
 
 «DEFINE genRelatedImports FOR   wcprofile::Entity»
 
+import {«name»} from '../common/AppEntities.ts';
   
-  «FOREACH getNonRecursiveOutgoingAssociations() AS e-»
-    import {«e.type.name»} from '../«e.type.package.name»/«e.type.name»'
-  «ENDFOREACH»
+«FOREACH getNonRecursiveOutgoingAssociations() AS e»
+import {«e.type.name»Service} from '../«e.type.asVar()»/«e.type.name»Service'
+import {«e.type.name»} from '../common/AppEntities.ts';
+«ENDFOREACH»
+
+«FOREACH getMineAndParentsAttributes().select(e|e.isMVComposite() ) AS e»
+import {«e.type.name»DetailComponent} from '../«e.type.asVar()»/«e.type.name»DetailComponent'
+«ENDFOREACH»
 «ENDDEFINE»
 
-«DEFINE genEntity FOR   wcprofile::Entity»
-«FILE getWebPath() +"/" + name + ".ts"»
 
-import {BaseEntity} from '../common/BaseEntity';
-«EXPAND genRelatedImports FOR this»
-
-export class «name» extends «getParentOrDefault("BaseEntity")» {
-  «FOREACH getAllAttributes() AS e-»
-   «e.name»  «IF e.isMultivalued()»[]«ENDIF»: «IF e.isString()» string «ELSE»  «e.type.name» «ENDIF»
-  «ENDFOREACH»
-}
-«ENDFILE»
-«ENDDEFINE»
 
 «DEFINE genService FOR wcprofile::Entity»
 «FILE getWebPath() +"/" + name + "Service.ts"»
@@ -39,7 +32,7 @@ export class «name» extends «getParentOrDefault("BaseEntity")» {
 import {Injectable}     from '@angular/core';
 import {Http, Response, Headers, RequestOptions} from '@angular/http';
 
-import {«name»}           from './«asVar()»';
+import {«name»}           from '../common/AppEntities.ts';
 import {BaseHttpService} from '../common/BaseHttpService';
 
 @Injectable()
@@ -61,18 +54,17 @@ export class «name»Service extends BaseHttpService<«name»>{
 import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 
-«EXPAND genRelatedImports FOR this»
-
-import { «name» } from './«asVar()»';
 import { RouteConfig, ROUTER_DIRECTIVES, ROUTER_PROVIDERS } from '@angular/router-deprecated';
 
-
-import { «name»DetailComponent } from './«asVar()»DetailComponent';
-
 import { BaseListComponent} from '../common/BaseListComponent'
-import { «name»Service } from './«asVar()»Service';
 
-let template = require('./«asVar()»ListComponent.html');
+import { «name»DetailComponent } from './«name»DetailComponent';
+
+
+import { «name»Service } from './«name»Service';
+import {«name»} from '../common/AppEntities.ts';
+
+let template = require('./«name»ListComponent.html');
 
 @Component({
   selector: '«asVar()»-list',
@@ -88,6 +80,10 @@ export class «name»ListComponent extends BaseListComponent<«name»> implements On
   constructor(
   //  private _router: Router,
   protected _«asVar()»Service:«name»Service) { super(_«asVar()»Service); }
+  
+  ngOnInit() { 
+  	super.getBaseEntitys()
+  }
 
 
 //  gotoDetail() {this._router.navigate(['«name»Detail', { id: this.selected«name».id }]);}
@@ -104,17 +100,8 @@ export class «name»ListComponent extends BaseListComponent<«name»> implements On
 import { Component, Input, OnInit } from '@angular/core';
 import { RouteParams, Router } from '@angular/router-deprecated';
 
-import { «name» } from './«asVar()»';
-import { «name»Service } from './«asVar()»Service';
-
-«FOREACH getOutgoingAssociations() AS e»
-import {«e.type.name»Service} from '..//«e.type.name»Service'
-import {«e.type.name»} from '..//«e.type.name»'
-«ENDFOREACH»
-
-«FOREACH getMineAndParentsAttributes().select(e|e.isMVComposite() ) AS e»
-import {«e.type.name»DetailComponent} from '../«e.type.asVar()»/«e.type.name»Component'
-«ENDFOREACH»
+//import { «name» } from './«name»';
+import { «name»Service } from './«name»Service';
 
 import { BaseDetailComponent } from '../common/BaseDetailComponent';
 
@@ -130,24 +117,29 @@ export class «name»DetailComponent  extends BaseDetailComponent<«name»> implemen
   @Input()
   «asVar()»: «name»;
   
+  «FOREACH getMineAndParentsAttributes().select(e|e.isMVComposite() ) AS e»
+   //«e.type.asVar().getPlural()» : «e.type.name»[]
+  «ENDFOREACH»
+  
+  «FOREACH getOutgoingAssociations() AS e»  «REM»TODO: should take into account uniqueness e.g mom and dad for student«ENDREM»
+  «e.type.asVar().getPlural()» : «e.type.name»[]
+  «ENDFOREACH»
+  
   constructor(
-    protected _«asVar()»Service: «name»Service,
-    protected _dbService:DBService,
-    protected _routeParams: RouteParams,
-    protected _router: Router
-     «FOREACH getOutgoingAssociations() AS e SEPARATOR ',' »  «REM»TODO: should take into account uniqueness e.g mom and dad for student«ENDREM»
-    protected _«e.type.name»Service: «e.type.asVar()»Service
+  	«FOREACH getOneWayOutgoingAssociations() AS e  -»  «REM»TODO: should take into account uniqueness e.g mom and dad for student«ENDREM»
+    protected _«e.type.asVar()»Service: «e.type.name»Service ,
     «ENDFOREACH»
+    protected _«asVar()»Service: «name»Service,
+    protected _routeParams: RouteParams,
+    protected _router: Router	
   ) {
-    super(_«asVar()»Service, _dbService, _routeParams, _router);
+    super( _«asVar()»Service,  _routeParams, _router);
   }
   
   
   createInstance():«name» { return new «name»()}
   getSuccessUrl():string { return '«name»s'}
-  «FOREACH getOutgoingAssociations() AS e»  «REM»TODO: should take into account uniqueness e.g mom and dad for student«ENDREM»
-  this.«e.type.asVar().getPlural()» : «e.type.name»
-  «ENDFOREACH»
+ 
   
   
   ngOnInit() {

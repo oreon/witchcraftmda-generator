@@ -244,7 +244,7 @@ String getParent(Class cls):
 cls.parents().size > 0 ? getExtensionKeyword() + cls.getFirstParent() :"";
 
 String getParentOrDefault(Class cls, String defaultString):
-cls.parents().size > 0 ? getExtensionKeyword() + cls.getFirstParent() :defaultString;
+cls.parents().size > 0 ? getExtensionKeyword() + cls.getFirstParentCls().name :  getExtensionKeyword() + defaultString;
 
 
 String getFirstParent(Class cls):
