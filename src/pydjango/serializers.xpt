@@ -52,16 +52,24 @@ class «name»WritableSerializer(serializers.ModelSerializer):
     
     displayName = serializers.ReadOnlyField()
     
+    «FOREACH getAllComposed() AS e»
+    «e.name» = «e.type.name»WritableSerializer(many=True)
+    «ENDFOREACH»
+    
     «IF !getAllComposed().isEmpty»
     
     @transaction.atomic
     def create(self, validated_data):
         try:
-            «REM»TODO : will work only on one composed association«ENDREM»
+        	«FOREACH getAllComposed() AS e»
+            «e.name»Current = validated_data.pop('«e.name»')   
+            «ENDFOREACH»
+            
             «asVar()» = «name».objects.create(**validated_data)
             
             «FOREACH getAllComposed() AS e»
-            self.update«e.name.toFirstUpper()»(«asVar()», validated_data)    
+            for item in «e.name»Current:
+                «e.type.name»(«asVar()»=«asVar()», **item).save()    
             «ENDFOREACH»
             return «asVar()»
         except :
@@ -90,7 +98,7 @@ class «name»WritableSerializer(serializers.ModelSerializer):
                 item.delete()
         
         for item in «e.name»Current:
-            newItem = «e.type.name»(**item); newItem.save()  
+            «e.type.name»(«asVar()»=instance, **item).save()  
      «ENDFOREACH»
      
  
@@ -98,6 +106,7 @@ class «name»WritableSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = «name»
+        «IF getCompositionParent() != null»exclude = ('«getCompositionParent()»',)«ENDIF»
     
 «ENDDEFINE»
 

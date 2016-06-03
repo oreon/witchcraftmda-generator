@@ -90,7 +90,7 @@
 
 
 «DEFINE genAssocValue FOR uml::Property»    
-    <select class="form-control" required  [ngModel]="«class.asVar()»?.id" (ngModelChange)="on«name.toFirstUpper()»Changed($event,i)">
+    <select class="form-control" required  [ngModel]="«class.asVar()»?.«name»" (ngModelChange)="on«name.toFirstUpper()»Changed($event,i)">
        <option>Please Select </option>
        <option *ngFor="let p of «name.getPlural()»" [value]="p.id" >{{p.displayName}}</option>
     </select>
@@ -131,11 +131,11 @@
 «ENDDEFINE»
 
 «DEFINE genNewButton FOR uml::Property»
-	<button (click)="add«name.toFirstUpper()»()">Add</button>
+	<button (click)="add«name.toFirstUpper()»()"  type="button">Add</button>
 «ENDDEFINE»
 
 «DEFINE genDelete FOR uml::Property»
-	<button (click)="remove«name.toFirstUpper()»(i)">Remove</button>
+	<button (click)="remove«name.toFirstUpper()»(i)" type="button">Remove</button>
 «ENDDEFINE»
 
 

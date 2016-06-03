@@ -12,15 +12,16 @@
 
 «DEFINE genRelatedImports FOR   wcprofile::Entity»
 
-import {«name»} from '../common/AppEntities.ts';
+import {«name»} from '../common/AppEntities';
   
 «FOREACH getNonRecursiveOutgoingAssociations() AS e»
 import {«e.type.name»Service} from '../«e.type.asVar()»/«e.type.name»Service'
-import {«e.type.name»} from '../common/AppEntities.ts';
+import {«e.type.name»} from '../common/AppEntities';
 «ENDFOREACH»
 
 «FOREACH getMineAndParentsAttributes().select(e|e.isMVComposite() ) AS e»
-import {«e.type.name»DetailComponent} from '../«e.type.asVar()»/«e.type.name»DetailComponent'
+import {«e.type.name»DetailComponent} from '../«e.type.asVar()»/«e.type.name»DetailComponent';
+import {«e.type.name»} from '../common/AppEntities';
 «ENDFOREACH»
 «ENDDEFINE»
 
@@ -100,7 +101,6 @@ export class «name»ListComponent extends BaseListComponent<«name»> implements On
 import { Component, Input, OnInit } from '@angular/core';
 import { RouteParams, Router } from '@angular/router-deprecated';
 
-//import { «name» } from './«name»';
 import { «name»Service } from './«name»Service';
 
 import { BaseDetailComponent } from '../common/BaseDetailComponent';
@@ -126,7 +126,7 @@ export class «name»DetailComponent  extends BaseDetailComponent<«name»> implemen
   «ENDFOREACH»
   
   constructor(
-  	«FOREACH getOneWayOutgoingAssociations() AS e  -»  «REM»TODO: should take into account uniqueness e.g mom and dad for student«ENDREM»
+  	«FOREACH getOutgoingAssociations() AS e  -»  «REM»TODO: should take into account uniqueness e.g mom and dad for student«ENDREM»
     protected _«e.type.asVar()»Service: «e.type.name»Service ,
     «ENDFOREACH»
     protected _«asVar()»Service: «name»Service,
@@ -136,15 +136,15 @@ export class «name»DetailComponent  extends BaseDetailComponent<«name»> implemen
     super( _«asVar()»Service,  _routeParams, _router);
   }
   
+   setRecord( «asVar()»:«name»){this.«asVar()» = «asVar()»;} 
+   getRecord():«name»{return this.«asVar()»;}
   
-  createInstance():«name» { return new «name»()}
-  getSuccessUrl():string { return '«name»s'}
- 
-  
+  createInstance():«name» { return <«name»>{}; }
+  getSuccessUrl():string { return '«asVar()»s'}
   
   ngOnInit() {
     super.ngOnInit();
-    «FOREACH getOutgoingAssociations() AS e»  «REM»TODO: should take into account uniqueness e.g mom and dad for student«ENDREM»
+    «FOREACH getOutgoingAssociations() AS e-»  «REM»TODO: should take into account uniqueness e.g mom and dad for student«ENDREM»
     this._«e.type.asVar()»Service.getRecords().subscribe(records =>this.«e.type.asVar().getPlural()» = records);
     «ENDFOREACH»
   }
@@ -157,14 +157,14 @@ export class «name»DetailComponent  extends BaseDetailComponent<«name»> implemen
   
   «FOREACH getMineAndParentsAttributes().select(e|e.isMVComposite() ) AS e»
   add«e.name.toFirstUpper()»(){
-  this.«asVar()».«e.name».push(new «e.type.name»());
+  this.«asVar()».«e.name».push(<«e.type.name»>{});
   }
 
   remove«e.name.toFirstUpper()»(index:number){
     this.«asVar()».«e.name».splice(index, 1);
   }
 
-  on«e.name.toFirstUpper()»Changed(newValu«e.name»e, index) {
+  on«e.name.toFirstUpper()»Changed(newValue, index) {
     console.log(newValue);
   }
   «ENDFOREACH»
