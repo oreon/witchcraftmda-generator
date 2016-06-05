@@ -256,6 +256,11 @@ cls.parents().size > 0 ? cls.parents().get(0):null;
 String getVariableNameForDisplay(String arg):
 JAVA org.witchcraft.generatorutil.ClassUtil.getViewLabelFromVariable(java.lang.String);
 
+String asLabel(String arg):
+getVariableNameForDisplay(arg);
+
+
+
 String getSplitName(String arg):
 JAVA org.witchcraft.generatorutil.ClassUtil.getSplitName(java.lang.String, java.lang.String);
 

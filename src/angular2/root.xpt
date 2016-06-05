@@ -10,27 +10,24 @@
 	«EXPAND genApi FOR this»
 	«EXPAND routes::Root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
 	«ENDREM»
-	«FILE '../common/AppEntities.ts'»
+	«FILE 'common/AppEntities.ts'»
 	import {BaseEntity} from './BaseEntity';
 	«EXPAND pojoGen FOREACH allOwnedElements().typeSelect(wcprofile::AbstractEntity)»
 	«ENDFILE»
 	
-	«REM»comment
-	«FILE 'index.ts'»
-	import {BaseEntity} from './BaseEntity';
-	«EXPAND pojoGen FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
-	«ENDFILE»
+	«EXPAND indexGen FOR this»
 	
 	«FILE 'app.ts'»
-	import {BaseEntity} from './BaseEntity';
-	«EXPAND appgen FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND appImportsGen FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND appRoutesGen FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
 	«ENDFILE»
 	
 	«FILE 'navigation.ts'»
-	import {BaseEntity} from './BaseEntity';
-	«EXPAND appgen FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	<md-nav-list>
+	«EXPAND navgen FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	</md-nav-list>
 	«ENDFILE»
-	«ENDREM»
+	
 	
 	«EXPAND ListUI::Root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
 	«EXPAND service::root FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»	
@@ -44,92 +41,44 @@ export interface «name»  «getParentOrDefault("BaseEntity")» {
 }
 «ENDDEFINE»
 
-«DEFINE appgen FOR wcprofile::Entity»
+«DEFINE appImportsGen FOR wcprofile::Entity-»
 import {«name»ListComponent} from './«asVar()»/«name»ListComponent'
 import {«name»DetailComponent} from './«asVar()»/«name»DetailComponent'
+«ENDDEFINE»
 
+«DEFINE appRoutesGen FOR wcprofile::Entity-»
   { path: '/«asVar().getPlural()»',  name: '«name»s',  component: «name»ListComponent },
   { path: '/«asVar().getPlural()»/:id',  name: '«name»Detail',  component: «name»DetailComponent },
- 
 «ENDDEFINE»
 
+«DEFINE indexGen FOR uml::Model»
+«FILE 'index.ts'»
 
+export * from './app.component';
+export * from './app.service';
 
+import {AppState} from './app.service';
 
+«FOREACH  allOwnedElements().typeSelect(wcprofile::Entity) AS e-»
+import {«e.name»Service} from './«e.asVar()»/«e.name»Service'
+«ENDFOREACH»
 
-«DEFINE genApi FOR uml::Model»
-
-«FILE "/api.service.js"»
-
-(function () {
-   'use strict';
-    
-   angular.module('app.core').factory('Api', Api);
-
-   Api.$inject = ['dbService', «FOREACH allOwnedElements().typeSelect(wcprofile::Entity) AS e SEPARATOR ','» '«e.asVar()»Service'   «ENDFOREACH»];
-
-   function Api( dbService, «FOREACH allOwnedElements().typeSelect(wcprofile::Entity) AS e SEPARATOR ','» «e.asVar()»Service   «ENDFOREACH») {
-   
-    	return this;
-   
-		«EXPAND genApiCalls FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
-	
-    }
-})();
-	
+// Application wide providers
+export const APP_PROVIDERS = [
+  AppState,
+  «FOREACH  allOwnedElements().typeSelect(wcprofile::Entity) AS e-»
+  	«e.name»Service,
+  «ENDFOREACH»
+];
 «ENDFILE»
-	
-
-«ENDDEFINE»
-
-«DEFINE genApiCalls FOR  wcprofile::Entity»
-
- 	this.get«name» =  function (id) {
-        return dbService.getEntity(id, «asVar()»Service);
-    }
-    
-    this.get«name»Complete = function(id) {
-        return get«name»(id);
-    }
-
-    this.get«name»s =  function () {
-        return dbService.getEntityList(«asVar()»Service);
-    }
-    
-    this.save«name» =  function («asVar()»){
-        return dbService.saveEntity(«asVar()», «asVar()»Service);
-    }
-    
-    this.remove«name» =  function  («asVar()»){
-        return dbService.removeEntity(«asVar()», «asVar()»Service);
-    }
-    
-    this.get«name»ForEdit =  function (id) {
-        return dbService.getEntity(id, «asVar()»Service, true);
-    }
 «ENDDEFINE»
 
 
-«DEFINE genStates FOR wcprofile::Entity»
-	
-		.when('/«asVar()»s', {
-                templateUrl: 'app/«asVar()»/«asVar()»List.html',
-                controller: '«name»ListCtrl',
-                controllerAs: 'vm',
-                resolve: {
-                    initialData: ['eliteApi', function (eliteApi) {
-                        return eliteApi.get«name»s();
-                    }]
-                }
-            })
-        .when('/«asVar()»s/:id', {
-            templateUrl: 'app/«asVar()»s/view«name».html',
-            controller: '«name»ViewCtrl',
-            controllerAs: 'vm',
-            resolve: {
-                initialData: ['$route', 'eliteApi', function ($route, eliteApi) {
-                    return eliteApi.get«name»($route.current.params.id);
-                }]
-            }
-        })
+
+
+«DEFINE navgen FOR wcprofile::Entity»
+   <a md-list-item [routerLink]="['«name»s']">«name»s</a>
 «ENDDEFINE»
+
+
+

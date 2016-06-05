@@ -15,7 +15,7 @@
 «FILE getWebPath() +"/" +name+ "DetailComponent." + "html"»
  
 <div *ngIf="«asVar()»">
-  <h2>«name» details!</h2>
+  <h2 *ngIf="!embedded" >«name» Details</h2>
   <md-card>
 
     <form (ngSubmit)="save()" autocomplete="off"  #theForm="ngForm">
@@ -75,13 +75,13 @@
 	«ELSEIF isLargeText()»
 		<textarea  id="«getId()»" name="«getId()»" [(ngModel)]="«genPropertyLabel()»"></textarea>
  	«ELSE»
- 		 <md-input type="text"  required [(ngModel)]="«genPropertyLabel()»" ngControl="«name»"  #name="ngForm"></md-input>
+ 		 <md-input type="text" placeholder="«name.asLabel()»" [(ngModel)]="«genPropertyLabel()»" ngControl="«name»"  #name="ngForm"></md-input>
 	«ENDIF»
 «ENDDEFINE»
 
 «DEFINE genPropertyInput(uml::Enumeration enm) FOR uml::Property-»
  <select class="form-control" name="«getId()»" [(ngModel)]="«genPropertyLabel()»"  ng-required="«getRequired()»">
-     <option value="">--Select--</option>
+     <option value="">-Select «name.asLabel()»-</option>
      «FOREACH  enm.ownedLiteral AS e-»
      <option value="«e.name»" ng-selected="{{'«e.name»' == vm.«genPropertyLabel()»}}">«e.name»</option>
      «ENDFOREACH»
@@ -90,10 +90,8 @@
 
 
 «DEFINE genAssocValue FOR uml::Property»  
-	«class.getCompositionParent()»  
-	
-    <select «IF this == class.getCompositionParent()» *ngIf="!embedded"«ENDIF» required  [ngModel]="«class.asVar()»?.«name»" (ngModelChange)="on«name.toFirstUpper()»Changed($event,i)">
-       <option>Please Select </option>
+   <select «IF this == class.getCompositionParent()» *ngIf="!embedded"«ENDIF» required  [ngModel]="«class.asVar()»?.«name»" (ngModelChange)="on«name.toFirstUpper()»Changed($event,i)">
+       <option>Select «name.asLabel()»</option>
        <option *ngFor="let p of «name.getPlural()»" [value]="p.id" >{{p.displayName}}</option>
     </select>
 «ENDDEFINE»
@@ -101,9 +99,7 @@
 
 
 «DEFINE genLabel FOR uml::Property»
-«IF !isCurrentMultiMode()»
-	 <label for="«getId()»">«name.getVariableNameForDisplay()»</label>
-«ENDIF»
+«REM»«IF !isCurrentMultiMode()» <label for="«getId()»">«name.getVariableNameForDisplay()»</label>«ENDIF»«ENDREM»
 «ENDDEFINE»
 
 «DEFINE genMessage FOR uml::Property»
