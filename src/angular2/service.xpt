@@ -150,7 +150,7 @@ export class «name»DetailComponent  extends BaseDetailComponent<«name»> implemen
    getRecord():«name»{return this.«asVar()»;}
   
   createInstance():«name» { return <«name»>{}; }
-  getSuccessUrl():string { return '«asVar()»s'}
+  getSuccessUrl():string { return '«name.asPlural()»'}
   
   ngOnInit() {
     super.ngOnInit();
@@ -161,22 +161,21 @@ export class «name»DetailComponent  extends BaseDetailComponent<«name»> implemen
   
   «FOREACH getOutgoingAssociations() AS e»  
    on«e.name.toFirstUpper()»Changed(newValue, index) {
-    this.record.«e.name» = newValue;
+    this.getRecord().«e.name» = newValue;
   }
   «ENDFOREACH»
   
   «FOREACH getMineAndParentsAttributes().select(e|e.isMVComposite() ) AS e»
   add«e.name.toFirstUpper()»(){
-  this.«asVar()».«e.name».push(<«e.type.name»>{});
+   if(!this.«asVar()».«e.name») this.«asVar()».«e.name» = [];
+   this.«asVar()».«e.name».push(<«e.type.name»>{});
   }
 
   remove«e.name.toFirstUpper()»(index:number){
     this.«asVar()».«e.name».splice(index, 1);
   }
 
-  on«e.name.toFirstUpper()»Changed(newValue, index) {
-    console.log(newValue);
-  }
+  on«e.name.toFirstUpper()»Changed(newValue, index) {console.log(newValue);}
   «ENDFOREACH»
 
 

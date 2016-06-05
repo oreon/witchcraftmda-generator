@@ -47,7 +47,7 @@ import {«name»DetailComponent} from './«asVar()»/«name»DetailComponent'
 «ENDDEFINE»
 
 «DEFINE appRoutesGen FOR wcprofile::Entity-»
-  { path: '/«asVar().getPlural()»',  name: '«name»s',  component: «name»ListComponent },
+  { path: '/«asVar().getPlural()»',  name: '«name.asPlural()»',  component: «name»ListComponent },
   { path: '/«asVar().getPlural()»/:id',  name: '«name»Detail',  component: «name»DetailComponent },
 «ENDDEFINE»
 
@@ -77,7 +77,7 @@ export const APP_PROVIDERS = [
 
 
 «DEFINE navgen FOR wcprofile::Entity»
-   <a md-list-item [routerLink]="['«name»s']">«name»s</a>
+   <a md-list-item [routerLink]="['«name.asPlural()»']">«name.asPlural()»</a>
 «ENDDEFINE»
 
 

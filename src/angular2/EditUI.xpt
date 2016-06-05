@@ -17,15 +17,12 @@
 <div *ngIf="«asVar()»">
   <h2 *ngIf="!embedded" >«name» Details</h2>
   <md-card>
-
     <form (ngSubmit)="save()" autocomplete="off"  #theForm="ngForm">
     	«EXPAND genAttributes FOR this»
-
       	«EXPAND genEditableTable FOREACH getMineAndParentsAttributes().select(a|a.isMVComposite()) -»      	
       	«EXPAND genButtons FOR this»
     </form>
   </md-card>
-
 </div>
 «ENDFILE»
 «ENDDEFINE»
@@ -64,8 +61,7 @@
       <input type="text" class="form-control"  uib-datepicker-popup="dd/MM/yyyy" [(ngModel)]="«genPropertyLabel()»"
   		ng-required="true" close-text="Close" /> 
 	«ELSEIF isBoolean()»
-        <input radio id="«getId()»" name="«getId()»" type="text" class="form-control" maxlength="50" [(ngModel)]="«genPropertyLabel()»"
-                    ng-minlength="2" ng-maxlength="50"/>		
+       		
 	«ELSEIF isCurrency()»
 		<input id="«getId()»" name="«getId()»" type="text" class="form-control" maxlength="50" [(ngModel)]="«genPropertyLabel()»"
                     ng-minlength="2" ng-maxlength="50"/>
@@ -129,7 +125,7 @@
 «ENDDEFINE»
 
 «DEFINE genNewButton FOR uml::Property»
-	<button (click)="add«name.toFirstUpper()»()"  type="button">Add</button>
+	<button (click)="add«name.toFirstUpper()»()"  type="button">Add «name.asLabel()»</button>
 «ENDDEFINE»
 
 «DEFINE genDelete FOR uml::Property»

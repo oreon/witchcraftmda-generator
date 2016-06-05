@@ -235,6 +235,8 @@ type.auditable;
 String getPlural(String word):
 word.endsWith("s")?word + "es": word + "s";
 
+asPlural(String word):  getPlural(word);
+
 String getSingular(String word):
 JAVA org.witchcraft.generatorutil.ClassUtil.getSingular(java.lang.String);
 
