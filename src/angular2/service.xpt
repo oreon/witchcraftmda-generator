@@ -27,6 +27,7 @@ import {«e.type.name»} from '../common/AppEntities';
 
 
 
+
 «DEFINE genService FOR wcprofile::Entity»
 «FILE getWebPath() +"/" + name + "Service.ts"»
 
@@ -52,7 +53,7 @@ export class «name»Service extends BaseHttpService<«name»>{
 «DEFINE genList FOR wcprofile::Entity»
 «FILE getWebPath() +"/" + name + "ListComponent.ts"»
 
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Input } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { RouteConfig, ROUTER_DIRECTIVES, ROUTER_PROVIDERS } from '@angular/router-deprecated';
@@ -74,13 +75,19 @@ let template = require('./«name»ListComponent.html');
   directives: [«name»DetailComponent, ROUTER_DIRECTIVES]
 })
 export class «name»ListComponent extends BaseListComponent<«name»> implements OnInit {
-  «asVar()»s:«name»[];
+
+  @Input()
+  «asVar().getPlural()»:«name»[];
+  
   selected«name»:«name»;
   errorMessage:string;
 
   constructor(
   //  private _router: Router,
   protected _«asVar()»Service:«name»Service) { super(_«asVar()»Service); }
+  
+  setRecords( «asVar()»:«name»[]){this.«asVar().getPlural()» = «asVar()»;} 
+  getRecords():«name»[]{return this.«asVar().getPlural()»;}
   
   ngOnInit() { 
   	super.getBaseEntitys()
@@ -116,6 +123,9 @@ export class «name»DetailComponent  extends BaseDetailComponent<«name»> implemen
   
   @Input()
   «asVar()»: «name»;
+  
+  @Input()
+  protected embedded:boolean = false
   
   «FOREACH getMineAndParentsAttributes().select(e|e.isMVComposite() ) AS e»
    //«e.type.asVar().getPlural()» : «e.type.name»[]
