@@ -24,7 +24,7 @@
 	
 	«FILE 'navigation.ts'»
 	<md-nav-list>
-	«EXPAND navgen FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND navgen FOREACH allOwnedElements().typeSelect(wcprofile::Entity).select(a|!a.isLeaf())»
 	</md-nav-list>
 	«ENDFILE»
 	

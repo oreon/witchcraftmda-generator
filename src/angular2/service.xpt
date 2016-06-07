@@ -21,6 +21,7 @@ import {«e.type.name»} from '../common/AppEntities';
 
 «FOREACH getMineAndParentsAttributes().select(e|e.isMVComposite() ) AS e»
 import {«e.type.name»DetailComponent} from '../«e.type.asVar()»/«e.type.name»DetailComponent';
+import {«e.type.name»ListComponent} from '../«e.type.asVar()»/«e.type.name»ListComponent';
 import {«e.type.name»} from '../common/AppEntities';
 «ENDFOREACH»
 «ENDDEFINE»
@@ -64,7 +65,8 @@ import { «name»DetailComponent } from './«name»DetailComponent';
 
 
 import { «name»Service } from './«name»Service';
-import {«name»} from '../common/AppEntities.ts';
+
+«EXPAND genRelatedImports FOR this»
 
 let template = require('./«name»ListComponent.html');
 
@@ -72,12 +74,15 @@ let template = require('./«name»ListComponent.html');
   selector: '«asVar()»-list',
   template: template,
   providers:[«name»Service],
-  directives: [«name»DetailComponent, ROUTER_DIRECTIVES]
+  directives: [«FOREACH getMineAndParentsAttributes().select(e|e.isMVComposite() ) AS e»«e.type.name»ListComponent,«ENDFOREACH»«name»DetailComponent, ROUTER_DIRECTIVES]
 })
 export class «name»ListComponent extends BaseListComponent<«name»> implements OnInit {
 
   @Input()
   «asVar().getPlural()»:«name»[];
+  
+  @Input()
+  protected embedded:boolean = false
   
   selected«name»:«name»;
   errorMessage:string;
@@ -117,12 +122,16 @@ import { BaseDetailComponent } from '../common/BaseDetailComponent';
   selector: '«asVar()»-detail',
   templateUrl: './app/«asVar()»/«asVar()»DetailComponent.html',
   //providers:[«name»Service]
-  directives: [  «FOREACH getMineAndParentsAttributes().select(e|e.isMVComposite() ) AS e  SEPARATOR ','»«e.type.name»DetailComponent «ENDFOREACH»]
+  directives: [  «FOREACH getMineAndParentsAttributes().select(e|e.isMVComposite() ) AS e  SEPARATOR ','»«e.type.name»DetailComponent, «e.type.name»ListComponent  «ENDFOREACH»]
 })
 export class «name»DetailComponent  extends BaseDetailComponent<«name»> implements OnInit {
   
   @Input()
   «asVar()»: «name»;
+  
+  @Input()
+  «asVar()»View: «name»;
+  
   
   @Input()
   protected embedded:boolean = false
@@ -148,6 +157,8 @@ export class «name»DetailComponent  extends BaseDetailComponent<«name»> implemen
   
    setRecord( «asVar()»:«name»){this.«asVar()» = «asVar()»;} 
    getRecord():«name»{return this.«asVar()»;}
+   
+   setViewRecord(«asVar()»:«name»){this.«asVar()»View = «asVar()»;}
   
   createInstance():«name» { return <«name»>{}; }
   getSuccessUrl():string { return '«name.asPlural()»'}

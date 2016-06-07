@@ -16,9 +16,9 @@
 «DEFINE genListContainer FOR wcprofile::Entity»
 
 «FILE getWebPath() +"/" +name+ "ListComponent." + "html"»
-<h2>«name»s</h2>
+<h4 *ngIf="!embedded">«name»s</h4>
 
-<button md-raised-button color="primary" [routerLink]="['/«name»Detail',{'id':0}]">Create New</button>
+<button *ngIf="!embedded" md-raised-button color="primary" [routerLink]="['/«name»Detail',{'id':0}]">Create New</button>
 {{errorMessage}}
 
 <ul>
@@ -27,24 +27,20 @@
   <a [routerLink]="['/«name»Detail',{'id':«asVar()».id}]">
     <span class="badge">{{«asVar()».id}}</span> 
   </a>
-  <button (click)="delete(«asVar()»)">Delete</button>
+  <button *ngIf="!embedded" (click)="delete(«asVar()»)">Delete</button>
+  <div  *ngIf="embedded">
+  «FOREACH getMineAndParentsAttributes().select(a|a.isMVComposite()) AS e-»
+  <«e.type.asVar()»-list [embedded]="true" [«e.name»]="«asVar()».«e.name»"></«e.type.asVar()»-list>
+  «ENDFOREACH» 
+  </div>
   </li>
 </ul>
 «ENDFILE»
 «ENDDEFINE»
 
 
-
-«DEFINE genProperty FOR uml::Property-»
-   <td data-title="'«name.getVariableNameForDisplay()»'" sortable="'«name»'" filter="{ '«name»': 'text' }">
-	«EXPAND genPropertyValue FOR this»
-   </td>
-«ENDDEFINE»
-
-«DEFINE genAssocValue FOR uml::Property»
-	 <a class="btn btn-default" title="View" href="/«type.asVar()»/{{«genPropertyLabel()».id}}">
-        {{«genPropertyLabel()».displayName}}
-     </a>
+«DEFINE genAssocValue FOR uml::Property-»
+<a  «IF this == class.getCompositionParent()» *ngIf="!embedded"«ENDIF» class="btn btn-default" title="View" href="/«type.asVar()»/{{«genPropertyLabel()».id}}">{{«genPropertyLabel()».displayName}}</a>
 «ENDDEFINE»
 
 «DEFINE genPropertyValue FOR uml::Property»

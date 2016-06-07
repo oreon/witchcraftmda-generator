@@ -13,6 +13,16 @@
 
 «DEFINE genEditContainer FOR wcprofile::Entity»
 «FILE getWebPath() +"/" +name+ "DetailComponent." + "html"»
+
+<div *ngIf="«asVar()»View">
+<md-card>
+  View «name»
+	
+  «FOREACH getMineAndParentsAttributes().select(a|a.isMVComposite()) AS e-»
+  <«e.type.asVar()»-list [embedded]="true" [«e.name.asPlural()»]="«asVar()»View.«e.name»"></«e.type.asVar()»-list>
+  «ENDFOREACH» 
+</md-card>
+</div>
  
 <div *ngIf="«asVar()»">
   <h2 *ngIf="!embedded" >«name» Details</h2>
