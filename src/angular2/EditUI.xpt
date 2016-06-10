@@ -17,10 +17,11 @@
 
 <div *ngIf="«asVar()»View && !editMode">
 <md-card>
-  View «name»	
+  <h4>View «name»</h4>
   «EXPAND ListUI::genPropertyValue FOREACH getTopLevelAttributes()-»
   «FOREACH getMineAndParentsAttributes().select(a|a.isMVComposite()) AS e-»
-  <«e.type.asVar()»-list [embedded]="true" [«e.name.asPlural()»]="«asVar()»View.«e.name»"></«e.type.asVar()»-list>
+  <h4>«e.name.asLabel()» </h4>
+  <«e.type.asVar()»-list [embedded]="true" [«e.name»]="«asVar()»View.«e.name»"></«e.type.asVar()»-list>
   «ENDFOREACH» 
   
   <button (click)="goBack()" >Back</button> <button (click)="enableEdit()" >Edit</button>

@@ -1,0 +1,17 @@
+import uml;
+import java;
+import java::util;
+import wcprofile;
+
+extension org::openarchitectureware::uml2::profile::profiling;
+extension template::GeneratorExtensions;
+extension template::associationExtensions;
+
+getComponentByMode(Class cls, String mode): cls.name + mode  + "Component";
+
+getListComponent(Class cls): cls.getComponentByMode("List");
+
+getDetailComponent(Class cls):  cls.getComponentByMode("Detail");
+
+getEditComponent(Class cls): cls.getComponentByMode("Edit");
+

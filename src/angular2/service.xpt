@@ -70,9 +70,7 @@ export class «name»ListComponent extends BaseListComponent<«name»> implements On
   
   @Input()
   protected embedded:boolean = false
-  
-  getEmbedded():boolean{ return embedded}
-  
+   
   selected«name»:«name»;
   errorMessage:string;
 
@@ -86,6 +84,16 @@ export class «name»ListComponent extends BaseListComponent<«name»> implements On
   ngOnInit() { 
   	super.getBaseEntitys()
   }
+  
+  getEmbedded():boolean{ return this.embedded}
+  
+  setRecord( orderItem:OrderItem){this.orderItem = orderItem;} 
+  getRecord():OrderItem{return this.orderItem;}
+   
+  setViewRecord(orderItem:OrderItem){  }
+  
+  createInstance():OrderItem { return <OrderItem>{}; }
+  getSuccessUrl():string { return 'OrderItems'}
 
 
 //  gotoDetail() {this._router.navigate(['«name»Detail', { id: this.selected«name».id }]);}
