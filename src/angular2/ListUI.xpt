@@ -1,4 +1,6 @@
 «IMPORT wcprofile»
+
+«EXTENSION angular2::angular2»
 «EXTENSION template::GeneratorExtensions»
 «EXTENSION template::webExtensions»
 «EXTENSION template::associationExtensions»
@@ -15,7 +17,7 @@
 
 «DEFINE genListContainer FOR wcprofile::Entity»
 
-«FILE getWebPath() +"/" +name+ "ListComponent." + "html"»
+«FILE getWebPath() +"/" + getListComponent() + ".html"»
 <h4 *ngIf="!embedded">«name»s</h4>
 
 <button *ngIf="!embedded" md-raised-button color="primary" [routerLink]="['/«name»Detail',{'id':0}]">Create New</button>
@@ -23,7 +25,7 @@
 
 <ul>
   <li *ngFor="let «asVar()» of «asVar()»s">
-   «EXPAND genPropertyValue FOREACH getMineAndParentsAttributes().select(a|!a.isMultivalued() && !a.isSecret() ) -»
+   «EXPAND genPropertyValue FOREACH getTopLevelAttributes()-»
   <a [routerLink]="['/«name»Detail',{'id':«asVar()».id}]">
     <span class="badge">{{«asVar()».id}}</span> 
   </a>

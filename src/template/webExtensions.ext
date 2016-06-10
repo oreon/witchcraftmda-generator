@@ -98,6 +98,9 @@ JAVA org.witchcraft.generatorutil.ClassUtil.setCurrentEditMode(java.lang.Boolean
 boolean isCurrentEditMode():
 JAVA org.witchcraft.generatorutil.ClassUtil.isCurrentEditMode();
 
+getTopLevelAttributes(Class cls):
+cls.getMineAndParentsAttributes().select(a|!a.isMultivalued() && !a.isSecret() );
+
 
 String getOutputMessage(Property prop):
 getLabelText(prop);

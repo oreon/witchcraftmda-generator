@@ -1,29 +1,41 @@
 «IMPORT wcprofile»
 
-
+«EXTENSION angular2::angular2»
 «EXTENSION template::GeneratorExtensions»
 «EXTENSION template::webExtensions»
 «EXTENSION template::associationExtensions»
 
+
 «DEFINE Root FOR wcprofile::Entity»
 	 «setAsCurrentEntity(this)-»
 	 «EXPAND genEditContainer FOR this»
-	 «REM»«EXPAND genEditComponent FOR this»«ENDREM»
+	 «EXPAND genDetailContainer FOR this»
 «ENDDEFINE»
 
-«DEFINE genEditContainer FOR wcprofile::Entity»
-«FILE getWebPath() +"/" +name+ "DetailComponent." + "html"»
+«DEFINE genDetailContainer FOR wcprofile::Entity»
+«FILE getWebPath() +"/" + getDetailComponent() + ".html"»
 
-<div *ngIf="«asVar()»View">
+<div *ngIf="«asVar()»View && !editMode">
 <md-card>
-  View «name»
-	
+  View «name»	
+  «EXPAND ListUI::genPropertyValue FOREACH getTopLevelAttributes()-»
   «FOREACH getMineAndParentsAttributes().select(a|a.isMVComposite()) AS e-»
   <«e.type.asVar()»-list [embedded]="true" [«e.name.asPlural()»]="«asVar()»View.«e.name»"></«e.type.asVar()»-list>
   «ENDFOREACH» 
+  
+  <button (click)="goBack()" >Back</button> <button (click)="enableEdit()" >Edit</button>
 </md-card>
 </div>
- 
+
+<div *ngIf="editMode">
+	<«asVar()»-edit [«asVar()»] = "«asVar()»" ></«asVar()»-edit>
+</div>
+
+«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE genEditContainer FOR wcprofile::Entity»
+«FILE getWebPath() +"/" + getEditComponent() + ".html"»
 <div *ngIf="«asVar()»">
   <h2 *ngIf="!embedded" >«name» Details</h2>
   <md-card>
@@ -124,7 +136,7 @@
 	«setCurrentMultiMode(true)-»
 	«IF !isPreloadedComposition() -» «EXPAND genNewButton FOR this» «ENDIF»
 	<li *ngFor=" let «type.asVar()» of «class.asVar()».«name»; let i = index">
-		<«type.asVar()»-detail  [embedded]="true" [«type.asVar()»]="«type.asVar()»"></«type.asVar()»-detail>
+		<«type.asVar()»-edit  [embedded]="true" [«type.asVar()»]="«type.asVar()»"></«type.asVar()»-edit>
 		«IF !isPreloadedComposition()»
 		  «EXPAND genNewButton -»
 		  «EXPAND genDelete  -»

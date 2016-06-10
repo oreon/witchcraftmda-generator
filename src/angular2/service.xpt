@@ -1,5 +1,6 @@
 
 «IMPORT wcprofile»
+«EXTENSION angular2::angular2»
 «EXTENSION template::GeneratorExtensions»
 «EXTENSION template::webExtensions»
 «EXTENSION template::associationExtensions»
@@ -8,23 +9,9 @@
 	«EXPAND genService FOR this»
 	«EXPAND genList FOR this»
 	«EXPAND genDetail FOR this»
+	«EXPAND genEdit FOR this»
 «ENDDEFINE»
 
-«DEFINE genRelatedImports FOR   wcprofile::Entity»
-
-import {«name»} from '../common/AppEntities';
-  
-«FOREACH getNonRecursiveOutgoingAssociations() AS e»
-import {«e.type.name»Service} from '../«e.type.asVar()»/«e.type.name»Service'
-import {«e.type.name»} from '../common/AppEntities';
-«ENDFOREACH»
-
-«FOREACH getMineAndParentsAttributes().select(e|e.isMVComposite() ) AS e»
-import {«e.type.name»DetailComponent} from '../«e.type.asVar()»/«e.type.name»DetailComponent';
-import {«e.type.name»ListComponent} from '../«e.type.asVar()»/«e.type.name»ListComponent';
-import {«e.type.name»} from '../common/AppEntities';
-«ENDFOREACH»
-«ENDDEFINE»
 
 
 
@@ -74,7 +61,7 @@ let template = require('./«name»ListComponent.html');
   selector: '«asVar()»-list',
   template: template,
   providers:[«name»Service],
-  directives: [«FOREACH getMineAndParentsAttributes().select(e|e.isMVComposite() ) AS e»«e.type.name»ListComponent,«ENDFOREACH»«name»DetailComponent, ROUTER_DIRECTIVES]
+  directives: [«FOREACH getMineAndParentsAttributes().select(e|e.isMVComposite() ) AS e»«e.type.getListComponent()»,«ENDFOREACH»«name»DetailComponent, ROUTER_DIRECTIVES]
 })
 export class «name»ListComponent extends BaseListComponent<«name»> implements OnInit {
 
@@ -83,6 +70,8 @@ export class «name»ListComponent extends BaseListComponent<«name»> implements On
   
   @Input()
   protected embedded:boolean = false
+  
+  getEmbedded():boolean{ return embedded}
   
   selected«name»:«name»;
   errorMessage:string;
@@ -105,8 +94,8 @@ export class «name»ListComponent extends BaseListComponent<«name»> implements On
 «ENDDEFINE»
 
 
-«DEFINE genDetail FOR wcprofile::Entity»
-«FILE getWebPath() +"/" + name + "DetailComponent.ts"»
+«DEFINE genEdit FOR wcprofile::Entity»
+«FILE getWebPath() +"/" + name + "EditComponent.ts"»
 
 «EXPAND genRelatedImports FOR this»
 
@@ -114,31 +103,26 @@ import { Component, Input, OnInit } from '@angular/core';
 import { RouteParams, Router } from '@angular/router-deprecated';
 
 import { «name»Service } from './«name»Service';
-
-import { BaseDetailComponent } from '../common/BaseDetailComponent';
-
+import { BaseEditComponent } from '../common/BaseEditComponent';
 
 @Component({
-  selector: '«asVar()»-detail',
-  templateUrl: './app/«asVar()»/«asVar()»DetailComponent.html',
+  selector: '«asVar()»-edit',
+  templateUrl: './app/«asVar()»/«asVar()»EditComponent.html',
   //providers:[«name»Service]
-  directives: [  «FOREACH getMineAndParentsAttributes().select(e|e.isMVComposite() ) AS e  SEPARATOR ','»«e.type.name»DetailComponent, «e.type.name»ListComponent  «ENDFOREACH»]
+  directives: [  «FOREACH getMineAndParentsAttributes().select(e|e.isMVComposite() ) AS e  SEPARATOR ','»«e.type.getEditComponent()»«ENDFOREACH»]
 })
-export class «name»DetailComponent  extends BaseDetailComponent<«name»> implements OnInit {
+export class «name»EditComponent  extends BaseEditComponent<«name»> implements OnInit {
   
   @Input()
   «asVar()»: «name»;
   
   @Input()
   «asVar()»View: «name»;
-  
-  
+    
   @Input()
   protected embedded:boolean = false
   
-  «FOREACH getMineAndParentsAttributes().select(e|e.isMVComposite() ) AS e»
-   //«e.type.asVar().getPlural()» : «e.type.name»[]
-  «ENDFOREACH»
+  «FOREACH getMineAndParentsAttributes().select(e|e.isMVComposite() ) AS e»//«e.type.asVar().getPlural()» : «e.type.name»[]«ENDFOREACH»
   
   «FOREACH getOutgoingAssociations() AS e»  «REM»TODO: should take into account uniqueness e.g mom and dad for student«ENDREM»
   «e.type.asVar().getPlural()» : «e.type.name»[]
@@ -148,17 +132,18 @@ export class «name»DetailComponent  extends BaseDetailComponent<«name»> implemen
   	«FOREACH getOutgoingAssociations() AS e  -»  «REM»TODO: should take into account uniqueness e.g mom and dad for student«ENDREM»
     protected _«e.type.asVar()»Service: «e.type.name»Service ,
     «ENDFOREACH»
+    protected _eventService:EventService<«name»>,
     protected _«asVar()»Service: «name»Service,
     protected _routeParams: RouteParams,
     protected _router: Router	
   ) {
-    super( _«asVar()»Service,  _routeParams, _router);
+    super(_eventService, _«asVar()»Service,  _routeParams, _router);
   }
   
    setRecord( «asVar()»:«name»){this.«asVar()» = «asVar()»;} 
    getRecord():«name»{return this.«asVar()»;}
-   
    setViewRecord(«asVar()»:«name»){this.«asVar()»View = «asVar()»;}
+   
   
   createInstance():«name» { return <«name»>{}; }
   getSuccessUrl():string { return '«name.asPlural()»'}
@@ -182,9 +167,7 @@ export class «name»DetailComponent  extends BaseDetailComponent<«name»> implemen
    this.«asVar()».«e.name».push(<«e.type.name»>{});
   }
 
-  remove«e.name.toFirstUpper()»(index:number){
-    this.«asVar()».«e.name».splice(index, 1);
-  }
+  remove«e.name.toFirstUpper()»(index:number){this.«asVar()».«e.name».splice(index, 1);}
 
   on«e.name.toFirstUpper()»Changed(newValue, index) {console.log(newValue);}
   «ENDFOREACH»
@@ -192,4 +175,78 @@ export class «name»DetailComponent  extends BaseDetailComponent<«name»> implemen
 
 }
 «ENDFILE»
+«ENDDEFINE»
+
+
+
+«DEFINE genDetail FOR wcprofile::Entity»
+«FILE getWebPath() +"/" + getDetailComponent() + ".ts"»
+
+«EXPAND genRelatedImports FOR this»
+
+import { Component, Input, OnInit } from '@angular/core';
+import { RouteParams, Router } from '@angular/router-deprecated';
+
+import { «name»Service } from './«name»Service';
+import { «name»EditComponent} from './«name»EditComponent';
+import { BaseDetailComponent } from '../common/BaseDetailComponent';
+
+@Component({
+  selector: '«asVar()»-detail',
+  templateUrl: './app/«asVar()»/«asVar()»DetailComponent.html',
+  //providers:[«name»Service]
+  directives: [ «name»EditComponent, «FOREACH getMineAndParentsAttributes().select(e|e.isMVComposite() ) AS e  SEPARATOR ','»«e.type.getListComponent()»«ENDFOREACH»]
+})
+export class «name»DetailComponent  extends BaseDetailComponent<«name»> implements OnInit {
+  
+  @Input()
+  «asVar()»: «name»;
+  
+  @Input()
+  «asVar()»View: «name»;
+
+  @Input()
+  protected embedded:boolean = false
+  
+  constructor(
+  	protected _eventService:EventService<«name»>,
+    protected _«asVar()»Service: «name»Service,
+    protected _routeParams: RouteParams,
+    protected _router: Router	
+  ) {
+    super( _eventService, _«asVar()»Service,  _routeParams, _router);
+  }
+  
+   setRecord( «asVar()»:«name»){this.«asVar()» = «asVar()»;} 
+   getRecord():«name»{return this.«asVar()»;}
+   
+   setViewRecord(«asVar()»:«name»){  this.«asVar()»View = «asVar()»;}
+  
+  createInstance():«name» { return <«name»>{}; }
+  getSuccessUrl():string { return '«name.asPlural()»'}
+  
+  ngOnInit() {
+    super.ngOnInit();
+  }
+
+}
+«ENDFILE»
+«ENDDEFINE»
+
+«DEFINE genRelatedImports FOR   wcprofile::Entity»
+
+	import {«name»} from '../common/AppEntities';
+	import { EventService} from '../common/EventService'
+	  
+	«FOREACH getNonRecursiveOutgoingAssociations() AS e»
+	import {«e.type.name»Service} from '../«e.type.asVar()»/«e.type.name»Service'
+	import {«e.type.name»} from '../common/AppEntities';
+	«ENDFOREACH»
+	
+	«FOREACH getMineAndParentsAttributes().select(e|e.isMVComposite() ) AS e»
+	import {«e.type.getEditComponent()»} from '../«e.type.asVar()»/«e.type.getEditComponent()»';
+	import {«e.type.getListComponent()»} from '../«e.type.asVar()»/«e.type.getListComponent()»';
+	import {«e.type.name»} from '../common/AppEntities';
+	«ENDFOREACH»
+
 «ENDDEFINE»
