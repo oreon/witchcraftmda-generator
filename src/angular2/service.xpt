@@ -66,20 +66,20 @@ let template = require('./«name»ListComponent.html');
 export class «name»ListComponent extends BaseListComponent<«name»> implements OnInit {
 
   @Input()
-  «asVar().getPlural()»:«name»[];
+  «asVar()»List:«name»[];
   
   @Input()
   protected embedded:boolean = false
    
-  selected«name»:«name»;
+  «asVar()»:«name»;
   errorMessage:string;
 
   constructor(
   //  private _router: Router,
   protected _«asVar()»Service:«name»Service) { super(_«asVar()»Service); }
   
-  setRecords( «asVar()»:«name»[]){this.«asVar().getPlural()» = «asVar()»;} 
-  getRecords():«name»[]{return this.«asVar().getPlural()»;}
+  setRecords( «asVar()»:«name»[]){this.«asVar()»List = «asVar()»;} 
+  getRecords():«name»[]{return this.«asVar()»List;}
   
   ngOnInit() { 
   	super.getBaseEntitys()
@@ -87,13 +87,13 @@ export class «name»ListComponent extends BaseListComponent<«name»> implements On
   
   getEmbedded():boolean{ return this.embedded}
   
-  setRecord( orderItem:OrderItem){this.orderItem = orderItem;} 
-  getRecord():OrderItem{return this.orderItem;}
+  setRecord( «asVar()»:«name»){this.«asVar()» = «asVar()»;} 
+  getRecord():«name»{return this.«asVar()»;}
    
-  setViewRecord(orderItem:OrderItem){  }
+  setViewRecord(«asVar()»:«name»){  }
   
-  createInstance():OrderItem { return <OrderItem>{}; }
-  getSuccessUrl():string { return 'OrderItems'}
+  createInstance():«name» { return <«name»>{}; }
+  getSuccessUrl():string { return '«name.asPlural()»'}
 
 
 //  gotoDetail() {this._router.navigate(['«name»Detail', { id: this.selected«name».id }]);}

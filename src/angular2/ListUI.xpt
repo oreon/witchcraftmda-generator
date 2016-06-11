@@ -18,21 +18,19 @@
 «DEFINE genListContainer FOR wcprofile::Entity»
 
 «FILE getWebPath() +"/" + getListComponent() + ".html"»
-<h4 *ngIf="!embedded">«name»s</h4>
+<h4 *ngIf="!embedded">«name» List</h4>
 
-<button *ngIf="!embedded" md-raised-button color="primary" [routerLink]="['/«name»Detail',{'id':0}]">Create New</button>
+<button  md-raised-button color="primary" [routerLink]="['/«name»Detail',{'id':0}]">New «getLabel()»</button>
 {{errorMessage}}
 
 <ul>
-  <li *ngFor="let «asVar()» of «asVar()»s">
+  <li *ngFor="let «asVar()» of «asVar()»List">
    «EXPAND genPropertyValue FOREACH getTopLevelAttributes()-»
-  <a [routerLink]="['/«name»Detail',{'id':«asVar()».id}]">
-    <span class="badge">{{«asVar()».id}}</span> 
-  </a>
+  <button [routerLink]="['/«name»Detail',{'id':«asVar()».id}]">Edit {{«asVar()».id}}</button>
   <button *ngIf="!embedded" (click)="delete(«asVar()»)">Delete</button>
   <div  *ngIf="embedded">
   «FOREACH getMineAndParentsAttributes().select(a|a.isMVComposite()) AS e-»
-  <«e.type.asVar()»-list [embedded]="true" [«e.name»]="«asVar()».«e.name»"></«e.type.asVar()»-list>
+  <«e.type.asVar()»-list [embedded]="true" [«e.type.asVar()»List]="«asVar()».«e.name»"></«e.type.asVar()»-list>
   «ENDFOREACH» 
   </div>
   </li>
