@@ -20,7 +20,7 @@
 «FILE getWebPath() +"/" + getListComponent() + ".html"»
 <h4 *ngIf="!embedded">«name» List</h4>
 
-<button  md-raised-button color="primary" [routerLink]="['/«name»Detail',{'id':0}]">New «getLabel()»</button>
+<button *ngIf="!embedded" md-raised-button color="primary" [routerLink]="['/«name»Detail',{'id':0}]">New «getLabel()»</button>
 {{errorMessage}}
 
 <ul>

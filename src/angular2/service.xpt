@@ -152,9 +152,7 @@ export class «name»EditComponent  extends BaseEditComponent<«name»> implements O
    getRecord():«name»{return this.«asVar()»;}
    setViewRecord(«asVar()»:«name»){this.«asVar()»View = «asVar()»;}
    
-  
-  createInstance():«name» { return <«name»>{}; }
-  getSuccessUrl():string { return '«name.asPlural()»'}
+   «EXPAND successUrl FOR this»
   
   ngOnInit() {
     super.ngOnInit();
@@ -229,9 +227,8 @@ export class «name»DetailComponent  extends BaseDetailComponent<«name»> implemen
    getRecord():«name»{return this.«asVar()»;}
    
    setViewRecord(«asVar()»:«name»){  this.«asVar()»View = «asVar()»;}
-  
-  createInstance():«name» { return <«name»>{}; }
-  getSuccessUrl():string { return '«name.asPlural()»'}
+   
+   «EXPAND successUrl FOR this»
   
   ngOnInit() {
     super.ngOnInit();
@@ -240,6 +237,27 @@ export class «name»DetailComponent  extends BaseDetailComponent<«name»> implemen
 }
 «ENDFILE»
 «ENDDEFINE»
+
+«DEFINE successUrl FOR wcprofile::Entity»
+ createInstance():«name» { 
+ 	«IF getCompositionParent() != null»
+    if (this.parent){
+       return <«name»>{«getCompositionParent().name»:<any>this.parent}
+    }
+    «ENDIF»
+    return <«name»>{}; 
+  }
+
+  getSuccessUrl():string { 
+  	«IF getCompositionParent() != null»
+    if (this.parent){
+      return '/«getCompositionParent().type.name»Detail'  
+    }
+    «ENDIF»
+    return '«name.asPlural()»'
+  }
+«ENDDEFINE»
+  
 
 «DEFINE genRelatedImports FOR   wcprofile::Entity»
 

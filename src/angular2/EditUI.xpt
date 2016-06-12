@@ -21,6 +21,8 @@
   «EXPAND ListUI::genPropertyValue FOREACH getTopLevelAttributes()-»
   «FOREACH getMineAndParentsAttributes().select(a|a.isMVComposite()) AS e-»
   <h4>«e.name.asLabel()» </h4>
+   <button  md-raised-button color="accent" [routerLink]="['/«e.type.name»Detail',{'id':0, 'parent':«asVar()»View.id}]">Add CustomerOrder</button>
+   
   <«e.type.asVar()»-list [embedded]="true" [«e.type.asVar()»List]="«asVar()»View.«e.name»"></«e.type.asVar()»-list>
   «ENDFOREACH» 
   
