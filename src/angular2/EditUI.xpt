@@ -23,7 +23,7 @@
   <h4>«e.name.asLabel()» </h4>
    <button  md-raised-button color="accent" [routerLink]="['/«e.type.name»Detail',{'id':0, 'parent':«asVar()»View.id}]">Add CustomerOrder</button>
    
-  <«e.type.asVar()»-list [embedded]="true" [«e.type.asVar()»List]="«asVar()»View.«e.name»"></«e.type.asVar()»-list>
+  <«e.type.asVar()»-list [embedded]="true"  [parent]="«asVar()»View.id" [«e.type.asVar()»List]="«asVar()»View.«e.name»"></«e.type.asVar()»-list>
   «ENDFOREACH» 
   
   <button (click)="goBack()" >Back</button> <button (click)="enableEdit()" >Edit</button>

@@ -60,6 +60,7 @@ let template = require('./«name»ListComponent.html');
 @Component({
   selector: '«asVar()»-list',
   template: template,
+  inputs:['parent', 'embedded'],
   providers:[«name»Service],
   directives: [«FOREACH getMineAndParentsAttributes().select(e|e.isMVComposite() ) AS e»«e.type.getListComponent()»,«ENDFOREACH»«name»DetailComponent, ROUTER_DIRECTIVES]
 })
@@ -67,9 +68,6 @@ export class «name»ListComponent extends BaseListComponent<«name»> implements On
 
   @Input()
   «asVar()»List:«name»[];
-  
-  @Input()
-  protected embedded:boolean = false
    
   «asVar()»:«name»;
   errorMessage:string;
