@@ -26,10 +26,8 @@
 <ul>
   <li *ngFor="let «asVar()» of «asVar()»List">
    «EXPAND genPropertyValue FOREACH getTopLevelAttributes()-»
-     <button [routerLink]="['/CustomerOrderDetail',{'id':customerOrder.id «IF hasContainer()» ,'parent':parent«ENDIF»}]">Edit </button>
-  <button [routerLink]="['/CustomerOrderDetail',{'id':customerOrder.id}]">View </button>
-   
-  <button [routerLink]="['/«name»Detail',{'id':«asVar()».id}]">View {{«asVar()».id}}</button>
+  <button *ngIf="!embedded" [routerLink]="['/«name»Detail',{'id':«asVar()».id «IF hasContainer()» ,'parent':parent«ENDIF»}]">Edit </button>
+  <button *ngIf="!embedded" [routerLink]="['/«name»Detail',{'id':«asVar()».id}]">View </button>
   <button *ngIf="!embedded" (click)="delete(«asVar()»)">Delete</button>
   <div  *ngIf="embedded">
   «FOREACH getMineAndParentsAttributes().select(a|a.isMVComposite()) AS e-»

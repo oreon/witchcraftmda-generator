@@ -45,7 +45,7 @@
 «ENDDEFINE»
 
 «DEFINE genClassDeclaration FOR uml::Class»
-	public class «name»Base «getParent()» «getInterfaces()»
+	public abstract class «name»Base «getParent()» «getInterfaces()»
 «ENDDEFINE»
 
 

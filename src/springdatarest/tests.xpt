@@ -30,7 +30,7 @@
 «DEFINE genClassBody FOR wcprofile::Entity»
 
 /**
- * DB tests for {@link CustomerRepository}.
+ * DB tests for {@link  «name»Repository}
  *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -152,7 +152,7 @@ package «packageName()».repositorytests;
  *
  */
 @RunWith(SpringJUnit4ClassRunner.class)
-//@SpringApplicationConfiguration(classes = { MainApplication.class,SecurityConfiguration.class })
+@SpringApplicationConfiguration(classes = { MainApp.class,SecurityConfiguration.class })
 @Transactional
 public class «name»RepositoryIntegrationTest extends «name»RepositoryIntegrationTestBase{
 	

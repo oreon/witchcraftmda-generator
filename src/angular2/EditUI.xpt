@@ -21,7 +21,7 @@
   «EXPAND ListUI::genPropertyValue FOREACH getTopLevelAttributes()-»
   «FOREACH getMineAndParentsAttributes().select(a|a.isMVComposite()) AS e-»
   <h4>«e.name.asLabel()» </h4>
-   <button  md-raised-button color="accent" [routerLink]="['/«e.type.name»Detail',{'id':0, 'parent':«asVar()»View.id}]">Add CustomerOrder</button>
+   <button  md-raised-button color="accent" [routerLink]="['/«e.type.name»Detail',{'id':0, 'parent':«asVar()»View.id}]">Add «getLabel()»</button>
    
   <«e.type.asVar()»-list [embedded]="true"  [parent]="«asVar()»View.id" [«e.type.asVar()»List]="«asVar()»View.«e.name»"></«e.type.asVar()»-list>
   «ENDFOREACH» 
@@ -111,7 +111,7 @@
 
 
 «DEFINE genAssocValue FOR uml::Property»  
-   <select «IF this == class.getCompositionParent()» *ngIf="!embedded"«ENDIF» required  [ngModel]="«class.asVar()»?.«name»" (ngModelChange)="on«name.toFirstUpper()»Changed($event,i)">
+   <select «IF this == class.getCompositionParent()» *ngIf="!embedded && !parent" «ENDIF» required  [ngModel]="«class.asVar()»?.«name»" (ngModelChange)="on«name.toFirstUpper()»Changed($event,i)">
        <option>Select «name.asLabel()»</option>
        <option *ngFor="let p of «name.getPlural()»" [value]="p.id" >{{p.displayName}}</option>
     </select>

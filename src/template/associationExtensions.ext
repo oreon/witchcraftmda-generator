@@ -122,7 +122,7 @@ prop.association.getAppliedStereotype("wcprofile::ContainedAssociation") != null
 isPreloadedComposition(Property prop):
 prop.association.getAppliedStereotype("wcprofile::PreloadedComposition") != null;
 
-
+hasContainer(Class cls): cls.getCompositionParent() != null;
 
 getCompositionParent(Class cls):
 cls.getAllAttributes().select(a|a.association != null && a.opposite.isComposite() ).first();

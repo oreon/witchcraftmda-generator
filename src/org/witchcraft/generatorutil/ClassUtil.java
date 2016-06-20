@@ -413,8 +413,7 @@ public class ClassUtil {
 	 */
 	public static String getTypeAnnotation(String typeName) {
 		if (mapTypes.containsKey(typeName)) {
-			log.info(typeName + " mapped to annotation "
-					+ mapTypes.get(typeName)[1]);
+			//log.info(typeName + " mapped to annotation "+ mapTypes.get(typeName)[1]);
 			return mapTypes.get(typeName)[1];
 		}
 		return "";

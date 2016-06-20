@@ -59,7 +59,7 @@
 	</outlet>
 </component>
 
-<!--
+
 
 <component id="BeansGenerator" class="org.eclipse.xpand2.Generator"
 skipOnErrors="false">
@@ -133,6 +133,8 @@ skipOnErrors="false">
 
 
 
+<!--
+
 <component id="WebGenerator" class="org.eclipse.xpand2.Generator" skipOnErrors="true">
 	
 	<metaModel idRef="mm_profile"/>
@@ -150,11 +152,9 @@ skipOnErrors="false">
 		<postprocessor class="org.fornax.utilities.formatter.xml.XmlFormatter" fileExtensions=".html, .xml" />
 	</outlet>
 </component>		
--->
 
 
 
-<!--
 <component id="WebGenerator" class="org.eclipse.xpand2.Generator" skipOnErrors="true">
 	
 	<metaModel idRef="mm_profile"/>
