@@ -9,6 +9,32 @@ extension template::associationExtensions;
 String implClassSuffix() : GLOBALVAR ImplClassSuffix;
 
 
+getStringOrBlank(String str, String expr): str != null && !str.isEmptyStr()? expr : "";
+
+getStringOrBlank(String str):getStringOrBlank(str, str);
+
+//Newer methods - these should be used in place of getWebpackagepath etc
+getSectionPackageName(Class cls, String section):
+getSectionPackageName(cls,section,"");
+
+//e.g packagext impl for serivce imple
+getSectionPackageName(Class cls, String section, String packageExt):  
+getTopLevelPackage(cls) + "." + section + "."  + cls.package.name +  getStringOrBlank(packageExt, "."  + packageExt  );
+
+
+getSectionPackagePath(Class cls, String section, string ext):
+getSectionPackageName(cls,section,ext).packagePath();
+
+getFullPath(Class cls, String section, String ext, String suffix):
+getSectionPackageName(cls,section,ext).packagePath() +  "/" + cls.name +  getStringOrBlank(suffix) + ".java";
+
+getFullPath(Class cls, String section):getFullPath( cls, section, "", "");
+
+getFullName(Class cls, String section, String ext, String suffix):
+getSectionPackageName(cls,section,ext) +  "." + cls.name +  getStringOrBlank(suffix);
+
+getFullName(Class cls, String section):getSectionPackageName(cls,section,"", "");
+
 
 String log(uml::Element e, String m):
 log(m + " " + e);

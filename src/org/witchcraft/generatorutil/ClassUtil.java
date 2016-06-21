@@ -113,6 +113,8 @@ public class ClassUtil {
 			mapTypes.put("imageFile", new String[] { "FileAttachment", "" });
 			mapTypes.put("Currency", new String[] { "BigDecimal", "" });
 			mapTypes.put("DateTime", new String[] { "Date", "" });
+			mapTypes.put("long", new String[] { "Long", "" });
+			
 		}
 
 		// TODO maxsize should be configurable

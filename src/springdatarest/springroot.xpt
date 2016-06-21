@@ -1,10 +1,14 @@
 «IMPORT wcprofile»
 
+«EXTENSION springdatarest::springdata»
+
 «EXTENSION org::openarchitectureware::uml2::profile::profiling»
 «EXTENSION template::GeneratorExtensions»
 «EXTENSION template::associationExtensions»
 
-«EXTENSION template::WebExtensions»`
+«EXTENSION template::WebExtensions»
+
+
 
 
 «DEFINE Root FOR uml::Model»
@@ -55,13 +59,16 @@
 
 «DEFINE ManualGen FOR wcprofile::Entity»
 
+
+
+
 «FILE getWebPackagePath("Repository")  man_path »
 	package « getWebPackageName() »;
 	
 	«EXPAND genImports FOR this»
 	
 	@RepositoryRestResource
-	public interface «name»Repository extends «name»RepositoryBase {
+	public interface «name»Repository extends «name»RepositoryBase{
 	
 	//	@Override
 	//	@PreAuthorize("@«asVar()»Repository.findOne(#id)?.createdByUser.userName == authentication?.name  ||  hasRole('admin')")         
@@ -182,4 +189,54 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.security.access.prepost.PreAuthorize;
 
 import «fqn()»;
+«ENDDEFINE»
+
+
+«DEFINE genCustomRepo FOR wcprofile::Entity»
+«FILE getWebPackagePath("RepositoryCustom")  man_path »
+ package « getWebPackageName() »;
+	
+ «EXPAND genImports FOR this»
+ 
+  public interface «name»RepositoryCustom {
+   
+  }
+«ENDFILE»
+
+
+«FILE getWebPackagePath("Repository")  man_path »
+	package « getWebPackageName() »;
+	
+   «EXPAND genImports FOR this»
+   
+   public class «name»RepositoryImpl extends  «name»Repository{
+   
+   }
+«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE genServices FOR wcprofile::Entity»
+
+	«FILE getFullManagerIntefacePath() »
+	 package « getManagerInterfacePackageName() »;
+	
+	//«  getFullPath("services","impl","ManagerImpl") »
+	public interface «asManagerInterface()» {
+	   
+	}
+	«ENDFILE»
+	
+	«FILE  getFullManagerImplPath() »
+	package «  getServicePackageName() »;
+	
+	
+	//«  getFullPath("services","impl","ManagerImpl") »
+	import org.springframework.stereotype.Service;
+	
+	  @Service("«asVar()»Manager")	
+	  public class «name»ManagerImpl implements «asManagerInterfaceFqn()»{
+	   
+	  }
+	«ENDFILE»
 «ENDDEFINE»
