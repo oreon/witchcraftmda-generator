@@ -11,6 +11,8 @@ String implClassSuffix() : GLOBALVAR ImplClassSuffix;
 
 getStringOrBlank(String str, String expr): str != null && !str.isEmptyStr()? expr : "";
 
+getValOrDefault(String str, String defval): str != null && !str.isEmptyStr()? str : defval;
+
 getStringOrBlank(String str):getStringOrBlank(str, str);
 
 //Newer methods - these should be used in place of getWebpackagepath etc
@@ -460,6 +462,9 @@ getEntities(Model model):
 
 String getNotNullAnnotations(Column col):
 col.notNull?"@NotNull":"";
+
+getJoinColumn(Column col):
+getValOrDefault(col.joinColumnName,  col.name.getColumnNameUC() + "_ID") ;
 
 String getValidatorAnnotations(Column col):
 "";

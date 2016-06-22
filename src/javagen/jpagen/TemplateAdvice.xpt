@@ -184,7 +184,7 @@
 		«ELSE»
 		«REM»«getUpper()»  «opposite.getUpper()» «isAggregate()» «opposite.isAggregate()» «ENDREM»
 		 @«isOneOnOne()?"One":"Many"»ToOne(«IF isOneOnOne() && isAggregate()»mappedBy = "«class.asVar()»", «ENDIF»optional=«getAssocOptional()», «getFetchType()» «IF isOneOnOne()», cascade = CascadeType.ALL «ELSE», cascade = {CascadeType.MERGE, CascadeType.PERSIST}«ENDIF» )
-		 «IF !(isOneOnOne() && isAggregate())»@JoinColumn(name="«name.getColumnNameUC()»_ID", nullable=«getAssocOptional()», updatable = true , insertable = true «REM»«getAssocUpdatable()»  comment«ENDREM») «ENDIF»
+		 «IF !(isOneOnOne() && isAggregate())»@JoinColumn(name="«getJoinColumn()»", nullable=«getAssocOptional()», updatable = true , insertable = true «REM»«getAssocUpdatable()»  comment«ENDREM») «ENDIF»
 		«ENDIF»
 	«ENDIF»	
 «ENDDEFINE»
