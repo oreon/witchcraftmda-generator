@@ -1,0 +1,32 @@
+import uml;
+import java;
+import java::util;
+import wcprofile;
+
+extension org::openarchitectureware::uml2::profile::profiling;
+extension template::GeneratorExtensions;
+extension template::associationExtensions;
+
+
+
+asManagerInterface(Class cls): cls.name + "Manager";
+
+asService(Class cls): cls.name + "ManagerImpl";
+
+getFullManagerIntefacePath(Class cls):cls.getFullPath("services",  "", "Manager");
+
+getFullManagerImplPath(Class cls):cls.getFullPath("services","impl","ManagerImpl");
+
+getServicePackageName(Class cls):cls.getSectionPackageName("services","impl");
+
+getManagerInterfacePackageName(Class cls): cls.getSectionPackageName("services","");
+
+asServiceFqn(Class cls): cls.getServicePackageName()+ "." + cls.asService();
+
+asManagerInterfaceFqn(Class cls): cls.getManagerInterfacePackageName() + "." + cls.asManagerInterface();
+
+
+
+
+
+//getFullName(Class cls, String section):

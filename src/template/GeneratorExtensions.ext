@@ -264,6 +264,8 @@ String getPlural(String word):
 word.endsWith("s")?word + "es": word + "s";
 
 asPlural(String word):  getPlural(word);
+asSingular(String word):  getSingular(word);
+
 
 String getSingular(String word):
 JAVA org.witchcraft.generatorutil.ClassUtil.getSingular(java.lang.String);
@@ -788,9 +790,7 @@ JAVA org.witchcraft.generatorutil.ClassUtil.getMineAndParentsAttributes(org.ecli
 
 
 
-
-
-
+findUniqueChildProperty(Class cls): cls.getMineAndParentsAttributes().select(a|a.uniqueChild ).first();
 
 
 //----------------------------------------------------------SDR

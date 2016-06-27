@@ -37,6 +37,9 @@
 «AROUND javagen::pojo::pojoroot::genAdditionalMethods  FOR uml::Class»
 	«EXPAND genDisplayname FOR this»
 	«EXPAND genAbbreviatedText FOREACH getAllAttributes().select(a|a.isLargeText())»
+	
+	«EXPAND genUniqueChild FOREACH  getAllComposed()»
+	
 	«targetDef.proceed()»
 «ENDAROUND»
 
@@ -232,6 +235,8 @@
 	
 	import java.math.BigDecimal;
 	
+	import java.util.Optional;
+	
 	
 	
 	«REM»to be used with hibernate search only 
@@ -263,6 +268,18 @@
 			return «name» != null ? «name» : "";
 		}
 	}
+«ENDDEFINE»
+
+
+«DEFINE genUniqueChild FOR wcprofile::Column»
+	«LET type.findUniqueChildProperty() AS unqChild»
+	«IF unqChild != null»
+	@Transient
+	public Optional<«type.fqn()»> find«name.asSingular().toFirstUpper()»ByName(«unqChild.type.fqn()» «unqChild.name») {
+		return  «name».stream().filter(x -> x.get«unqChild.name.toFirstUpper()»().equalsIgnoreCase(«unqChild.name»)).findFirst() ;
+	}
+	«ENDIF»
+	«ENDLET»
 «ENDDEFINE»
 
 
