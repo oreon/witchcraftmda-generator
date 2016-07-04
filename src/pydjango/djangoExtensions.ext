@@ -44,6 +44,8 @@ String getFieldExtension(Property prop):
 		then "decimal_places=2, max_digits=9 "
 	else if (prop.isNonLargeTextString()) then  //charField
 	 	"max_length=30"
+	else if prop.type.isEnum() then
+	    "max_length = 1 , choices = "+ prop.type.name 
 	else	
 	 	"";
 	 	

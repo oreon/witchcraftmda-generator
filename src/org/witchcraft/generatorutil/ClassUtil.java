@@ -493,6 +493,9 @@ public class ClassUtil {
 
 	public static String getDisplayNameFromAttribs(Class cls) {
 		EList<Property> attribs = getMineAndParentsAttributes(cls);
+		
+		if(attribs.isEmpty())
+			return "Empty class - no display name possible";
 
 		// String firstProp = if( attribs.get(0).getName();
 

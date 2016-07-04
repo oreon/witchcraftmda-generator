@@ -72,23 +72,7 @@
 	@RepositoryRestResource
 	public interface «name»Repository extends «name»RepositoryBase{
 	
-	//	@Override
-	//	@PreAuthorize("@«asVar()»Repository.findOne(#id)?.createdByUser.userName == authentication?.name  ||  hasRole('admin')")         
-		public /*Optional<«name»>*/ «name» findOne(@Param("id") Long id);
-		
-	//	@Override
-	//	@PreAuthorize("#«asVar()»?.createdByUser.userName == authentication?.name  ||  hasRole('admin')")         
-		public /*Optional<«name»>*/ «name»  save(@Param("«asVar()»")«name» «asVar()»);
-		
-		
-		@Override
-		//@PreAuthorize("@«asVar()»Repository.findOne(#id)?.createdByUser.userName == authentication?.name  ||  hasRole('admin')")         
-		@PreAuthorize("hasRole('ROLE_ADMIN')")
-		public void delete(@Param("«asVar()»")«name» «asVar()»);
-		
-		@Override
-	//	@PreAuthorize("@«asVar()»Repository.findOne(#id)?.createdByUser.userName == authentication?.name  ||  hasRole('admin')")         
-		void delete(@Param("id") Long id);
+	
 		
 	}
 	

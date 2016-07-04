@@ -18,7 +18,7 @@
         «EXPAND ClassRoot FOREACH allOwnedElements().typeSelect(uml::Class)»
         «EXPAND ClassRoot FOREACH allOwnedElements().typeSelect(uml::Interface)»
         «ENDREM»
-        «EXPAND EnumGen FOREACH allOwnedElements().typeSelect(uml::Enumeration)»
+       
         
     «ENDIF»
 «ENDDEFINE»
@@ -42,9 +42,10 @@
 «DEFINE genModels FOR wcprofile::EntitiesPackage»
       «FILE name + "/" +   "modelsBase.py"»
 from django.db import models
+
+	«EXPAND EnumGen FOREACH allOwnedElements().typeSelect(uml::Enumeration)-»
     «EXPAND EntityGen FOREACH allOwnedElements().typeSelect(wcprofile::AbstractEntity).select(a|a.isAbstract)-»
-    
-    «EXPAND EntityGen FOREACH allOwnedElements().typeSelect(wcprofile::AbstractEntity).select(a|!a.isAbstract)-»
+    «EXPAND EntityGen FOREACH allOwnedElements().typeSelect(wcprofile::AbstractEntity).select(a|!a.isAbstract)-»   
   «ENDFILE»
 
   «FILE  name + "/" +   "models.py"»
@@ -65,7 +66,11 @@ from .serializers import *
 «ENDDEFINE»
 
 «DEFINE EnumGen FOR uml::Enumeration»
-    
+«name» = (
+«FOREACH ownedLiteral AS e  ITERATOR iter-»
+	('«iter.counter1 - 1»', '«e.name»'),
+«ENDFOREACH»  
+)
 «ENDDEFINE»
 
 «DEFINE EntityGen FOR wcprofile::MappedSuperClass»
@@ -94,10 +99,12 @@ class «name»Base(«getParentDj()-»):
     «IF e.association != null && e.isNavigable()-»
         «IF e.isMultivalued()-»
             «IF e.opposite != null && e.opposite.isMultivalued()-»
-    «e.name» =    models.ManyToManyField("«e.type.name»",  blank=True,  related_name="«e.name»")
+    «e.name» =    models.ManyToManyField("«e.type.package.name».«e.type.name»",  blank=True,  related_name="«e.name»")
             «ENDIF»
+        «ELSEIF !e.opposite.isMultivalued()»
+    «e.name» =    models.OneToOneField("«e.type.package.name».«e.type.name»",  blank=True,  related_name="«e.name»")
         «ELSE-»
-    «e.name» = models.ForeignKey('«e.type.name»', related_name='«e.opposite.name-»')
+    «e.name» = models.ForeignKey('«e.type.package.name».«e.type.name»', related_name='«e.opposite.name-»')
         «ENDIF»
     «ELSE-»
     «e.name» = models.«getModelFieldType(e)-»(null = False, blank =  «getFieldBlankable(e)», «getFieldExtension(e)»)
@@ -115,6 +122,10 @@ class «name»Base(«getParentDj()-»):
         
     «IF uniqueConstraints != null»
         unique_together = «uniqueConstraints»
+    «ELSE»
+      «IF getCompositionParent() != null && findUniqueChildProperty() != null»
+    	unique_together = ("«getCompositionParent().name»", "«findUniqueChildProperty().name»")
+      «ENDIF»
     «ENDIF»    
 «ENDDEFINE»
 

@@ -385,18 +385,18 @@ getFirstChild(Class c):
 JAVA org.witchcraft.generatorutil.ClassUtil.getFirstChild(org.eclipse.uml2.uml.Class);
 
 
-boolean isEmbeddable(Type type):
-type.getAppliedStereotype("wcprofile::Embeddable") != null;
+ isEmbeddable(Type type): type.getAppliedStereotype("wcprofile::Embeddable") != null;
 
-boolean isEntity(Type type):
-type.getAppliedStereotype("wcprofile::Entity") != null;
+isEnum(Type type): type.getModel().allOwnedElements().typeSelect(uml::Enumeration).contains(type);
+
+
+isEntity(Type type): type.getAppliedStereotype("wcprofile::Entity") != null;
 
 isParentAbstractEntity(Type type):
 type.getFirstParentCls() != null && type.getFirstParentCls().isAbstract  && type.getFirstParentCls().isEntity();
 
 
-isAbstractEntity(Type type):
-type.isAbstract  && type.isEntity();
+isAbstractEntity(Type type): type.isAbstract  && type.isEntity();
 
 
 boolean isMappedSuperClass(Type type):
@@ -803,5 +803,5 @@ isPageable(e,p) ?"": ",Pageable pageable";
 
 
 getNeedsPaginationReturn(wcprofile::Entity e, wcprofile::Column p ): 
-isPageable(e,p) ? /*"Optional<" +*/  e.name /* + ">"*/ : "Page<" + e.name + ">";
+isPageable(e,p) ? "Optional<" +  e.name  + ">": "Page<" + e.name + ">";
 
