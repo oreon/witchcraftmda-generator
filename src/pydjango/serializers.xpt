@@ -13,10 +13,10 @@ from .models import *
 import sys
 
 from django.db import transaction
-    
-    «EXPAND genLookupSerializer FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
-    «EXPAND genSerializer FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
-    «EXPAND genWriteSerializer FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+  
+    «EXPAND genLookupSerializer FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»    
+    «EXPAND genSerializer FOREACH allOwnedElements().typeSelect(wcprofile::Entity).select(a|a.getCompositionParent() == null)»
+	«EXPAND genWriteSerializer FOREACH allOwnedElements().typeSelect(wcprofile::Entity).select(a|a.getCompositionParent() == null)»
     «EXPAND genFullSerializer FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
     
   «ENDFILE»
@@ -45,8 +45,40 @@ class Full«name»Serializer(«name»Serializer):
         model = «name»
 «ENDDEFINE»
 
+«DEFINE genSerializer FOR wcprofile::Entity»
+	«FOREACH getAllComposed() AS e»
+		«EXPAND genSerializer FOR e.type»
+	«ENDFOREACH»
+	«EXPAND genSerializerImpl FOR this»
+«ENDDEFINE»
+
+«DEFINE genSerializerImpl FOR wcprofile::Entity»
+
+class «name»Serializer(serializers.ModelSerializer):
+    displayName = serializers.ReadOnlyField()
+    
+ «FOREACH getOutgoingAssociations() AS e-»
+    «e.name» = «e.type.name»LookupSerializer()
+ «ENDFOREACH-»
+  
+ «FOREACH getAllComposed() AS a-»
+    «a.name» = «a.type.name»Serializer(many=True, read_only = True)
+ «ENDFOREACH-»
+    
+    class Meta:
+        model = «name»
+«ENDDEFINE»
+
 
 «DEFINE genWriteSerializer FOR wcprofile::Entity»
+	«FOREACH getAllComposed() AS e»
+		«EXPAND genWriteSerializer FOR e.type»
+	«ENDFOREACH»
+	«EXPAND genWriteSerializerImpl FOR this»
+«ENDDEFINE»
+
+
+«DEFINE genWriteSerializerImpl FOR wcprofile::Entity»
     
 class «name»WritableSerializer(serializers.ModelSerializer):
     
@@ -100,32 +132,15 @@ class «name»WritableSerializer(serializers.ModelSerializer):
         for item in «e.name»Current:
             «e.type.name»(«asVar()»=instance, **item).save()  
      «ENDFOREACH»
-     
- 
      «ENDIF»
 
     class Meta:
         model = «name»
-        «IF getCompositionParent() != null»exclude = ('«getCompositionParent()»',)«ENDIF»
+        «IF getCompositionParent() != null»exclude = ('«getCompositionParent().name»',)«ENDIF»
     
 «ENDDEFINE»
 
-«DEFINE genSerializer FOR wcprofile::Entity»
 
-class «name»Serializer(serializers.ModelSerializer):
-    displayName = serializers.ReadOnlyField()
-    
- «FOREACH getOutgoingAssociations() AS e-»
-    «e.name» = «e.type.name»LookupSerializer()
- «ENDFOREACH-»
-  
- «FOREACH getAllComposed() AS a-»
-    «a.name» = «a.type.name»Serializer(many=True, read_only = True)
- «ENDFOREACH-»
-    
-    class Meta:
-        model = «name»
-«ENDDEFINE»
 
 «DEFINE orgSrlizr FOR Type»
 class «name»Serializer(serializers.HyperlinkedModelSerializer):
