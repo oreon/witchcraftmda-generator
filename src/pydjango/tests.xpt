@@ -1,0 +1,48 @@
+
+«IMPORT wcprofile»
+
+«EXTENSION pydjango::djangoExtensions»
+«EXTENSION template::GeneratorExtensions»
+
+«EXTENSION template::associationExtensions»
+
+«DEFINE gen FOR wcprofile::EntitiesPackage»
+ «FILE  name + "/" +  "tests.py"»
+ 
+from django.contrib import admin
+
+from «name».models import *
+from restbase.commons import CustomModelAdminMixin
+
+ «EXPAND genTests FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+ 
+ «ENDFILE»
+«ENDDEFINE» 
+
+«DEFINE genTests FOR wcprofile::Entity»
+class «name»Tests(BaseTest):
+     
+     url = '«name.toFirstLower().getSingular()»'
+     
+     fixtures = ['users.json','patients.json']
+         
+     def test_create«name»ByNotAllowedUser(self):
+         self.login('alicia-rn')
+         response = self.read_one_record(suffix='writable')
+         data = response.data
+         data['id'] = None
+         response = self.client.post(self.url,data)
+         print(response.data)
+         ''' access should be denied'''
+         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+         
+     def test_create«name»(self):
+         self.login('alicia-rn')
+         response = self.read_one_record(suffix='writable')
+         data = response.data
+         data['id'] = None
+         response = self.client.post(self.url,data)
+         print(response.data)
+         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+«ENDDEFINE»
+

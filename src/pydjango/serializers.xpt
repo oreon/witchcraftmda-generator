@@ -13,7 +13,8 @@ from .models import *
 import sys
 
 from django.db import transaction
-  
+
+	«EXPAND genImports FOREACH allOwnedElements().typeSelect(wcprofile::Entity)-»
     «EXPAND genLookupSerializer FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»    
     «EXPAND genSerializer FOREACH allOwnedElements().typeSelect(wcprofile::Entity).select(a|a.getCompositionParent() == null)»
 	«EXPAND genWriteSerializer FOREACH allOwnedElements().typeSelect(wcprofile::Entity).select(a|a.getCompositionParent() == null)»
@@ -21,6 +22,12 @@ from django.db import transaction
     
   «ENDFILE»
        
+«ENDDEFINE»
+
+«DEFINE genImports FOR wcprofile::Entity-»
+	«FOREACH getOutgoingAssociations() AS e -»
+«IF e.type.package != package -»from  «e.type.package.name».serializers import  «e.type.name»LookupSerializer«ENDIF»
+	«ENDFOREACH» 
 «ENDDEFINE»
 
 «DEFINE genLookupSerializer FOR wcprofile::Entity»

@@ -1,0 +1,26 @@
+
+«IMPORT wcprofile»
+
+«EXTENSION pydjango::djangoExtensions»
+«EXTENSION template::GeneratorExtensions»
+
+«EXTENSION template::associationExtensions»
+
+«DEFINE gen FOR wcprofile::EntitiesPackage»
+ «FILE  name + "/" +  "admin.py"»
+ 
+from django.contrib import admin
+
+from «name».models import *
+from restbase.commons import CustomModelAdminMixin
+
+ 
+ «EXPAND genImports FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+ 
+ «ENDFILE»
+«ENDDEFINE» 
+
+«DEFINE genImports FOR wcprofile::Entity»
+class «name»Admin(CustomModelAdminMixin, admin.ModelAdmin):
+    pass
+«ENDDEFINE»
