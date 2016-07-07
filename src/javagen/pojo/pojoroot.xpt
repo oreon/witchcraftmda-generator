@@ -121,7 +121,7 @@
 	}
 	
 	«IF isMultivalued()»
-	public void add«name.toFirstUpper().getSingular()» («type.fqnForPackage(this.class)» «name.getSingular()»){
+	public «type.fqnForPackage(this.class)» add«name.toFirstUpper().getSingular()» («type.fqnForPackage(this.class)» «name.getSingular()»){
 		«IF !isManyToMany() && opposite != null»
 		  «name.getSingular()».set«opposite.name.toFirstUpper()»((«class.name»)this);
 		«ENDIF»
@@ -130,6 +130,8 @@
 		}
 		
 		this.«name».add(«name.getSingular()»);
+		
+		return «name.getSingular()»;
 	}
 	
 	public void add«name.toFirstUpper()»(List<«type.fqnForPackage(this.class)»> «name»ToAdd) {

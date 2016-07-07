@@ -35,6 +35,7 @@
 	<!--  «name»  JPA Configurations -->
 	<entity class="«fqn()»" name="«name»">
 		<table name="«getTableName()»"  >
+				
 		«IF uniqueConstraints != null-»
 			«FOREACH uniqueConstraints.getAsListOfLists() AS lst-»
 			<unique-constraint>
@@ -43,8 +44,14 @@
 				«ENDFOREACH-»
 			</unique-constraint>
 			«ENDFOREACH»
+		«ELSE»
+		  «IF getCompositionParent() != null && findUniqueChildProperty() != null-»
+		  <unique-constraint>
+		  	<column-name>«findUniqueChildProperty().name»</column-name>
+			<column-name>«getCompositionParent().name.getColumnNameUC()»_ID</column-name>
+		  </unique-constraint>
+	      «ENDIF»
 		«ENDIF»
-		
 		
 		«IF isMultiTenanted()»
 			«FOREACH getAllAttributes() AS p-»
