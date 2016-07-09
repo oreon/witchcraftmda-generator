@@ -36,6 +36,9 @@
 		«EXPAND genClassDeclaration FOR this»{
 		 «EXPAND genProperties FOR this»
 		 «EXPAND genAdditionalMethods FOR this»
+		 
+		 «EXPAND genCompositeMethods FOR this»
+		 
 		}
 	«ENDFILE»
 	
@@ -46,6 +49,16 @@
 
 «DEFINE genClassDeclaration FOR uml::Class»
 	public abstract class «name»Base «getParent()» «getInterfaces()»
+«ENDDEFINE»
+
+«DEFINE genCompositeMethods FOR uml::Class»
+	public List<List<BaseEntity>> getComposites(){
+		List lst = new ArrayList<BaseEntity>();
+		«FOREACH getAllComposed() AS e»
+		base.addAll(«e»);
+		«ENDFOREACH»
+		return lst;
+	}
 «ENDDEFINE»
 
 
