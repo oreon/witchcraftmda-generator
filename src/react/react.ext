@@ -19,20 +19,25 @@ String getJsonType(Property prop):
 		"number"
 	//else if (prop.secret ) then
 	//	prop.getJSFPrefix() + ":inputSecret"
-	else if ( prop.isType("Integer") )
+	else if ( prop.isType("Integer") || prop.isType("long"))
 		then  "integer"
 	else	
 		"string";
 		
-getPropertyAttributes(Property prop):"";
-	//if(prop.type.isEnum())	"";
-		
-		
-String getUiType(Property prop):
+getFormat(Property prop):
 	if (prop.isType("Date")) 
 		then "date" 
 	else if (prop.isType("DateTime")) 
 		then "date-time" 
 	else if (prop.isType("imageFile")) 
-		then "file" 
+		then "data-url" 
+	else 
+		"";
+
+		
+String getUIWidget(Property prop):
+	if (prop.isLargeText())
+		then "textarea"
+	else if ( prop.isType("Integer") || prop.isType("long") )
+		then"updown"
 	else "";

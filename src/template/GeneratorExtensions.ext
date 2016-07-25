@@ -9,9 +9,9 @@ extension template::associationExtensions;
 String implClassSuffix() : GLOBALVAR ImplClassSuffix;
 
 
-getStringOrBlank(String str, String expr): str != null && !str.isEmptyStr()? expr : "";
+getStringOrBlank(String str, String expr):  !str.isEmptyStr()? expr : "";
 
-getValOrDefault(String str, String defval): str != null && !str.isEmptyStr()? str : defval;
+getValOrDefault(String str, String defval):  !str.isEmptyStr()? str : defval;
 
 getStringOrBlank(String str):getStringOrBlank(str, str);
 
@@ -765,7 +765,7 @@ isValidationConstraint(Element e):
 e.getAppliedStereotype("wcprofile::ValidationConstraint") != null;
 
 isEmptyStr(String str):
-str == null || str == "";
+ str == "" || str == null ;
 
 
 excludeFromGeneration(Package pack):

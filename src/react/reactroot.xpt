@@ -38,7 +38,8 @@ export class «name»Store extends AppState{
    }
 }
 
-const data = new «name»Store('«name.toFirstLower()»', «name.toFirstLower()»Headers, «name.toFirstLower()»Schema);
+const data = new «name»Store('«name.toFirstLower()»', «name.toFirstLower()»Headers, 
+	«name.toFirstLower()»Schema, uiSchema=«name.toFirstLower()»UISchema);
 
 export default class «name»Wrapper extends React.Component<any, any> {
     render() {
@@ -111,18 +112,41 @@ export default class «name»Wrapper extends React.Component<any, any> {
 «IF p.isMultivalued() && p.opposite.isMultivalued()-», "uniqueItems": true«ENDIF»
 «ENDDEFINE»
 
-«DEFINE GenExtras(uml::Property p) FOR uml::Type»  
-
+«DEFINE GenExtras(uml::Property p) FOR uml::Type-»  
+«IF !p.getFormat().isEmptyStr()»,«p.getFormat()»«ENDIF»	
 «ENDDEFINE»
  
  
-
-«DEFINE genRequired FOR wcprofile::Entity»
+«DEFINE genRequired FOR wcprofile::Entity-»
 «FOREACH getMineAndParentsAttributes().select(a|a.isRequired()) AS r SEPARATOR ','» '«r.name»' «ENDFOREACH»
 «ENDDEFINE»
 
-«DEFINE genUISchema FOR wcprofile::Entity»
+«DEFINE genUISchema FOR wcprofile::Entity-»
  const «name.toFirstLower()»UISchema = {
- 	
+ 	«EXPAND genPropertyUI FOREACH getMineAndParentsAttributes().select(a|!a.isMVComposite())»
+    «EXPAND genNestedUI FOREACH getMineAndParentsAttributes().select(a|a.isMVComposite()) »
  }
 «ENDDEFINE»
+
+
+«DEFINE genPropertyUI FOR uml::Property»
+«IF this == class.getCompositionParent()»  «REM»composition parent to be treated differently «ENDREM»
+«name»: {
+      "ui:widget": "hidden"
+    },
+«ELSE»
+«name»: { «IF !getUIWidget().isEmptyStr()»'ui:widget': "«getUIWidget()»" ,«ENDIF» 'ui:placeholder': "«name.asLabel()»" },
+«ENDIF»
+«ENDDEFINE»
+
+«DEFINE genNestedUI FOR uml::Property»
+«name»: {
+ 	items:{
+         «EXPAND genPropertyUI FOREACH type.getMineAndParentsAttributes().select(a|!a.isMVComposite())» 
+         «EXPAND genNestedUI FOREACH type.getMineAndParentsAttributes().select(a|a.isMVComposite()) »
+     }
+ },
+«ENDDEFINE»
+
+
+
