@@ -1,0 +1,128 @@
+
+«EXTENSION angular2::angular2»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+«EXTENSION react::react»
+
+
+«DEFINE Root FOR wcprofile::Entity»
+	 «setAsCurrentEntity(this)-»
+	 «EXPAND genEditContainer FOR this»
+	 «EXPAND genDetailContainer FOR this»
+«ENDDEFINE»
+
+«DEFINE genEntity FOR wcprofile::Entity»
+«FILE "clnt/" + name  + ".tsx"»
+
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
+
+import BaseCrudComponent from './BaseComponent';
+import AppState from './AppState'
+
+«EXPAND genSchema FOR this»
+
+«EXPAND genUISchema FOR this»
+
+
+const «name.toFirstLower()»Headers = [
+ «FOREACH getMineAndParentsAttributes().select(a|!a.isMultivalued()) AS e SEPARATOR ','»
+ {property:"«e.name»",title:"«e.name.asLabel()»" }
+ «ENDFOREACH»
+ ]
+
+export class «name»Store extends AppState{
+   constructor(url:string, headers:any, formSchema:any) {
+     super(url, headers, formSchema);
+   }
+}
+
+const data = new «name»Store('«name.toFirstLower()»', «name.toFirstLower()»Headers, «name.toFirstLower()»Schema);
+
+export default class «name»Wrapper extends React.Component<any, any> {
+    render() {
+        return (
+            <BaseCrudComponent data={data} />
+        );
+    }
+}
+«ENDFILE»
+«ENDDEFINE»
+
+ «DEFINE genSchema FOR wcprofile::Entity»
+
+ const «name.toFirstLower()»Schema = {
+    title: "«name.asLabel()»",
+    type: "object",
+    required: [ «EXPAND genRequired»],
+    properties: {
+    «EXPAND genProperty FOREACH getMineAndParentsAttributes().select(a|!a.isMVComposite())»
+    «EXPAND genNested FOREACH getMineAndParentsAttributes().select(a|a.isMVComposite()) »
+        
+    }
+};
+«ENDDEFINE»
+
+
+«DEFINE genNested FOR uml::Property»
+«name»: {
+            title: "«name.asLabel()»",
+            type: "array",
+            required: [«EXPAND genRequired FOR type»],
+            items: {
+                "type": "object",
+                "properties": {
+                 «EXPAND genProperty FOREACH type.getMineAndParentsAttributes().select(a|!a.isMVComposite())» 
+                 «EXPAND genNested FOREACH type.getMineAndParentsAttributes().select(a|a.isMVComposite()) »
+                }
+            }
+        },
+«ENDDEFINE»
+
+
+
+
+«DEFINE genProperty FOR uml::Property»
+«IF this == class.getCompositionParent()»  «REM»composition parent to be treated differently «ENDREM»
+«name»: {
+      "type": "number",
+    },
+«ELSE»
+«name»: { type: "«getJsonType()»", title: "«name.asLabel()»" , «EXPAND GenExtras(this) FOR type»},
+«ENDIF»
+«ENDDEFINE»
+
+
+
+«DEFINE GenExtras(uml::Property p) FOR uml::Enumeration»  
+'enum' : [
+'',«FOREACH ownedLiteral AS e  ITERATOR iter SEPARATOR ','»'«iter.counter1 - 1»' «ENDFOREACH»  
+],
+'enumNames' : [
+'Select',«FOREACH ownedLiteral AS e  ITERATOR iter SEPARATOR ','»'«e.name»' «ENDFOREACH»  
+]
+«ENDDEFINE»
+
+«REM»For associations «ENDREM»
+«DEFINE GenExtras(uml::Property p) FOR wcprofile::AbstractEntity»  
+'enum' : «name»Ids,
+'enumNames' : «name»Names
+«IF p.isMultivalued() && p.opposite.isMultivalued()-», "uniqueItems": true«ENDIF»
+«ENDDEFINE»
+
+«DEFINE GenExtras(uml::Property p) FOR uml::Type»  
+
+«ENDDEFINE»
+ 
+ 
+
+«DEFINE genRequired FOR wcprofile::Entity»
+«FOREACH getMineAndParentsAttributes().select(a|a.isRequired()) AS r SEPARATOR ','» '«r.name»' «ENDFOREACH»
+«ENDDEFINE»
+
+«DEFINE genUISchema FOR wcprofile::Entity»
+ const «name.toFirstLower()»UISchema = {
+ 	
+ }
+«ENDDEFINE»

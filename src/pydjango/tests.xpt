@@ -11,12 +11,23 @@
  
 from django.contrib import admin
 
-from «name».models import *
+from . import models
 from restbase.commons import CustomModelAdminMixin
 
  «EXPAND genTests FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
  
  «ENDFILE»
+ 
+ «FILE name + "/" +  "factories.py"»
+ 
+ # factories.py
+import factory
+from . import models
+
+«EXPAND genFactory FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+
+ «ENDFILE» 
+ 
 «ENDDEFINE» 
 
 «DEFINE genTests FOR wcprofile::Entity»
@@ -24,9 +35,9 @@ class «name»Tests(BaseTest):
      
      url = '«name.toFirstLower().getSingular()»'
      
-     fixtures = ['users.json','patients.json']
+     fixtures = [' «name»s.json','patients.json']
          
-     def test_create«name»ByNotAllowedUser(self):
+     def test_create«name»ByNotAllowed «name»(self):
          self.login('alicia-rn')
          response = self.read_one_record(suffix='writable')
          data = response.data
@@ -46,3 +57,31 @@ class «name»Tests(BaseTest):
          self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 «ENDDEFINE»
 
+
+«DEFINE genFactory FOR wcprofile::Entity»
+
+class  «name»Factory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = models. «name»
+        
+        
+     «FOREACH getMineAndParentsAttributes() AS e-»
+    «IF e.association != null && e.isNavigable()-»
+        «IF e.isMultivalued()-»
+            «IF e.opposite != null && e.opposite.isMultivalued()-»
+    «e.name» =    models.ManyToManyField("«e.type.package.name».«e.type.name»",  blank=True,  related_name="«e.name»")
+            «ENDIF»
+        «ELSEIF !e.opposite.isMultivalued()»
+    «e.name» =    models.OneToOneField("«e.type.package.name».«e.type.name»",  blank=True,  related_name="«e.name»")
+        «ELSE-»
+    «e.name» = factory.SubFactory(«e.type.package.name».«e.type.name»Factory)
+        «ENDIF»
+    «ELSE-»
+    «e.name» = factory.Sequence(lambda n: «getModelFieldType(e)-») 
+    «ENDIF»
+ «ENDFOREACH»
+
+    #first_name = factory.Sequence(lambda n: "Agent %03d" % n)
+    #group = factory.SubFactory(GroupFactory)
+
+«ENDDEFINE»

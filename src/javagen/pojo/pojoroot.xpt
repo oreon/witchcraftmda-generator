@@ -52,13 +52,31 @@
 «ENDDEFINE»
 
 «DEFINE genCompositeMethods FOR uml::Class»
-	public List<List<BaseEntity>> getComposites(){
-		List lst = new ArrayList<BaseEntity>();
-		«FOREACH getAllComposed() AS e»
-		base.addAll(«e»);
+	«REM»comment
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	public List<Supplier<List<? extends BaseEntity>> >getComposites(){
+		
+		List base = new ArrayList<Supplier<List<? extends BaseEntity>> >();
+		
+		Supplier<List<SlaDefinition>> slaDefinition = this::getSlaDefinition ;
+		Supplier<List<TaskDefinition>> taskDef = this::getTaskDefinitions;
+		
+		base.add(slaDefinition);
+		base.add(taskDef);
+		
+		return base;
+	}
+	«ENDREM»
+
+ /*
+	public List<List<? extends BaseEntity>> getComposites(){
+		List lst = new ArrayList();
+		«FOREACH getAllComposed() AS e-»
+		lst.addAll(«e.name»);
 		«ENDFOREACH»
 		return lst;
 	}
+*/
 «ENDDEFINE»
 
 
@@ -231,6 +249,7 @@
 	import java.util.ArrayList;
 	import java.util.List;
 	import java.util.Date;
+	import org.witchcraft.base.entity.BaseEntity;
 «ENDDEFINE»
 
 

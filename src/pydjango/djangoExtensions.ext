@@ -39,6 +39,27 @@ String getModelFieldType(Property prop):
 	else	
 		"CharField";
 		
+		
+String getFactoryModelFieldType(Property prop):
+	if(prop.type.name == "largeText")  
+		then "TextField"
+	else if ( prop.isType("boolean") || prop.isType("Boolean") )
+		then "NullBooleanField"
+	else if (prop.isType("Date")) 
+		then "DateField" 
+	else if (prop.isType("DateTime")) 
+		then "DateTimeField" 
+	else if (prop.isType("imageFile")) 
+		then "ImageField" 
+	else if(prop.isCurrency()) then
+		"DecimalField"
+	//else if (prop.isColumn() && prop.secret ) then
+	//	prop.getJSFPrefix() + ":inputSecret"
+	else if ( prop.isType("Integer") )
+		then  "PositiveIntegerField"
+	else	
+		"\"" + prop.name + " %03d\" % n\"";		
+		
 String getFieldExtension(Property prop):
 	if(prop.isCurrency())  
 		then "decimal_places=2, max_digits=9 "

@@ -38,6 +38,8 @@
   «EXPAND tests::gen FOR this»
   «EXPAND genRoutes FOR this»
   
+  «EXPAND genReact FOR this»
+  
 «ENDDEFINE»  
  
  
@@ -46,6 +48,7 @@
 from django.db import models
 
 	«EXPAND EnumGen FOREACH allOwnedElements().typeSelect(uml::Enumeration)-»
+
     «EXPAND EntityGen FOREACH allOwnedElements().typeSelect(wcprofile::AbstractEntity).select(a|a.isAbstract)-»
     «EXPAND EntityGen FOREACH allOwnedElements().typeSelect(wcprofile::AbstractEntity).select(a|!a.isAbstract)-»   
   «ENDFILE»
@@ -57,6 +60,9 @@ from .modelsBase import *
   «ENDFILE»
  «ENDDEFINE»
 
+«DEFINE genReact FOR wcprofile::EntitiesPackage»
+  «EXPAND react::reactroot::genEntity FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+«ENDDEFINE»
 
 
 «DEFINE genViewSets FOR wcprofile::EntitiesPackage»
@@ -89,7 +95,7 @@ from .serializers import *
 «ENDDEFINE»
 
 «DEFINE EntityGen FOR uml::Class»
-      «EXPAND genClass FOR this»
+  «EXPAND genClass FOR this»
 «ENDDEFINE»
 
 

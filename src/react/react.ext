@@ -1,0 +1,38 @@
+//import metamodel;
+import uml;
+import java;
+import java::util;
+import wcprofile;
+
+
+extension template::GeneratorExtensions;
+extension template::associationExtensions;
+
+
+
+String getJsonType(Property prop):
+	if(prop.isAssoc())  
+	 then "integer"
+	else if ( prop.isType("boolean") || prop.isType("Boolean") )
+		then "boolean"
+	else if(prop.isCurrency() || prop.isType("Double")) then
+		"number"
+	//else if (prop.secret ) then
+	//	prop.getJSFPrefix() + ":inputSecret"
+	else if ( prop.isType("Integer") )
+		then  "integer"
+	else	
+		"string";
+		
+getPropertyAttributes(Property prop):"";
+	//if(prop.type.isEnum())	"";
+		
+		
+String getUiType(Property prop):
+	if (prop.isType("Date")) 
+		then "date" 
+	else if (prop.isType("DateTime")) 
+		then "date-time" 
+	else if (prop.isType("imageFile")) 
+		then "file" 
+	else "";

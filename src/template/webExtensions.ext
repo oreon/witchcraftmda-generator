@@ -383,7 +383,7 @@ prop.isRequired()?"true":"false";
 
 
 isRequired(Property prop):
-!isCurrentTemplateMode() && (prop.type.name == "nameType" || prop.type.name == "uniqueNameType");
+!isCurrentTemplateMode() && (prop.type.name == "nameType" || prop.type.name == "uniqueNameType"  );
 
 isRequired(Column prop):
 !isCurrentTemplateMode() && (prop.notNull || prop.type.name == "nameType" || prop.type.name == "uniqueNameType");

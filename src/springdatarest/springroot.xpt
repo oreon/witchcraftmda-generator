@@ -126,6 +126,7 @@ import « packageName() ».«name»;
 package « getWebPackageName() »;
 
 import « packageName() ».«name»;
+import org.witchcraft.base.entity.BaseRepository;
 
 «EXPAND genImports FOR this»
 
@@ -135,7 +136,7 @@ import «a.type.fqn()»;
 «ENDFOREACH»
 
 //@RepositoryRestResource(exported=false)
-public interface «name»RepositoryBase extends PagingAndSortingRepository<«name», Long> {
+public interface «name»RepositoryBase extends  BaseRepository<«name»> {
 	
 	«IF getAppliedStereotype("wcprofile::SystemUser") != null && defaultRole != null»
 		public static final String DEFAULT_ROLE_NAME = "«defaultRole»"; 

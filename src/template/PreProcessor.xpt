@@ -7,7 +7,7 @@
 «DEFINE Root FOR uml::Model»
 	«REM» Massage the model «ENDREM»
 	«setCurrentModel()»
-	«EXPAND setDefaultNamesForAssocs FOREACH allOwnedElements().typeSelect(uml::Property) »
+	«EXPAND setDefaultNamesForAssocs FOREACH allOwnedElements().typeSelect(uml::Property).select(e|e.association != null && e.name.isEmptyStr()) »
 	
 	«EXPAND setDefaultMultiplicityForAssocs FOREACH allOwnedElements().typeSelect(uml::Property) »
 	«EXPAND applyEntityStereotype FOREACH allOwnedElements().typeSelect(wcprofile::EntitiesPackage) »
@@ -74,42 +74,39 @@
 «ENDDEFINE»
 
 «DEFINE setDefaultNamesForAssocs FOR uml::Property»
-
-	«IF association != null»
-		«IF !(name != null && name.length > 0 )»
-			«LET type.name.toFirstLower() AS defaultName»
-				«IF isMultivalued()» «REM» For collections we need to create a plural default type name«ENDREM»
-					«setName(defaultName.getPlural())»
-					«REM»comment
-					«IF getLower() == null &&  getUpper() == null »
-					«setLower(0)»
-					«setUpper('*')»
-					«ENDIF»
-					«ENDREM»
-				«ELSE»
-					«setName(defaultName)»
-					«REM»comment
-					«IF opposite.getLower() == null || opposite.getLower() == ""  »
-					«setName("NMV22" + defaultName)»
-					«opposite.setLower(0)»
-					«opposite.setUpper('*')»
-					
-					«ENDIF»
-					«ENDREM»
-				«ENDIF»		
-			«ENDLET»
-		«ENDIF»
-			
-		«IF !(opposite.name != null && opposite.name.length > 0 )»
-			«LET class.name.toFirstLower() AS defaultName»
-				«IF opposite!= null && opposite.isMultivalued()» 
-					«opposite.setName(defaultName.getPlural())» 
-				«ELSE»
-					«opposite.setName(defaultName)»
-				«ENDIF»	 
-			«ENDLET»
-		«ENDIF»
+		«LET type.name.toFirstLower() AS defaultName»
+			«IF isMultivalued() || isComposite()  » «REM» For collections we need to create a plural default type name«ENDREM»
+				«setName(defaultName.getPlural())»
+				«REM»comment
+				«IF getLower() == null &&  getUpper() == null »
+				«setLower(0)»
+				«setUpper('*')»
+				«ENDIF»
+				«ENDREM»
+			«ELSE»
+				«setName(defaultName)»
+				«REM»comment
+				«IF opposite.getLower() == null || opposite.getLower() == ""  »
+				«setName("NMV22" + defaultName)»
+				«opposite.setLower(0)»
+				«opposite.setUpper('*')»
+				
+				«ENDIF»
+				«ENDREM»
+			«ENDIF»		
+		«ENDLET»
+	
+		
+	«IF !(opposite.name != null && opposite.name.length > 0 )»
+		«LET class.name.toFirstLower() AS defaultName»
+			«IF opposite!= null && ( opposite.isMultivalued() || ( isComposite()  )  )» 
+				«opposite.setName(defaultName.getPlural())» 
+			«ELSE»
+				«opposite.setName(defaultName)»
+			«ENDIF»	 
+		«ENDLET»
 	«ENDIF»
+
 «ENDDEFINE»
 
 <!-- Make all fields notnull  -->

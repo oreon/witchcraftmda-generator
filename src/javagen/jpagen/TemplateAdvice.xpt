@@ -201,7 +201,7 @@
 	        joinColumns=@JoinColumn(name="«opposite.name.getColumnNameUC()»_ID"),
 	        inverseJoinColumns=@JoinColumn(name="«name.getColumnNameUC()»_ID")
 	    )
-	    @IndexColumn(name = "«opposite.name»_order")
+	   //@IndexColumn(name = "«opposite.name»_order")
 	«ELSE»
 	   @ManyToMany(mappedBy="«opposite.name»")
 	«ENDIF»
