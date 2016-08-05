@@ -6,11 +6,41 @@
 «EXTENSION react::react»
 
 
-«DEFINE Root FOR wcprofile::Entity»
-	 «setAsCurrentEntity(this)-»
-	 «EXPAND genEditContainer FOR this»
-	 «EXPAND genDetailContainer FOR this»
+«DEFINE Root FOR uml::Model»
+	 «REM»comment«setAsCurrentEntity(this)-»«ENDREM»
+	 «EXPAND genEntity FOREACH  allOwnedElements().typeSelect(wcprofile::Entity)»
+	 
+	 
+	 «FILE "clnt/" + "routes"  + ".tsx"»
+	 	«EXPAND genImports FOREACH  allOwnedElements().typeSelect(wcprofile::Entity)»
+	 	«EXPAND genRouteLinks FOREACH allOwnedElements().typeSelect(wcprofile::EntitiesPackage)»
+	 	«EXPAND genRoutes FOREACH allOwnedElements().typeSelect(wcprofile::EntitiesPackage)»
+	 «ENDFILE»
+	 
 «ENDDEFINE»
+
+«DEFINE genRouteLinks FOR wcprofile::EntitiesPackage»
+  <h1> «name» </h1>
+  <ul> 
+  «FOREACH getOwnedTypes().typeSelect(wcprofile::Entity) AS e »
+  <li><Link to="/admin/«e.name.getPlural()»">«e.name»</Link></li>
+   «ENDFOREACH»
+   </ul>
+   <hr/>
+ «ENDDEFINE»
+ 
+ «DEFINE genRoutes FOR wcprofile::EntitiesPackage»
+
+  «FOREACH getOwnedTypes().typeSelect(wcprofile::Entity) AS e »
+  <Route path="/admin/«e.name.getPlural()»" component={«e.name»Wrapper}/>
+  «ENDFOREACH»
+  
+  «ENDDEFINE» 
+  
+  
+«DEFINE genImports FOR  wcprofile::Entity»
+	import «name»Wrapper from './«name»';
+«ENDDEFINE»  
 
 «DEFINE genEntity FOR wcprofile::Entity»
 «FILE "clnt/" + name  + ".tsx"»
@@ -18,42 +48,44 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
-import BaseCrudComponent from './BaseComponent';
-import AppState from './AppState'
+import BaseCrudComponent from '../commons/BaseComponent';
+import AppState from '../commons/AppState';
+import LookupService  from '../commons/LookupService';
 
 «EXPAND genSchema FOR this»
-
 «EXPAND genUISchema FOR this»
-
 
 const «name.toFirstLower()»Headers = [
  «FOREACH getMineAndParentsAttributes().select(a|!a.isMultivalued()) AS e SEPARATOR ','»
  {property:"«e.name»",title:"«e.name.asLabel()»" }
- «ENDFOREACH»
+ «ENDFOREACH»     
  ]
 
-export class «name»Store extends AppState{
-   constructor(url:string, headers:any, formSchema:any) {
-     super(url, headers, formSchema);
-   }
+export class «name»Store extends AppState {
+    constructor(url: string, headers: any, formSchema: any, uiSchema: any) {
+        super(url, headers, formSchema, uiSchema);
+    }
 }
 
-const data = new «name»Store('«name.toFirstLower()»', «name.toFirstLower()»Headers, 
-	«name.toFirstLower()»Schema, uiSchema=«name.toFirstLower()»UISchema);
-
 export default class «name»Wrapper extends React.Component<any, any> {
+
+    data = new «name»Store('«name.toFirstLower().getPlural()»', «name.toFirstLower()»Headers,
+    createSchema(), «name.toFirstLower()»UISchema);
+
     render() {
         return (
-            <BaseCrudComponent data={data} />
+            <BaseCrudComponent data={this.data} />
         );
     }
 }
+
 «ENDFILE»
 «ENDDEFINE»
 
  «DEFINE genSchema FOR wcprofile::Entity»
-
- const «name.toFirstLower()»Schema = {
+ function createSchema(){ 
+ 
+ return {
     title: "«name.asLabel()»",
     type: "object",
     required: [ «EXPAND genRequired»],
@@ -62,7 +94,9 @@ export default class «name»Wrapper extends React.Component<any, any> {
     «EXPAND genNested FOREACH getMineAndParentsAttributes().select(a|a.isMVComposite()) »
         
     }
-};
+ };
+
+}
 «ENDDEFINE»
 
 
@@ -90,7 +124,7 @@ export default class «name»Wrapper extends React.Component<any, any> {
       "type": "number",
     },
 «ELSE»
-«name»: { type: "«getJsonType()»", title: "«name.asLabel()»" , «EXPAND GenExtras(this) FOR type»},
+«name»:{ type: "«getJsonType()»", title: "«name.asLabel()»", «EXPAND GenExtras(this) FOR type» «EXPAND genFormat(this) FOR type»},
 «ENDIF»
 «ENDDEFINE»
 
@@ -105,17 +139,27 @@ export default class «name»Wrapper extends React.Component<any, any> {
 ]
 «ENDDEFINE»
 
+
 «REM»For associations «ENDREM»
 «DEFINE GenExtras(uml::Property p) FOR wcprofile::AbstractEntity»  
-'enum' : «name»Ids,
-'enumNames' : «name»Names
-«IF p.isMultivalued() && p.opposite.isMultivalued()-», "uniqueItems": true«ENDIF»
+«IF !p.isManyToMany()»
+	«EXPAND genLookups FOR p-»
+«ENDIF»
+«IF p.isLeadingManyToMany() -»
+    "items":{
+    	«EXPAND genLookups FOR p-»
+    },
+    "uniqueItems": true
+«ENDIF»
 «ENDDEFINE»
 
 «DEFINE GenExtras(uml::Property p) FOR uml::Type-»  
-«IF !p.getFormat().isEmptyStr()»,«p.getFormat()»«ENDIF»	
 «ENDDEFINE»
- 
+
+ «DEFINE genLookups FOR uml::Property-»
+ 'enum': LookupService.getLookup('«name»').map(x => x.id « isLeadingManyToMany() ? ".toString()" : "" »  ),
+ 'enumNames': LookupService.getLookup('«name»').map(x => x.displayName)
+ «ENDDEFINE»
  
 «DEFINE genRequired FOR wcprofile::Entity-»
 «FOREACH getMineAndParentsAttributes().select(a|a.isRequired()) AS r SEPARATOR ','» '«r.name»' «ENDFOREACH»
@@ -127,6 +171,11 @@ export default class «name»Wrapper extends React.Component<any, any> {
     «EXPAND genNestedUI FOREACH getMineAndParentsAttributes().select(a|a.isMVComposite()) »
  }
 «ENDDEFINE»
+
+«DEFINE genFormat(uml::Property p) FOR uml::Type-»  
+«IF !p.getFormat().isEmptyStr()» "format": "«p.getFormat()»"«ENDIF»	
+«ENDDEFINE»
+
 
 
 «DEFINE genPropertyUI FOR uml::Property»
@@ -148,5 +197,11 @@ export default class «name»Wrapper extends React.Component<any, any> {
  },
 «ENDDEFINE»
 
+«DEFINE genRelatedImports FOR   wcprofile::Entity»
+	«FOREACH getNonRecursiveOutgoingAssociations() AS e»
+	//import {«e.type.name»Service} from '../«e.type.asVar()»/«e.type.name»Service'
+	//import {«e.type.name»} from '../common/AppEntities';
+	«ENDFOREACH»
+«ENDDEFINE»
 
 

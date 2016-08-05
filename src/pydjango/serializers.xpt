@@ -14,10 +14,10 @@ import sys
 
 from django.db import transaction
 
-	«EXPAND genImports FOREACH allOwnedElements().typeSelect(wcprofile::Entity)-»
+    «EXPAND genImports FOREACH allOwnedElements().typeSelect(wcprofile::Entity)-»
     «EXPAND genLookupSerializer FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»    
     «EXPAND genSerializer FOREACH allOwnedElements().typeSelect(wcprofile::Entity).select(a|a.getCompositionParent() == null)»
-	«EXPAND genWriteSerializer FOREACH allOwnedElements().typeSelect(wcprofile::Entity).select(a|a.getCompositionParent() == null)»
+    «EXPAND genWriteSerializer FOREACH allOwnedElements().typeSelect(wcprofile::Entity).select(a|a.getCompositionParent() == null)»
     «EXPAND genFullSerializer FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
     
   «ENDFILE»
@@ -25,9 +25,9 @@ from django.db import transaction
 «ENDDEFINE»
 
 «DEFINE genImports FOR wcprofile::Entity-»
-	«FOREACH getOutgoingAssociations() AS e -»
+    «FOREACH getOutgoingAssociations() AS e -»
 «IF e.type.package != package -»from  «e.type.package.name».serializers import  «e.type.name»LookupSerializer«ENDIF»
-	«ENDFOREACH» 
+    «ENDFOREACH» 
 «ENDDEFINE»
 
 «DEFINE genLookupSerializer FOR wcprofile::Entity»
@@ -53,10 +53,10 @@ class Full«name»Serializer(«name»Serializer):
 «ENDDEFINE»
 
 «DEFINE genSerializer FOR wcprofile::Entity»
-	«FOREACH getAllComposed() AS e»
-		«EXPAND genSerializer FOR e.type»
-	«ENDFOREACH»
-	«EXPAND genSerializerImpl FOR this»
+    «FOREACH getAllComposed() AS e»
+        «EXPAND genSerializer FOR e.type»
+    «ENDFOREACH»
+    «EXPAND genSerializerImpl FOR this»
 «ENDDEFINE»
 
 «DEFINE genSerializerImpl FOR wcprofile::Entity»
@@ -78,10 +78,10 @@ class «name»Serializer(serializers.ModelSerializer):
 
 
 «DEFINE genWriteSerializer FOR wcprofile::Entity»
-	«FOREACH getAllComposed() AS e»
-		«EXPAND genWriteSerializer FOR e.type»
-	«ENDFOREACH»
-	«EXPAND genWriteSerializerImpl FOR this»
+    «FOREACH getAllComposed() AS e»
+        «EXPAND genWriteSerializer FOR e.type»
+    «ENDFOREACH»
+    «EXPAND genWriteSerializerImpl FOR this»
 «ENDDEFINE»
 
 
@@ -90,6 +90,10 @@ class «name»Serializer(serializers.ModelSerializer):
 class «name»WritableSerializer(serializers.ModelSerializer):
     
     displayName = serializers.ReadOnlyField()
+    
+    «FOREACH getOutgoingAssociations() AS e-»
+    «e.name»_displayName = serializers.ReadOnlyField(source='«e.name»DisplayName')
+    «ENDFOREACH»
     
     «FOREACH getAllComposed() AS e»
     «e.name» = «e.type.name»WritableSerializer(many=True)
@@ -100,7 +104,7 @@ class «name»WritableSerializer(serializers.ModelSerializer):
     @transaction.atomic
     def create(self, validated_data):
         try:
-        	«FOREACH getAllComposed() AS e»
+            «FOREACH getAllComposed() AS e»
             «e.name»Current = validated_data.pop('«e.name»')   
             «ENDFOREACH»
             
@@ -126,7 +130,7 @@ class «name»WritableSerializer(serializers.ModelSerializer):
     
     «FOREACH getAllComposed() AS e»
     def update«e.name.toFirstUpper()»(self, instance , validated_data):
-    	if not '«e.name»' in validated_data.keys() : return;
+        if not '«e.name»' in validated_data.keys() : return;
     
         «e.name»Current = validated_data.pop('«e.name»')
             

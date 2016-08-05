@@ -61,6 +61,26 @@ skipOnErrors="false">
 </component>
 
 
+<component id="ReactGenerator" class="org.eclipse.xpand2.Generator" skipOnErrors="true">
+	
+	<metaModel idRef="mm_profile"/>
+	
+	<expand value="react::reactroot::Root FOR model"/>
+	<outlet name="man_path" path="${manGenPath}/" overwrite="false" />
+	
+	<outlet path="${srcGenPath}">
+		<postprocessor class="org.eclipse.xpand2.output.JavaBeautifier"/>
+		<postprocessor class="org.fornax.utilities.formatter.xml.XmlFormatter" fileExtensions=".xml" />
+	</outlet>
+	
+	<outlet name="man_path_editable" path="${manGenPath}/" >
+		<postprocessor class="org.eclipse.xpand2.output.JavaBeautifier"/>
+		<postprocessor class="org.fornax.utilities.formatter.xml.XmlFormatter" fileExtensions=".xml" />
+	</outlet>
+</component>
+
+
+
 <!--
 <component id="WebGenerator" class="org.eclipse.xpand2.Generator" skipOnErrors="true">
 	

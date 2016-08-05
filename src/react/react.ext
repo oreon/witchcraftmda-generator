@@ -11,8 +11,10 @@ extension template::associationExtensions;
 
 
 String getJsonType(Property prop):
-	if(prop.isAssoc())  
+	if(prop.isAssoc()  && !prop.isManyToMany())  
 	 then "integer"
+	else if (prop.isLeadingManyToMany()) then
+		"array"
 	else if ( prop.isType("boolean") || prop.isType("Boolean") )
 		then "boolean"
 	else if(prop.isCurrency() || prop.isType("Double")) then
@@ -23,6 +25,8 @@ String getJsonType(Property prop):
 		then  "integer"
 	else	
 		"string";
+		
+
 		
 getFormat(Property prop):
 	if (prop.isType("Date")) 
