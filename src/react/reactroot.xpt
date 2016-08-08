@@ -109,7 +109,7 @@ export default class «name»Wrapper extends React.Component<any, any> {
                 "type": "object",
                 "properties": {
                  «EXPAND genProperty FOREACH type.getMineAndParentsAttributes().select(a|!a.isMVComposite())» 
-                 «EXPAND genNested FOREACH type.getMineAndParentsAttributes().select(a|a.isMVComposite()) »
+                 «EXPAND genNested FOREACH type.getMineAndParentsAttributes().select(a|a.isMVComposite()  && a.type != type) »
                 }
             }
         },
@@ -157,8 +157,8 @@ export default class «name»Wrapper extends React.Component<any, any> {
 «ENDDEFINE»
 
  «DEFINE genLookups FOR uml::Property-»
- 'enum': LookupService.getLookup('«name»').map(x => x.id « isLeadingManyToMany() ? ".toString()" : "" »  ),
- 'enumNames': LookupService.getLookup('«name»').map(x => x.displayName)
+ 'enum': LookupService.getLookup('«getTypeNamePlural()»').map(x => x.id « isLeadingManyToMany() ? ".toString()" : "" »  ),
+ 'enumNames': LookupService.getLookup('«getTypeNamePlural()»').map(x => x.displayName)
  «ENDDEFINE»
  
 «DEFINE genRequired FOR wcprofile::Entity-»
@@ -192,7 +192,7 @@ export default class «name»Wrapper extends React.Component<any, any> {
 «name»: {
  	items:{
          «EXPAND genPropertyUI FOREACH type.getMineAndParentsAttributes().select(a|!a.isMVComposite())» 
-         «EXPAND genNestedUI FOREACH type.getMineAndParentsAttributes().select(a|a.isMVComposite()) »
+         «EXPAND genNestedUI FOREACH type.getMineAndParentsAttributes().select(a|a.isMVComposite()  && a.type != type) »
      }
  },
 «ENDDEFINE»

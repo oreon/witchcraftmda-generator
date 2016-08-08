@@ -151,37 +151,26 @@ skipOnErrors="false">
 		<postprocessor class="org.eclipse.xpand2.output.JavaBeautifier"/>
 		<postprocessor class="org.fornax.utilities.formatter.xml.XmlFormatter" fileExtensions=".html, .xml" />
 	</outlet>
-</component>		
+</component>	
+-->	
 
-
-
-<component id="WebGenerator" class="org.eclipse.xpand2.Generator" skipOnErrors="true">
+<component id="ReactGenerator" class="org.eclipse.xpand2.Generator" skipOnErrors="true">
 	
 	<metaModel idRef="mm_profile"/>
 	
-	<expand value="prime4seam23::WebRoot::Root FOR model"/>
-	<outlet name="man_path" path="${ui.manGenPath}/" overwrite="false" />
+	<expand value="react::reactroot::Root FOR model"/>
+	<outlet name="man_path" path="${manGenPath}/" overwrite="false" />
 	
-	<outlet path="${ui.srcGenPath}">
+	<outlet path="${srcGenPath}">
 		<postprocessor class="org.eclipse.xpand2.output.JavaBeautifier"/>
-		<postprocessor class="org.fornax.utilities.formatter.xml.XmlFormatter" fileExtensions=".xhtml" />
+		<postprocessor class="org.fornax.utilities.formatter.xml.XmlFormatter" fileExtensions=".xml" />
 	</outlet>
 	
 	<outlet name="man_path_editable" path="${manGenPath}/" >
 		<postprocessor class="org.eclipse.xpand2.output.JavaBeautifier"/>
-		<postprocessor class="org.fornax.utilities.formatter.xml.XmlFormatter" fileExtensions=".xhtml, .xml" />
-	</outlet>
-</component>			
-
-
-<component id="RestEasyGenerator" class="org.eclipse.xpand2.Generator"
-skipOnErrors="true">
-	<metaModel idRef="mm_profile"/>
-	<expand value="resteasy::Root::Root FOR model"/>
-	<outlet path="${srcGenPath}/">
-		<postprocessor class="org.eclipse.xpand2.output.JavaBeautifier"/>
+		<postprocessor class="org.fornax.utilities.formatter.xml.XmlFormatter" fileExtensions=".xml" />
 	</outlet>
 </component>
--->
+
 
 </workflow>

@@ -63,7 +63,7 @@ p.isMultivalued()?"List<":"";
 getCollectionEndPartIfNeeded(uml::Property p):
 p.isMultivalued()?">":"";
 
-
+getTypeNamePlural(Property p): p.type.name.toFirstLower().getPlural();
 
 
 print(String msg):
