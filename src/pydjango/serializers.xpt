@@ -95,6 +95,10 @@ class «name»WritableSerializer(serializers.ModelSerializer):
     «e.name»_displayName = serializers.ReadOnlyField(source='«e.name»DisplayName')
     «ENDFOREACH»
     
+    «IF getCompositionParent() != null»
+    «getCompositionParent()» = serializers.PrimaryKeyRelatedField(queryset=«getCompositionParent().type.name».objects.all())
+    «ENDIF»
+    
     «FOREACH getAllComposed() AS e»
     «e.name» = «e.type.name»WritableSerializer(many=True)
     «ENDFOREACH»

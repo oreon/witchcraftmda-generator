@@ -18,6 +18,8 @@ entity.getAllAttributes().select(a|a.association != null && a.opposite.isMultiva
 isBidirectional(Property e):
 e.isAssoc() && e.isNavigable() && e.opposite.isNavigable() ;
 
+isLookup(Property a): false;
+
 //isBidirectional(Property prop):
 //prop.association != null && prop.opposite!= null;
 

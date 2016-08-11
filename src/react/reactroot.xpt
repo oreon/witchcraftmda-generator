@@ -10,12 +10,18 @@
 	 «REM»comment«setAsCurrentEntity(this)-»«ENDREM»
 	 «EXPAND genEntity FOREACH  allOwnedElements().typeSelect(wcprofile::Entity)»
 	 
-	 
-	 «FILE "clnt/" + "routes"  + ".tsx"»
+	
+	 «FILE "clnt/" + "index"  + ".tsx"»
+	 	 
 	 	«EXPAND genImports FOREACH  allOwnedElements().typeSelect(wcprofile::Entity)»
-	 	«EXPAND genRouteLinks FOREACH allOwnedElements().typeSelect(wcprofile::EntitiesPackage)»
+	 	
+	 	export const lookups = [«FOREACH  allOwnedElements().typeSelect(wcprofile::Entity) AS e SEPARATOR ','» '«e.name»' «ENDFOREACH»]
+	 	
 	 	«EXPAND genRoutes FOREACH allOwnedElements().typeSelect(wcprofile::EntitiesPackage)»
 	 «ENDFILE»
+	 
+	 
+	«EXPAND genNav FOR this»
 	 
 «ENDDEFINE»
 
@@ -23,23 +29,45 @@
   <h1> «name» </h1>
   <ul> 
   «FOREACH getOwnedTypes().typeSelect(wcprofile::Entity) AS e »
-  <li><Link to="/admin/«e.name.getPlural()»">«e.name»</Link></li>
+  <li><Link to="/admin/«e.name»List">«e.name»</Link></li>
    «ENDFOREACH»
    </ul>
    <hr/>
  «ENDDEFINE»
  
  «DEFINE genRoutes FOR wcprofile::EntitiesPackage»
+  «EXPAND  routes FOREACH getOwnedTypes().typeSelect(wcprofile::Entity)»  
+ «ENDDEFINE» 
+ 
+ «DEFINE genNav FOR uml::Model»
+  «FILE "clnt/" + "AdminView"  + ".tsx"»
+	 import * as React from 'react';
+	import * as ReactDOM from 'react-dom';
+	import { Router, Route, hashHistory, Link  } from 'react-router'
 
-  «FOREACH getOwnedTypes().typeSelect(wcprofile::Entity) AS e »
-  <Route path="/admin/«e.name.getPlural()»" component={«e.name»Wrapper}/>
-  «ENDFOREACH»
-  
-  «ENDDEFINE» 
-  
+export class AdminView extends React.Component<{}, {}> {
+  render() {
+    return (
+      <div>
+	 	«EXPAND genRouteLinks FOREACH allOwnedElements().typeSelect(wcprofile::EntitiesPackage)»
+	  </div>
+	 )}
+}	 
+ «ENDFILE»
+ «ENDDEFINE»
+ 
+ «DEFINE routes FOR wcprofile::Entity»
+ <Route path="/admin/«name»List" component={«name»List} />
+
+<Route path="/admin/«name»Edit" component={«name»Edit}>
+    <Route path="/admin/«name»Edit/:id" component={«name»Edit} >
+        <Route path="/admin/«name»Edit/:id/:parent" component={«name»Edit} />
+    </Route>
+</Route>
+ «ENDDEFINE»
   
 «DEFINE genImports FOR  wcprofile::Entity»
-	import «name»Wrapper from './«name»';
+	import {«name»List,«name»Edit,«name»View} from './admin/«name»List';
 «ENDDEFINE»  
 
 «DEFINE genEntity FOR wcprofile::Entity»
@@ -54,10 +82,14 @@ import LookupService  from '../commons/LookupService';
 
 «EXPAND genSchema FOR this»
 «EXPAND genUISchema FOR this»
+«EXPAND list::gen FOR this»
 
-const «name.toFirstLower()»Headers = [
+
+
+export const «name.toFirstLower()»Headers = [
  «FOREACH getMineAndParentsAttributes().select(a|!a.isMultivalued()) AS e SEPARATOR ','»
- {property:"«e.name»",title:"«e.name.asLabel()»" }
+ 
+ {property:"«e.isAssoc() ? e.name + "_displayName" : e.name»",title:"«e.name.asLabel()»" }
  «ENDFOREACH»     
  ]
 
@@ -83,7 +115,7 @@ export default class «name»Wrapper extends React.Component<any, any> {
 «ENDDEFINE»
 
  «DEFINE genSchema FOR wcprofile::Entity»
- function createSchema(){ 
+export function createSchema(){ 
  
  return {
     title: "«name.asLabel()»",
@@ -92,7 +124,6 @@ export default class «name»Wrapper extends React.Component<any, any> {
     properties: {
     «EXPAND genProperty FOREACH getMineAndParentsAttributes().select(a|!a.isMVComposite())»
     «EXPAND genNested FOREACH getMineAndParentsAttributes().select(a|a.isMVComposite()) »
-        
     }
  };
 
@@ -166,7 +197,7 @@ export default class «name»Wrapper extends React.Component<any, any> {
 «ENDDEFINE»
 
 «DEFINE genUISchema FOR wcprofile::Entity-»
- const «name.toFirstLower()»UISchema = {
+export const «name.toFirstLower()»UISchema = {
  	«EXPAND genPropertyUI FOREACH getMineAndParentsAttributes().select(a|!a.isMVComposite())»
     «EXPAND genNestedUI FOREACH getMineAndParentsAttributes().select(a|a.isMVComposite()) »
  }
