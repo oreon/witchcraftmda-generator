@@ -60,6 +60,8 @@ prop.opposite != null && prop.opposite.isComposite();
 getAllComposed(Class cls):
 cls.getMineAndParentsAttributes().select(a|a.isMVComposite());
 
+
+
 getOppositeName(Property p):
 p.opposite.name != null ? p.opposite.name : p.class.asVar();
 

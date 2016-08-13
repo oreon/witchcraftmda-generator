@@ -57,7 +57,7 @@ export class AdminView extends React.Component<{}, {}> {
  «ENDDEFINE»
  
  «DEFINE routes FOR wcprofile::Entity»
- <Route path="/admin/«name»List" component={«name»List} />
+ <Route path="/admin/«name»List" component={«name»ListWrapper} />
 
 <Route path="/admin/«name»Edit" component={«name»Edit}>
     <Route path="/admin/«name»Edit/:id" component={«name»Edit} >
@@ -67,7 +67,7 @@ export class AdminView extends React.Component<{}, {}> {
  «ENDDEFINE»
   
 «DEFINE genImports FOR  wcprofile::Entity»
-	import {«name»List,«name»Edit,«name»View} from './admin/«name»List';
+	import {«name»ListWrapper,«name»Edit,«name»View} from './admin/«name»List';
 «ENDDEFINE»  
 
 «DEFINE genEntity FOR wcprofile::Entity»

@@ -17,6 +17,11 @@ import AppState from '../commons/AppState';
 import LookupService  from '../commons/LookupService';
 import DataService from '../commons/httpService';
 import { browserHistory, hashHistory } from 'react-router'
+import {Layout} from '../index' 
+
+import {Table, TableBody, TableRow, TableRowColumn} from 'material-ui/Table';
+
+
 
 import {«name.toFirstLower()»Headers, createSchema, «name.toFirstLower()»UISchema} from './«name»'
 
@@ -24,6 +29,18 @@ import {«name.toFirstLower()»Headers, createSchema, «name.toFirstLower()»UISchem
 	import { «e.type.name»List} from './«e.type.name»List';
 «ENDFOREACH»
 
+
+
+export class «name»ListWrapper extends React.Component<any, any> {
+
+  render() {
+    return (
+      <Layout>
+       <«name»List/>
+      </Layout>
+    )
+  }
+}
 
 export class «name»List extends React.Component<any, any> {
 
@@ -52,17 +69,34 @@ export class «name»List extends React.Component<any, any> {
   }
 
   renderExtra(record: any) {
-    return (<tr key={record.id + "E"}>
-      <td colSpan={3} key='DET'> 
-      	«FOREACH getMineAndParentsAttributes().select(a|a.isMVComposite()) AS e-»
+  	«IF getAllComposed().isEmpty»
+  		return null
+  	«ELSE»
+  		
+    if ( !(«FOREACH getAllComposed() AS e SEPARATOR '||'» record.«e.name» «ENDFOREACH») )
+      return null;
+      
+     if ( !(«FOREACH getAllComposed() AS e SEPARATOR '||'» record.«e.name».length «ENDFOREACH») )
+      return null;
+
+ 
+    return (<TableRow key={record.id + "E"}>
+      <TableRowColumn colSpan={3} key='DET'> 
+      	«FOREACH getAllComposed() AS e-»
 		 {(record.«e.name») &&
-          <«e.type.name»List records={record.«e.name»} nested={true}  container={'«e.opposite.name»_displayName'} />
+          <«e.type.name»List records={record.«e.name»} 
+          nested={true}  
+          container={'«e.opposite.name»_displayName'}
+          containerId={record.id}
+           prev={this.props.location?this.props.location.pathName:null }
+          «IF e.type.isLeaf()» uneditable={true} «ENDIF»
+           />
          }
 		 «ENDFOREACH» 
       
-      </td>
-    </tr>)
-    //return null
+      </TableRowColumn>
+    </TableRow>)
+    «ENDIF»
   }
 
  render() {
@@ -73,13 +107,19 @@ export class «name»List extends React.Component<any, any> {
       return (<p>Loading...</p>)
 
     return (
+     
       <div>
+         {  (records.length > 0 ) &&
         <SimpleList headers= {«asVar()»Headers} editLink={'«name»Edit'}
           renderExtra = {this.renderExtra}
-          records = { records } nested={this.props.nested} 
-           container={this.props.container}
-        />
+          records = { records } nested={this.props.nested}
+          container={this.props.container} uneditable={this.props.uneditable}
+          containerId={this.props.containerId}
+          prev={this.props.prev}
+          />
+      }
       </div>
+      
     )
   }
 }
@@ -89,13 +129,20 @@ export class «name»View extends React.Component<any, any> {
   renderExtra(record: any) { <p> IN render </p> }
   render() {
     return (
+     <Layout>
       <p> IN render </p>
-    )
+      </Layout>
+    )	
 
     // <SimpleView  headers={this.props.params.parent} renderExtra={this.renderExtra}
     //   record={this.props.«name»Orders}/>
   }
 }
+
+
+export const container = «getCompositionParent() != null?"'" +getCompositionParent().name + "'":"null"»
+
+
 
 export class «name»Edit extends React.Component<any, any> {
 
@@ -106,11 +153,17 @@ export class «name»Edit extends React.Component<any, any> {
   }
 
   async onSubmit(formData) {
-    //formData[owner] = 1 
+  	if(container &&  this.props.params.parent)
+    	formData[container] = this.props.params.parent 
     try {
       await DataService.onSubmit('«name.toFirstLower().asPlural()»', formData)
-      hashHistory.push('/admin/«name»List?msg=success')
-      this.setState({ message: 'Record successfully created' })
+      
+      //if(!this.props.prev)
+     hashHistory.push('/admin/«name»List?msg=success')
+      //else 
+      // hashHistory.push(this.props.prev)
+      
+      //this.setState({ message: 'Record successfully created' })
     } catch (error) {
       console.log(error);
       this.setState({ error: error.response.data, record: formData })
@@ -134,12 +187,14 @@ export class «name»Edit extends React.Component<any, any> {
 
   render() {
     return (
+     <Layout>
       <div>
         {JSON.stringify(this.state.error) }
         <SimpleForm formData={this.state.record} currentError={this.state.error}
           formSchema={createSchema() }  uiSchema={«name.toFirstLower()»UISchema}
           onSubmit={this.onSubmit}  />
       </div>
+     </Layout>
     );
   }
 }
