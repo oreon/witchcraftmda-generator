@@ -58,6 +58,8 @@ export class AdminView extends React.Component<{}, {}> {
  
  «DEFINE routes FOR wcprofile::Entity»
  <Route path="/admin/«name»List" component={«name»ListWrapper} />
+ 
+ <Route path="/admin/«name»View/:id" component={«name»View} />
 
 <Route path="/admin/«name»Edit" component={«name»Edit}>
     <Route path="/admin/«name»Edit/:id" component={«name»Edit} >

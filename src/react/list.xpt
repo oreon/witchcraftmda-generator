@@ -8,7 +8,7 @@
 «DEFINE gen FOR wcprofile::Entity»
 «FILE "clnt/" + name  + "List.tsx"»
 
-import {SimpleForm, SimpleList, Nested } from '../commons/BaseComponent'
+import {SimpleForm, SimpleList, EditViewBase, SimpleView } from '../commons/BaseComponent'
 
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
@@ -20,6 +20,8 @@ import { browserHistory, hashHistory } from 'react-router'
 import {Layout} from '../index' 
 
 import {Table, TableBody, TableRow, TableRowColumn} from 'material-ui/Table';
+
+import {Tabs, Tab} from 'material-ui/Tabs';
 
 
 
@@ -83,7 +85,6 @@ export class «name»List extends React.Component<any, any> {
     return (<TableRow key={record.id + "E"}>
       <TableRowColumn colSpan={3} key='DET'> 
       	«FOREACH getAllComposed() AS e-»
-		 {(record.«e.name») &&
           <«e.type.name»List records={record.«e.name»} 
           nested={true}  
           container={'«e.opposite.name»_displayName'}
@@ -91,7 +92,6 @@ export class «name»List extends React.Component<any, any> {
            prev={this.props.location?this.props.location.pathName:null }
           «IF e.type.isLeaf()» uneditable={true} «ENDIF»
            />
-         }
 		 «ENDFOREACH» 
       
       </TableRowColumn>
@@ -109,33 +109,55 @@ export class «name»List extends React.Component<any, any> {
     return (
      
       <div>
-         {  (records.length > 0 ) &&
-        <SimpleList headers= {«asVar()»Headers} editLink={'«name»Edit'}
+        
+        <SimpleList headers= {«asVar()»Headers} editLink={'«name»'}
           renderExtra = {this.renderExtra}
           records = { records } nested={this.props.nested}
           container={this.props.container} uneditable={this.props.uneditable}
           containerId={this.props.containerId}
           prev={this.props.prev}
           />
-      }
       </div>
       
     )
   }
 }
 
-export class «name»View extends React.Component<any, any> {
+export class «name»View extends EditViewBase {
 
   renderExtra(record: any) { <p> IN render </p> }
+  
+  constructor(props) {
+    super(props);
+    this.state = { record: {}, error: {}, message: {} };
+    this.entityName = '«name.toFirstLower().asPlural()»';
+    //this.onSubmit = this.onSubmit.bind(this)
+  }
+  
   render() {
+  
+    let record = this.state.record
     return (
      <Layout>
-      <p> IN render </p>
+       <SimpleView  headers= {«asVar()»Headers} renderExtra={this.renderExtra}
+       record={record}   entityName='«name»' /> 
+       
+       <Tabs>
+       «FOREACH getAllComposed() AS e-»
+       	  <Tab label="«e.type.name»" >
+          <«e.type.name»List records={record.«e.name»} 
+          nested={true}  
+          container={'«e.opposite.name»_displayName'}
+          containerId={record.id}
+           prev={this.props.location?this.props.location.pathName:null }
+          «IF e.type.isLeaf()» uneditable={true} «ENDIF»
+           />
+           </Tab>
+		 «ENDFOREACH» 
+         </Tabs>
       </Layout>
     )	
 
-    // <SimpleView  headers={this.props.params.parent} renderExtra={this.renderExtra}
-    //   record={this.props.«name»Orders}/>
   }
 }
 
@@ -144,11 +166,12 @@ export const container = «getCompositionParent() != null?"'" +getCompositionPare
 
 
 
-export class «name»Edit extends React.Component<any, any> {
+export class «name»Edit extends EditViewBase {
 
   constructor(props) {
     super(props);
     this.state = { record: {}, error: {}, message: {} };
+    this.entityName = '«name.toFirstLower().asPlural()»';
     this.onSubmit = this.onSubmit.bind(this)
   }
 
@@ -167,21 +190,6 @@ export class «name»Edit extends React.Component<any, any> {
     } catch (error) {
       console.log(error);
       this.setState({ error: error.response.data, record: formData })
-    }
-  }
-
-
-  async componentDidMount() {
-    if (this.props.params.id) {
-      try {
-        this.setState({
-          record: await DataService.loadById('«name.toFirstLower().asPlural()»',
-            this.props.params.id)
-        })
-      } catch (error) {
-        console.log(error);
-        this.setState({ error: error })
-      }
     }
   }
 
