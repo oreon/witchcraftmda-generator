@@ -110,8 +110,7 @@ getEmbeddable(Class cls):
 cls.getAllAttributes().select(a|a.type.isEmbeddable());
 
 //if this associatio is madatory
-String getAssocOptional(Property prop):
-prop.lowerBound() > 0?false:true;
+getAssocOptional(Property prop): prop.lowerBound() > 0?false:true;
 
 
 isOneOnOne(Property prop):

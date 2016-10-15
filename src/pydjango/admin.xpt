@@ -11,16 +11,37 @@
  
 from django.contrib import admin
 
-from «name».models import *
-from restbase.commons import CustomModelAdminMixin
+from .models import *
+from commons.admin import CustomModelAdminMixin
+ 
+«EXPAND genInline FOREACH allOwnedElements().typeSelect(wcprofile::Entity).select(a | a.getCompositionParent() != null)»
 
+«EXPAND genAdmin FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+
+«EXPAND genRegister FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
  
- «EXPAND genImports FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
- 
- «ENDFILE»
+«ENDFILE»
 «ENDDEFINE» 
 
-«DEFINE genImports FOR wcprofile::Entity»
-class «name»Admin(CustomModelAdminMixin, admin.ModelAdmin):
-    pass
+«DEFINE genInline FOR wcprofile::Entity»
+class «name»Inline(admin.TabularInline):
+    model = «name»
 «ENDDEFINE»
+
+«DEFINE genAdmin FOR wcprofile::Entity»
+class «name»Admin(CustomModelAdminMixin, admin.ModelAdmin):
+	«IF ! getAllComposed().isEmpty»
+	inlines = [ «FOREACH getAllComposed() AS e SEPARATOR ','» «e.type.name»Inline «ENDFOREACH» ]
+	«ELSE»
+	pass
+	«ENDIF»
+    
+«ENDDEFINE»
+
+    
+«DEFINE genRegister FOR wcprofile::Entity»
+«IF getCompositionParent() == null»
+admin.site.register(«name», «name»Admin)
+«ENDIF»
+«ENDDEFINE»
+

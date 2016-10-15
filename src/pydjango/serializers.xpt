@@ -96,7 +96,7 @@ class «name»WritableSerializer(serializers.ModelSerializer):
     «ENDFOREACH»
     
     «IF getCompositionParent() != null»
-    «getCompositionParent()» = serializers.PrimaryKeyRelatedField(queryset=«getCompositionParent().type.name».objects.all())
+    «getCompositionParent().name» = serializers.PrimaryKeyRelatedField(queryset=«getCompositionParent().type.name».objects.all())
     «ENDIF»
     
     «FOREACH getAllComposed() AS e»
