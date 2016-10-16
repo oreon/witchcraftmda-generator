@@ -9,6 +9,8 @@ extension template::GeneratorExtensions;
 extension template::associationExtensions;
 
 
+fullname(Type t): t.package.name + "." + t.name;
+
 getDisplayName(Class entity):
 //JAVA org.witchcraft.generatorutil.ClassUtil.readProperty(java.lang.String);
 if( entity.displayName != null ) then
@@ -36,6 +38,8 @@ String getModelFieldType(Property prop):
 	//	prop.getJSFPrefix() + ":inputSecret"
 	else if ( prop.isType("Integer") )
 		then  "PositiveIntegerField"
+	else if ( prop.isType("Double") )
+		then  "DecimalField"
 	else	
 		"CharField";
 		
@@ -61,12 +65,12 @@ String getFactoryModelFieldType(Property prop):
 		"\"" + prop.name + " %03d\" % n\"";		
 		
 String getFieldExtension(Property prop):
-	if(prop.isCurrency())  
+	if(prop.isCurrency() || prop.isDouble())  
 		then "decimal_places=2, max_digits=9 "
 	else if (prop.isNonLargeTextString()) then  //charField
 	 	"max_length=30"
 	else if prop.type.isEnum() then
-	    "max_length = 1 , choices = "+ prop.type.name 
+	    "max_length = 1 , choices = "+ prop.type.name
 	else	
 	 	"";
 	 	

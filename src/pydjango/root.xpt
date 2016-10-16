@@ -1,8 +1,10 @@
 «IMPORT wcprofile»
 
-«EXTENSION pydjango::djangoExtensions»
+
 «EXTENSION template::GeneratorExtensions»
 «EXTENSION template::associationExtensions»
+
+«EXTENSION pydjango::djangoExtensions»
 
 
 «DEFINE Root FOR uml::Model»
@@ -103,12 +105,12 @@ class «name»Base(«getParentDj()-»):
     «IF e.association != null && e.isNavigable()-»
         «IF e.isMultivalued()-»
             «IF e.opposite != null && e.opposite.isMultivalued()-»
-    «e.name» =    models.ManyToManyField("«e.type.package.name».«e.type.name»",  blank=True,   null = «IF e.getAssocOptional()»True,«ELSE» False,«ENDIF»  related_name="«e.name»")
+    «e.name» =    models.ManyToManyField("«e.type.package.name».«e.type.name»", blank=True,  related_name="«e.name»")
             «ENDIF»
         «ELSEIF !e.opposite.isMultivalued()»
-    «e.name» =    models.OneToOneField("«e.type.package.name».«e.type.name»",  null = «IF e.getAssocOptional()»True,«ELSE» False,«ENDIF»blank=True,  related_name="«e.name»")
+    «e.name» =    models.OneToOneField("«e.type.fullname()»",  null = «IF e.getAssocOptional()»True,«ELSE» False,«ENDIF»blank=True,  related_name="«e.name»")
         «ELSE-»
-    «e.name» = models.ForeignKey('«e.type.package.name».«e.type.name»', related_name='«e.opposite.name-»')
+    «e.name» = models.ForeignKey('«e.type.fullname()»', related_name='«e.opposite.name.getPlural()-»')
         «ENDIF»
     «ELSE-»
     «e.name» = models.«getModelFieldType(e)-»(null = False, blank =  «getFieldBlankable(e)», «getFieldExtension(e)»)
@@ -122,11 +124,11 @@ class «name»Base(«getParentDj()-»):
     @property   
     def «e.name»DisplayName(self):
         return self.«e.name».__str__()
-     «ENDFOREACH-»
+    «ENDFOREACH-»
     
     
     def __str__(self):
-        return «getDisplayName()» 
+        return self.«getDisplayName()» 
         
     class Meta:
         abstract = True
