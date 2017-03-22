@@ -26,7 +26,7 @@ asServiceFqn(Class cls): cls.getServicePackageName()+ "." + cls.asService();
 asManagerInterfaceFqn(Class cls): cls.getManagerInterfacePackageName() + "." + cls.asManagerInterface();
 
 
-
+getNeedsPaginationReturn(Class cls): false;
 
 
 //getFullName(Class cls, String section):

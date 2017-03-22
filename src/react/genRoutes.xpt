@@ -1,0 +1,58 @@
+
+«EXTENSION angular2::angular2»
+«EXTENSION template::GeneratorExtensions»
+«EXTENSION template::webExtensions»
+«EXTENSION template::associationExtensions»
+«EXTENSION react::react»
+ 
+ 
+ «DEFINE genRoutesFile FOR uml::Model»
+ «FILE "components/Routes.tsx"»
+
+import {BrowserRouter as Router, Route, NavLink, Switch, Redirect} from 'react-router-dom';
+import {«name»List, Edit«name»} from './«name».jsx'
+
+«EXPAND genImports FOREACH getOwnedTypes().typeSelect(wcprofile::Entity)»
+«EXPAND genLinks FOREACH getOwnedTypes().typeSelect(wcprofile::EntitiesPackage)»
+
+«EXPAND genRoutes FOR this»
+  
+  «ENDFILE»
+ «ENDDEFINE»
+ 
+
+
+«DEFINE genLinks FOR wcprofile::EntitiesPackage»
+const EntitiyLinks«name» = () => (
+    <div>
+    <h1> «name» </h1>
+        <nav>
+        	«FOREACH getOwnedTypes().typeSelect(wcprofile::Entity) AS e»
+            <NavLink to="/entities/«e.name»s" activeClassName="active">«e.name»s </NavLink>
+        	«ENDFOREACH»
+        </nav>
+    </div>
+)
+«ENDDEFINE»
+
+
+«DEFINE genImports FOR  wcprofile::Entity»
+	import {«name»List,Edit«name»} from './«name»';
+«ENDDEFINE»
+
+«DEFINE genRoutes FOR uml::Model»
+ export  const Home = (props) => (
+    <Router>
+        <div>
+            <EntitiyLinks/>
+            <Switch>
+            «FOREACH getOwnedTypes().typeSelect(wcprofile::Entity) AS e»
+            	<Route path="/entities/«e.name»s/edit/:id(\d+)?" component={Edit«e.name»}/>
+                <Route path="/entities/«e.name»s" component={«e.name»List}/>
+            «ENDFOREACH»
+            </Switch>
+        </div>
+    </Router>
+)
+«ENDDEFINE»
+

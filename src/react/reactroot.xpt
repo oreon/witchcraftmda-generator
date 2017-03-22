@@ -6,11 +6,31 @@
 «EXTENSION react::react»
 
 
+
 «DEFINE Root FOR uml::Model»
+	«EXPAND genRoutes::genRoutesFile FOR this»
+	«EXPAND genComponent::gen FOREACH  allOwnedElements().typeSelect(wcprofile::Entity)»
+«ENDDEFINE»
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+«DEFINE Rootold FOR uml::Model»
 	 «REM»comment«setAsCurrentEntity(this)-»«ENDREM»
 	 «EXPAND genEntity FOREACH  allOwnedElements().typeSelect(wcprofile::Entity)»
 	 
-	
 	 «FILE "clnt/" + "index"  + ".tsx"»
 	 	 
 	 	«EXPAND genImports FOREACH  allOwnedElements().typeSelect(wcprofile::Entity)»
@@ -86,14 +106,8 @@ import LookupService  from '../commons/LookupService';
 «EXPAND genUISchema FOR this»
 «EXPAND list::gen FOR this»
 
+«EXPAND genHeaders FOR this»
 
-
-export const «name.toFirstLower()»Headers = [
- «FOREACH getMineAndParentsAttributes().select(a|!a.isMultivalued()) AS e SEPARATOR ','»
- 
- {property:"«e.isAssoc() ? e.name + "_displayName" : e.name»",title:"«e.name.asLabel()»" }
- «ENDFOREACH»     
- ]
 
 export class «name»Store extends AppState {
     constructor(url: string, headers: any, formSchema: any, uiSchema: any) {
@@ -114,6 +128,16 @@ export default class «name»Wrapper extends React.Component<any, any> {
 }
 
 «ENDFILE»
+«ENDDEFINE»
+
+
+ «DEFINE genHeaders FOR wcprofile::Entity»
+	export const «name.toFirstLower()»Headers = [
+	 «FOREACH getMineAndParentsAttributes().select(a|!a.isMultivalued()) AS e SEPARATOR ','»
+	 
+	 {property:"«e.isAssoc() ? e.name + "_displayName" : e.name»",title:"«e.name.asLabel()»" }
+	 «ENDFOREACH»     
+	 ]
 «ENDDEFINE»
 
  «DEFINE genSchema FOR wcprofile::Entity»
