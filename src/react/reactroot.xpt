@@ -22,11 +22,6 @@
 
 
 
-
-
-
-
-
 «DEFINE Rootold FOR uml::Model»
 	 «REM»comment«setAsCurrentEntity(this)-»«ENDREM»
 	 «EXPAND genEntity FOREACH  allOwnedElements().typeSelect(wcprofile::Entity)»
