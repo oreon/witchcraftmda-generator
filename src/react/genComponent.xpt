@@ -25,12 +25,15 @@ import {SimpleList} from '../commons/SimpleList.jsx'
 «EXPAND reactroot::genUISchema FOR this»
 «EXPAND reactroot::genHeaders FOR this»
 
+let customerSchema = createSchema()
+const log = (type) => console.log.bind(console, type);
+
 
 export class «name»List extends BaseComponent {
 
     constructor(props) {
         super(props);
-        this.url = URL + '«asVar()»s';
+        this.entityName = '«asVar()»s'
         this.name = '«asVar()»s'
         this.editLink = "/entities/«asVar()»s/edit/"
     }
@@ -76,7 +79,7 @@ export class Edit«name» extends BaseEditComponent {
     constructor(props) {
         super(props);
         this.state = {entity: {}};
-        this.url = URL + '«asVar()»s';
+        this.entityName = 'customers'
         this.onSubmit = this.onSubmit.bind(this);
         //this.handleChange = this.handleChange.bind(this);
     }

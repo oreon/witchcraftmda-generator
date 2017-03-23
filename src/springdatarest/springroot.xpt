@@ -142,14 +142,16 @@ public interface «name»RepositoryBase extends  BaseRepository<«name»> {
 		public static final String DEFAULT_ROLE_NAME = "«defaultRole»"; 
 	«ENDIF»
 	
-	«EXPAND genPropertySearch(this) FOREACH getMineAndParentsAttributes().select(a|!a.isMultivalued() ) -»
+	«EXPAND genPropertySearch(this) FOREACH getMineAndParentsAttributes().select(a|!a.isMultivalued() ).typeSelect(wcprofile::Column) -»
 	
 }
 «ENDFILE»
 «ENDDEFINE»
 
-
 «DEFINE genPropertySearch(wcprofile::Entity  entity) FOR uml::Property»
+«ENDDEFINE»
+
+«DEFINE genPropertySearch(wcprofile::Entity  entity) FOR wcprofile::Column»
 	«IF !isString()»
 		«entity.getNeedsPaginationReturn(this)» findBy«name.toFirstUpper()»(@Param("«name»")  «type.fqn()» «name» «entity.getNeedsPagination(this)»);
 	«ELSE»

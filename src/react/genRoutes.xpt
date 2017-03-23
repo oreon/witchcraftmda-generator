@@ -10,10 +10,10 @@
  «FILE "components/Routes.tsx"»
 
 import {BrowserRouter as Router, Route, NavLink, Switch, Redirect} from 'react-router-dom';
-import {«name»List, Edit«name»} from './«name».jsx'
 
-«EXPAND genImports FOREACH getOwnedTypes().typeSelect(wcprofile::Entity)»
-«EXPAND genLinks FOREACH getOwnedTypes().typeSelect(wcprofile::EntitiesPackage)»
+
+«EXPAND genImports FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+«EXPAND genLinks FOREACH allOwnedElements().typeSelect(wcprofile::EntitiesPackage)»
 
 «EXPAND genRoutes FOR this»
   
@@ -23,7 +23,7 @@ import {«name»List, Edit«name»} from './«name».jsx'
 
 
 «DEFINE genLinks FOR wcprofile::EntitiesPackage»
-const EntitiyLinks«name» = () => (
+const «name.toFirstUpper()»EntitiyLinks = () => (
     <div>
     <h1> «name» </h1>
         <nav>
@@ -44,15 +44,24 @@ const EntitiyLinks«name» = () => (
  export  const Home = (props) => (
     <Router>
         <div>
-            <EntitiyLinks/>
+        	«FOREACH allOwnedElements().typeSelect(wcprofile::EntitiesPackage) AS e»
+        		«e.name.toFirstUpper()»EntitiyLinks
+        	«ENDFOREACH»
+        
             <Switch>
-            «FOREACH getOwnedTypes().typeSelect(wcprofile::Entity) AS e»
-            	<Route path="/entities/«e.name»s/edit/:id(\d+)?" component={Edit«e.name»}/>
-                <Route path="/entities/«e.name»s" component={«e.name»List}/>
-            «ENDFOREACH»
+            «FOREACH allOwnedElements().typeSelect(wcprofile::Entity) AS e»
+           		<Route path="/entities/«e.name»s/edit/:id(\d+)?" component={Edit«e.name»}/>
+        		<Route path="/entities/«e.name»s" component={«e.name»List}/>
+           «ENDFOREACH»
             </Switch>
         </div>
     </Router>
 )
+«ENDDEFINE»
+
+«DEFINE genRtsPkg FOR wcprofile::EntitiesPackage»
+	«FOREACH ownedElements.typeSelect(wcprofile::Entity) AS e»
+    	
+    «ENDFOREACH»
 «ENDDEFINE»
 
