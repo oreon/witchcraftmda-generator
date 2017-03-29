@@ -7,7 +7,7 @@
  
  
  «DEFINE genRoutesFile FOR uml::Model»
- «FILE "components/Routes.tsx"»
+ «FILE "components/Routes.jsx"»
 
 import {BrowserRouter as Router, Route, NavLink, Switch, Redirect} from 'react-router-dom';
 

@@ -6,7 +6,7 @@
 «EXTENSION react::react»
 
 «DEFINE gen FOR wcprofile::Entity»
-«FILE "components/" + name  + ".tsx"»
+«FILE "components/" + name  + ".jsx"»
 
 import React from 'react';
 import SkyLight from 'react-skylight';
