@@ -142,6 +142,9 @@ public interface «name»RepositoryBase extends  BaseRepository<«name»> {
 		public static final String DEFAULT_ROLE_NAME = "«defaultRole»"; 
 	«ENDIF»
 	
+	@Query("select e from «name» e")
+	Stream<«name»> allEntities();
+	
 	«EXPAND genPropertySearch(this) FOREACH getMineAndParentsAttributes().select(a|!a.isMultivalued() ).typeSelect(wcprofile::Column) -»
 	
 }
@@ -164,6 +167,7 @@ public interface «name»RepositoryBase extends  BaseRepository<«name»> {
 
 
 «DEFINE genImports FOR wcprofile::Entity»
+import java.util.stream.Stream;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.PagingAndSortingRepository;
@@ -176,6 +180,8 @@ import java.util.Optional;
 
 import org.springframework.data.repository.query.Param;
 import org.springframework.security.access.prepost.PreAuthorize;
+
+import org.springframework.data.jpa.repository.Query;
 
 import «fqn()»;
 «ENDDEFINE»

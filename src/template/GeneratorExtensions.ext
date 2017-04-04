@@ -798,8 +798,8 @@ isPageable(wcprofile::Entity e, wcprofile::Column p):
 p.isUnq() || p.isOneOnOne();
 
 
-getNeedsPagination(wcprofile::Entity e, wcprofile::Column p ): 
-isPageable(e,p) ?"": ",Pageable pageable";
+getNeedsPagination(wcprofile::Entity e, wcprofile::Column p ): "";
+//isPageable(e,p) ?"": ",Pageable pageable";
 
 getNeedsPagination(wcprofile::Entity e, wcprofile::DerivedProperty p ): false;
 getNeedsPaginationReturn(wcprofile::Entity e, wcprofile::DerivedProperty p ): false;
@@ -807,5 +807,5 @@ isPageable(wcprofile::Entity e, wcprofile::DerivedProperty p):false;
 
 
 getNeedsPaginationReturn(wcprofile::Entity e, wcprofile::Column p ): 
-isPageable(e,p) ? "Optional<" +  e.name  + ">": "Page<" + e.name + ">";
+isPageable(e,p) ? "Optional<" +  e.name  + ">": "Stream<" + e.name + ">";//"Page<" + e.name + ">";
 
