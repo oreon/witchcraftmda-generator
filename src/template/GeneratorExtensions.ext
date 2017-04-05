@@ -24,6 +24,9 @@ getSectionPackageName(Class cls, String section, String packageExt):
 getTopLevelPackage(cls) + "." + section + "."  + cls.package.name +  getStringOrBlank(packageExt, "."  + packageExt  );
 
 
+getSectionPackagePath(Class cls, String section):
+getSectionPackageName(cls,section,"").packagePath();
+
 getSectionPackagePath(Class cls, String section, string ext):
 getSectionPackageName(cls,section,ext).packagePath();
 
@@ -120,7 +123,7 @@ str.replaceAll("::|\\.", "/");
 
 //given a package path like "/src/main/java/com/td/aam" will return com.td.aam
 pathToPackageDeclaration(String str):
-str.replaceAll("/", "\\.");
+str.replaceAll("\\.java","").replaceAll("/", "\\.");
 
 
 //fully qualified name of a class

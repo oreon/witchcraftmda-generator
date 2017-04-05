@@ -27,6 +27,11 @@
 	«EXPAND ManualGen FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
 	
 	«EXPAND genService FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	
+	«EXPAND genServices FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	
+	«EXPAND genController FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	
 «ENDDEFINE»
 
 
@@ -62,42 +67,14 @@
 «DEFINE ManualGen FOR wcprofile::Entity»
 
 
-
-
 «FILE getWebPackagePath("Repository")  man_path »
 	package « getWebPackageName() »;
-	
 	«EXPAND genImports FOR this»
 	
 	@RepositoryRestResource
 	public interface «name»Repository extends «name»RepositoryBase{
-	
-	
 		
 	}
-	
-	«REM»comment
-package « getWebPackageName() »;
-
-import « packageName() ».«name»;
-
-«EXPAND genImports FOR this»
-
-
-«FOREACH getMultiValued() AS a-»
-import «a.type.fqn()»;
-«ENDFOREACH»
-
-public interface «name»Repository extends PagingAndSortingRepository<«name», Long> {
-	
-	«IF getAppliedStereotype("wcprofile::SystemUser") != null && defaultRole != null»
-		public static final String DEFAULT_ROLE_NAME = "«defaultRole»"; 
-	«ENDIF»
-	
-	«EXPAND genPropertySearch(this) FOREACH getMineAndParentsAttributes().select(a|!a.isMultivalued() ) -»
-	
-}
-«ENDREM»
 «ENDFILE»
 «ENDDEFINE»
 
@@ -210,6 +187,80 @@ import «fqn()»;
 «ENDFILE»
 «ENDDEFINE»
 
+«DEFINE genServices FOR wcprofile::Entity»
+
+«FILE getSectionPackagePath("service") + "/" +  name + "Service.java"  man_path »
+package «getSectionPackageName("service")»;
+		
+import org.witchcraft.base.spring.BaseService;
+import «fqn()»;
+
+public interface «name»Service extends BaseService<«name»>{
+
+}
+«ENDFILE»
+
+
+«FILE getSectionPackagePath("service") + "/" +  name + "ServiceImpl.java"   man_path »
+package «getSectionPackageName("service")»;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.witchcraft.base.entity.BaseRepository;
+import org.witchcraft.base.spring.BaseServiceImpl;
+
+import «fqn()»;
+
+import «getWebPackagePath("Repository").pathToPackageDeclaration()»;
+
+
+@Service
+@Transactional
+public class «name»ServiceImpl extends BaseServiceImpl<«name»> implements «name»Service{
+	
+	@Autowired
+	private final «name»Repository «asVar()»Repository = null;
+	
+	@Override
+	public BaseRepository<«name»> getRepository(){
+		return «asVar()»Repository;
+	}
+}
+«ENDFILE»
+
+«ENDDEFINE»
+
+«DEFINE genController FOR wcprofile::Entity»
+
+«FILE getWebPackagePath("Controller")  man_path »
+package « getWebPackageName() »;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.witchcraft.base.spring.BaseService;
+import org.witchcraft.base.spring.BaseController;
+
+import «getSectionPackageName("service")».«name»Service;
+import «fqn()»;
+
+@RestController
+@RequestMapping("/rest/«asVar()»s")
+public class «name»Controller extends BaseController<«name»> {
+
+	@Autowired
+	private «name»Service «asVar()»Service;
+
+	@Override
+	public BaseService<«name»> getBaseService() {
+		return «asVar()»Service;
+	}
+
+}
+«ENDFILE»
+«ENDDEFINE»
+
 
 «DEFINE genService FOR wcprofile::Entity»
 
@@ -235,3 +286,27 @@ import «fqn()»;
 	  }
 	«ENDFILE»
 «ENDDEFINE»
+
+
+«REM»comment
+package « getWebPackageName() »;
+
+import « packageName() ».«name»;
+
+«EXPAND genImports FOR this»
+
+
+«FOREACH getMultiValued() AS a-»
+import «a.type.fqn()»;
+«ENDFOREACH»
+
+public interface «name»Repository extends PagingAndSortingRepository<«name», Long> {
+	
+	«IF getAppliedStereotype("wcprofile::SystemUser") != null && defaultRole != null»
+		public static final String DEFAULT_ROLE_NAME = "«defaultRole»"; 
+	«ENDIF»
+	
+	«EXPAND genPropertySearch(this) FOREACH getMineAndParentsAttributes().select(a|!a.isMultivalued() ) -»
+	
+}
+«ENDREM»
