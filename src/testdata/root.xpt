@@ -9,14 +9,16 @@
 
 «DEFINE Root FOR uml::Model»
 	«EXPAND jsonroot::Root FOR this»
+	«REM»comment
 	«EXPAND GenerateTestDataFactoryManager FOR this»
 	«EXPAND GenerateTestDataFactory FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«ENDREM»
 	«EXPAND GenerateFixture FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
 «ENDDEFINE»
 
 
 «DEFINE GenerateFixture FOR wcprofile::Entity»
-«FILE getFixture().packagePath().replaceAll("main","test") + ".java"»  
+«FILE "../../test/java/" + getFixture().packagePath() + ".java"»  
 
 package «getFixturePackage()»;
 	
@@ -31,6 +33,7 @@ import org.witchcraft.base.test.BaseFixtureFactory;
 
 import «fqn()»;
 
+//create test data for «name»
 public class «name»Fixture extends BaseFixtureFactory<«name»> implements TemplateLoader {
 
 	public «name»Fixture() {

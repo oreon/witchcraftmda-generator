@@ -4,6 +4,7 @@
 «EXTENSION template::GeneratorExtensions»
 «EXTENSION template::associationExtensions»
 «EXTENSION template::WebExtensions»
+«EXTENSION testData::testDataHelpers»
 
 «DEFINE Root FOR uml::Model»
 	«EXPAND EntityTestRoot FOREACH  allOwnedElements().typeSelect(wcprofile::Entity)»
@@ -41,15 +42,13 @@ public class «name»RepositoryIntegrationTestBase {
 	@Autowired
 	protected «getRepositoryFqn()» «getRepositoryClass().toFirstLower()» ;
 	
-	//@Autowired 
-	protected «this.getTestDataFactoryFqn()» «asVar()»TestDataFactory = new «this.getTestDataFactoryFqn()»();
+	protected «getFixture()» «asVar()»Fixture = new «getFixture()»();
 	
 	«FOREACH nonRecursiveMVComposites() AS a»
 	@Autowired
 	protected «a.type.getRepositoryFqn()» «a.type.getRepositoryClass().toFirstLower()»;
 	
-	//@Autowired
-	protected «a.type.getTestDataFactoryFqn()» «a.type.asVar()»TestDataFactory = new «a.type.getTestDataFactoryFqn()»();
+	protected «a.type.getFixture()» «a.type.asVar()»Fixture = new «a.type.getFixture()»();
 	
 	«ENDFOREACH»
 
@@ -57,24 +56,19 @@ public class «name»RepositoryIntegrationTestBase {
 	
 	@Before
 	public void setup() throws Exception {
-
-		try {
+	
 			«asVar()»Repository.deleteAll();
-			«asVar()» = «asVar()»TestDataFactory.create«name»One();
-			
 			«FOREACH nonRecursiveMVComposites() AS a»
-				«asVar()».add«a.name.getSingular().toFirstUpper()»( «a.type.asVar()»TestDataFactory.create«a.type.name»One());
+				«a.type.getRepositoryClass().toFirstLower()».deleteAll();
 			«ENDFOREACH»
 			
-			«asVar()»Repository.save(«asVar()»);
+			«asVar()» = «asVar()»Fixture.getOneRecord();
 			
+			«FOREACH nonRecursiveMVComposites() AS a»
+				«asVar()».add«a.name.getSingular().toFirstUpper()»( «a.type.asVar()»Fixture.getOneRecord());
+			«ENDFOREACH»
 			
-		} catch (AccessDeniedException ade) {
-			System.out.println(ade.getMessage());
-		}catch(Exception e){
-			e.printStackTrace();
-		}
-
+			«asVar()» = «asVar()»Repository.save(«asVar()»);
 	}
 	
 	@Test
@@ -105,7 +99,7 @@ public class «name»RepositoryIntegrationTestBase {
 	@WithMockUser(username = "admin", roles = { "ADMIN" })
 	public void testEdit() throws IllegalAccessException, InvocationTargetException{
 		Long currentId = «asVar()».getId();
-		BeanUtils.copyProperties(«asVar()», «asVar()»TestDataFactory.create«name»Two());
+		BeanUtils.copyProperties(«asVar()», «asVar()»Fixture.getOneRecord());
 		«asVar()».setId(currentId);
 		«asVar()»Repository.save(«asVar()»);
 		assertCount(1L);
