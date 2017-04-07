@@ -14,14 +14,6 @@
 
 
 
-
-
-
-
-
-
-
-
 «DEFINE Rootold FOR uml::Model»
 	 «REM»comment«setAsCurrentEntity(this)-»«ENDREM»
 	 «EXPAND genEntity FOREACH  allOwnedElements().typeSelect(wcprofile::Entity)»
@@ -205,6 +197,10 @@ export function createSchema(){
 «ENDIF»
 «ENDDEFINE»
 
+«DEFINE GenExtras(uml::Property p) FOR wcprofile::Embeddable»  
+
+«ENDDEFINE»
+
 «DEFINE GenExtras(uml::Property p) FOR uml::Type-»  
 «ENDDEFINE»
 
@@ -214,7 +210,9 @@ export function createSchema(){
  «ENDDEFINE»
  
 «DEFINE genRequired FOR wcprofile::Entity-»
+«REM»comment
 «FOREACH getMineAndParentsAttributes().select(a|a.isRequired()) AS r SEPARATOR ','» '«r.name»' «ENDFOREACH»
+«ENDREM»
 «ENDDEFINE»
 
 «DEFINE genUISchema FOR wcprofile::Entity-»

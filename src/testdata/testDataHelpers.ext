@@ -1,0 +1,30 @@
+import uml;
+import java;
+import java::util;
+import wcprofile;
+
+
+extension template::GeneratorExtensions;
+extension template::associationExtensions;
+
+
+getTestData(Property prop):
+	if(prop.type.isEnum())  
+	 then "random(" + prop.type.fqn() + ".class)"
+	else if (prop.isType("Date")) then
+		'randomDate("2011-04-15", "2011-11-07", new SimpleDateFormat("yyyy-MM-dd"))'
+	else if ( prop.isType("boolean") || prop.isType("Boolean") )
+		then "random(true, false)"
+	else if(prop.isCurrency() || prop.isType("Double")) then
+		"random(Long.class, range(1, 10))" //todo should return bigdecimal
+	else if ( prop.isType("Integer") )
+		then   "random(Integer.class, range(1, 200))"
+	else if ( prop.isType("long"))
+		then  "random(Long.class, range(1L, 100L))"
+	else	//string
+		"random(arrayNames)";
+		
+getFixture(Type type): type.getFixturePackage() + "." + type.name + "Fixture";
+
+getFixturePackage(Type type): type.packageName() + ".testdata";
+		

@@ -4,12 +4,81 @@
 «EXTENSION template::GeneratorExtensions»
 «EXTENSION template::associationExtensions»
 «EXTENSION template::WebExtensions»
+«EXTENSION testData::testDataHelpers»
+
 
 «DEFINE Root FOR uml::Model»
 	«EXPAND jsonroot::Root FOR this»
 	«EXPAND GenerateTestDataFactoryManager FOR this»
 	«EXPAND GenerateTestDataFactory FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
+	«EXPAND GenerateFixture FOREACH allOwnedElements().typeSelect(wcprofile::Entity)»
 «ENDDEFINE»
+
+
+«DEFINE GenerateFixture FOR wcprofile::Entity»
+«FILE getFixture().packagePath().replaceAll("main","test") + ".java"»  
+
+package «getFixturePackage()»;
+	
+import java.text.SimpleDateFormat;
+import java.util.List;
+
+import br.com.six2six.fixturefactory.Fixture;
+import br.com.six2six.fixturefactory.Rule;
+import br.com.six2six.fixturefactory.loader.TemplateLoader;
+
+import org.witchcraft.base.test.BaseFixtureFactory;
+
+import «fqn()»;
+
+public class «name»Fixture extends BaseFixtureFactory<«name»> implements TemplateLoader {
+
+	public «name»Fixture() {
+		load();
+	}
+	
+	 @Override
+	protected String getName() {
+		return "«asVar()»";
+	}
+
+	@Override
+	public void load() {
+
+		Fixture.of(«name».class).addTemplate(getName(), new Rule() {
+			{
+			«FOREACH getMineAndParentsAttributes().select(a| a.association == null && !a.isFile()) AS a-»
+				add("«a.name»", «a.getTestData()»);
+			«ENDFOREACH»
+	
+			«FOREACH getNonRecursiveOutgoingAssociations().select(a| !( a.type.isEmbeddable() || a.isContainedAssoc() || isCircular(a) ) ) AS a»
+				add("«a.name»", new «a.type.getFixture()»().getOneRecord());
+			«ENDFOREACH»
+			}
+		});
+	}
+
+	protected Class<«name»> getMyClass(){
+		return «name».class;
+	}
+	
+	public static void main(String[] args) {
+		new «name»Fixture().getRecords(5).forEach(System.out::println);
+	}
+}
+
+«ENDFILE»
+«ENDDEFINE»
+
+
+«DEFINE randValue(uml::PrimitiveType e , uml::Class target, String counter) FOR uml::Property»
+	«target.asVar()»«getCurrentEmbeddable() != null? ".get" + getCurrentEmbeddable().name.toFirstUpper() + "()" :"" ».set«name.toFirstUpper()»(«getRandValue(counter)»);
+«ENDDEFINE»
+
+«DEFINE randValue(uml::Class e, uml::Class target , String counter) FOR uml::Property»
+	«target.asVar()»«getCurrentEmbeddable() != null? ".get" + getCurrentEmbeddable().name.toFirstUpper() + "()" :"" ».set«name.toFirstUpper()»(«getRandValue(counter)»);
+«ENDDEFINE»
+
 
 
 «DEFINE GenerateTestDataFactoryManager FOR uml::Model»

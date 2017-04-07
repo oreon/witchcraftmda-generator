@@ -37,7 +37,7 @@ const «name.toFirstUpper()»EntitiyLinks = () => (
 
 
 «DEFINE genImports FOR  wcprofile::Entity»
-	import {«name»List,Edit«name»} from './«name»';
+	import {«name»List,Edit«name», View«name»} from './«name»';
 «ENDDEFINE»
 
 «DEFINE genRoutes FOR uml::Model»
@@ -51,6 +51,7 @@ const «name.toFirstUpper()»EntitiyLinks = () => (
             <Switch>
             «FOREACH allOwnedElements().typeSelect(wcprofile::Entity) AS e»
            		<Route path="/entities/«e.name»s/edit/:id(\d+)?" component={Edit«e.name»}/>
+           		<Route path="/entities/«e.name»s/view/:id(\d+)?" component={View«e.name»}/>
         		<Route path="/entities/«e.name»s" component={«e.name»List}/>
            «ENDFOREACH»
             </Switch>
