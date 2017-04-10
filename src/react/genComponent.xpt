@@ -29,7 +29,7 @@ import {SimpleList} from '../commons/SimpleList.jsx'
 «EXPAND reactroot::genUISchema FOR this»
 «EXPAND reactroot::genHeaders FOR this»
 
-«FOREACH getMineAndParentsAttributes().select(a|a.isMVComposite()  && a.type != this) AS e»
+«FOREACH getAllAggregateOrComposed() AS e»
 	import { «e.type.name»List} from './«e.type.name».jsx';
 «ENDFOREACH»
 
@@ -132,13 +132,14 @@ export class View«name» extends BaseEditComponent {
   render() {
   
     let record = this.state.entity
+     if(!record) return null;
     return (
      <div>
        <SimpleView  headers= {«asVar()»Headers} renderExtra={this.renderExtra}
        record={record}   entityName='«name»' /> 
        
        <Tabs>
-       «FOREACH getAllComposed() AS e-»
+       «FOREACH getAllAggregateOrComposed() AS e-»
        	  <Tab label="«e.type.name»" >
           <«e.type.name»List records={record.«e.name»} 
           nested={true}  

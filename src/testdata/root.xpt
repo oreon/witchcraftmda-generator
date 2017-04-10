@@ -65,7 +65,7 @@ public class «name»Fixture extends BaseFixtureFactory<«name»> implements Templat
 		return «name».class;
 	}
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) {	
 		new «name»Fixture().getRecords(5).forEach(System.out::println);
 	}
 }
