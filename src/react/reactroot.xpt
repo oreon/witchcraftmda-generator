@@ -135,8 +135,8 @@ export function createSchema(){
     type: "object",
     required: [ «EXPAND genRequired»],
     properties: {
-    «EXPAND genProperty FOREACH getMineAndParentsAttributes().select(a|!a.isMVComposite())»
-    «EXPAND genNested FOREACH getMineAndParentsAttributes().select(a|a.isMVComposite()) »
+    «EXPAND genProperty FOREACH getMineAndParentsAttributes().select(a|!a.isMVComposite() && a.isAttributeEditable() )»
+    «EXPAND genNested FOREACH getMineAndParentsAttributes().select(a|a.isMVComposite()  && a.isAttributeEditable() ) »
     }
  };
 

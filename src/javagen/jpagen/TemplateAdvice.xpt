@@ -196,7 +196,7 @@
 
 «DEFINE genManyToMany FOR uml::Property»
 	«IF isLeadingManyToMany()»
-		@ManyToMany(cascade={CascadeType.PERSIST, CascadeType.MERGE}, «getFetchType()»)
+		@ManyToMany(CascadeType.MERGE}, «getFetchType()»)
 	    @JoinTable(
 	        name="«opposite.name»_«name»",
 	        joinColumns=@JoinColumn(name="«opposite.name.getColumnNameUC()»_ID"),

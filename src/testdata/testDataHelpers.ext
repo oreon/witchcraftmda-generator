@@ -21,8 +21,8 @@ getTestData(Property prop):
 		then   "random(Integer.class, range(1, 200))"
 	else if ( prop.isType("long"))
 		then  "random(Long.class, range(1L, 100L))"
-	else	//string
-		"uniqueRandom(arrayNames)";
+	else 	//string
+		"getUniqueNames()";
 		
 getFixture(Type type): type.getFixturePackage() + "." + type.name + "Fixture";
 
