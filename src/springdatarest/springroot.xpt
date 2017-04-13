@@ -57,7 +57,7 @@
 
 «DEFINE genPropertyProjection(wcprofile::Entity  entity) FOR uml::Property»
 	«IF !isMultivalued()»
-		Optional<«type.fqn()»> get«name.toFirstUpper()»();
+		«type.fqn()» get«name.toFirstUpper()»();
 	«ELSE»
 		List<«type.fqn()»>  get«name.toFirstUpper()»();
 	«ENDIF»

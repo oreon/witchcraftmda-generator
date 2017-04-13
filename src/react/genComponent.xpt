@@ -120,7 +120,7 @@ export class Edit«name» extends BaseEditComponent {
 
 export class View«name» extends BaseEditComponent {
 
-  renderExtra(record: any) { <p> IN render </p> }
+  renderExtra(record) { <p> IN render </p> }
   
   constructor(props) {
     super(props);

@@ -22,7 +22,7 @@ getTestData(Property prop):
 	else if ( prop.isType("long"))
 		then  "random(Long.class, range(1L, 100L))"
 	else 	//string
-		"getUniqueNames()";
+		"random(getUniqueNames())";
 		
 getFixture(Type type): type.getFixturePackage() + "." + type.name + "Fixture";
 
